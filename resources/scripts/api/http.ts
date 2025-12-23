@@ -54,6 +54,22 @@ export function httpErrorToHuman(error: any): string {
             }
         }
 
+        // Laravel validation errors (422)
+        if (data.errors && typeof data.errors === 'object') {
+            // Check if it's Laravel validation format: { field: [messages] }
+            const errorKeys = Object.keys(data.errors);
+            if (errorKeys.length > 0 && Array.isArray(data.errors[errorKeys[0]])) {
+                // Combine all validation errors into one message
+                const allErrors: string[] = [];
+                errorKeys.forEach((key) => {
+                    if (Array.isArray(data.errors[key])) {
+                        allErrors.push(...data.errors[key]);
+                    }
+                });
+                return allErrors.join(' ');
+            }
+        }
+
         if (data.errors && data.errors[0] && data.errors[0].detail) {
             return data.errors[0].detail;
         }

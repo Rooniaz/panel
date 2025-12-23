@@ -53,7 +53,19 @@ const App = () => {
     }
 
     if (!store.getState().settings.data) {
-        store.getActions().settings.setSettings(SiteConfiguration!);
+        if (SiteConfiguration) {
+            store.getActions().settings.setSettings(SiteConfiguration);
+        } else {
+            // Default settings if SiteConfiguration is not available
+            store.getActions().settings.setSettings({
+                name: 'Pterodactyl',
+                locale: 'en',
+                recaptcha: {
+                    enabled: false,
+                    siteKey: '',
+                },
+            });
+        }
     }
 
     return (

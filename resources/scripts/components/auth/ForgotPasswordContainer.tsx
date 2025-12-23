@@ -22,7 +22,9 @@ export default () => {
     const [token, setToken] = useState('');
 
     const { clearFlashes, addFlash } = useFlash();
-    const { enabled: recaptchaEnabled, siteKey } = useStoreState((state) => state.settings.data!.recaptcha);
+    const { enabled: recaptchaEnabled, siteKey } = useStoreState(
+        (state) => state.settings.data?.recaptcha || { enabled: false, siteKey: '' }
+    );
 
     useEffect(() => {
         clearFlashes();

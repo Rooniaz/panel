@@ -3,9 +3,9 @@ import { Link, RouteComponentProps } from 'react-router-dom';
 import login from '@/api/auth/login';
 import LoginFormContainer from '@/components/auth/LoginFormContainer';
 import { useStoreState } from 'easy-peasy';
-import { Formik, FormikHelpers } from 'formik';
+import { Formik, FormikHelpers, Field as FormikField, FieldProps } from 'formik';
 import { object, string } from 'yup';
-import Field from '@/components/elements/Field';
+import Input from '@/components/elements/Input';
 import tw from 'twin.macro';
 import Button from '@/components/elements/Button';
 import Reaptcha from 'reaptcha';
@@ -21,7 +21,9 @@ const LoginContainer = ({ history }: RouteComponentProps) => {
     const [token, setToken] = useState('');
 
     const { clearFlashes, clearAndAddHttpError } = useFlash();
-    const { enabled: recaptchaEnabled, siteKey } = useStoreState((state) => state.settings.data!.recaptcha);
+    const { enabled: recaptchaEnabled, siteKey } = useStoreState(
+        (state) => state.settings.data?.recaptcha || { enabled: false, siteKey: '' }
+    );
 
     useEffect(() => {
         clearFlashes();
@@ -30,16 +32,12 @@ const LoginContainer = ({ history }: RouteComponentProps) => {
     const onSubmit = (values: Values, { setSubmitting }: FormikHelpers<Values>) => {
         clearFlashes();
 
-        // If there is no token in the state yet, request the token and then abort this submit request
-        // since it will be re-submitted when the recaptcha data is returned by the component.
         if (recaptchaEnabled && !token) {
             ref.current!.execute().catch((error) => {
                 console.error(error);
-
                 setSubmitting(false);
                 clearAndAddHttpError({ error });
             });
-
             return;
         }
 
@@ -50,15 +48,12 @@ const LoginContainer = ({ history }: RouteComponentProps) => {
                     window.location = response.intended || '/';
                     return;
                 }
-
                 history.replace('/auth/login/checkpoint', { token: response.confirmationToken });
             })
             .catch((error) => {
                 console.error(error);
-
                 setToken('');
                 if (ref.current) ref.current.reset();
-
                 setSubmitting(false);
                 clearAndAddHttpError({ error });
             });
@@ -74,16 +69,39 @@ const LoginContainer = ({ history }: RouteComponentProps) => {
             })}
         >
             {({ isSubmitting, setSubmitting, submitForm }) => (
-                <LoginFormContainer title={'Login to Continue'} css={tw`w-full flex`}>
-                    <Field light type={'text'} label={'Username or Email'} name={'username'} disabled={isSubmitting} />
+                <LoginFormContainer title={'Welcome Back'}>
+                    <FormikField name='username'>
+                        {({ field, form: { errors, touched } }: FieldProps) => (
+                            <Input
+                                {...field}
+                                type='text'
+                                placeholder={'Username or Email'}
+                                disabled={isSubmitting}
+                                hasError={!!(touched.username && errors.username)}
+                            />
+                        )}
+                    </FormikField>
+
                     <div css={tw`mt-6`}>
-                        <Field light type={'password'} label={'Password'} name={'password'} disabled={isSubmitting} />
+                        <FormikField name='password'>
+                            {({ field, form: { errors, touched } }: FieldProps) => (
+                                <Input
+                                    {...field}
+                                    type='password'
+                                    placeholder={'Password'}
+                                    disabled={isSubmitting}
+                                    hasError={!!(touched.password && errors.password)}
+                                />
+                            )}
+                        </FormikField>
                     </div>
+
                     <div css={tw`mt-6`}>
                         <Button type={'submit'} size={'xlarge'} isLoading={isSubmitting} disabled={isSubmitting}>
                             Login
                         </Button>
                     </div>
+
                     {recaptchaEnabled && (
                         <Reaptcha
                             ref={ref}
@@ -99,13 +117,25 @@ const LoginContainer = ({ history }: RouteComponentProps) => {
                             }}
                         />
                     )}
-                    <div css={tw`mt-6 text-center`}>
-                        <Link
-                            to={'/auth/password'}
-                            css={tw`text-xs text-neutral-500 tracking-wide no-underline uppercase hover:text-neutral-600`}
-                        >
-                            Forgot password?
-                        </Link>
+
+                    <div css={tw`mt-6 text-center text-sm space-y-2`}>
+                        <div>
+                            <Link
+                                to={'/auth/password'}
+                                css={tw`text-neutral-300 no-underline hover:text-neutral-200 transition-colors duration-150`}
+                            >
+                                Forgot your password?
+                            </Link>
+                        </div>
+                        <div>
+                            <span css={tw`text-neutral-400`}>ยังไม่มีบัญชี? </span>
+                            <Link
+                                to={'/auth/register'}
+                                css={tw`text-blue-400 hover:text-blue-300 transition-colors duration-150`}
+                            >
+                                สมัครสมาชิก
+                            </Link>
+                        </div>
                     </div>
                 </LoginFormContainer>
             )}

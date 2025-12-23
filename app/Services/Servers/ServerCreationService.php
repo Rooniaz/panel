@@ -18,6 +18,7 @@ use Pterodactyl\Services\Deployment\FindViableNodesService;
 use Pterodactyl\Repositories\Eloquent\ServerVariableRepository;
 use Pterodactyl\Services\Deployment\AllocationSelectionService;
 use Pterodactyl\Exceptions\Http\Connection\DaemonConnectionException;
+use Pterodactyl\Jobs\Servers\CreateServerJob;
 
 class ServerCreationService
 {
@@ -93,6 +94,20 @@ class ServerCreationService
             return $server;
         }, 5);
 
+        // Check if we should create server asynchronously
+        $async = Arr::get($data, 'async', false);
+
+        if ($async) {
+            // Dispatch job to create server in background
+            CreateServerJob::dispatch(
+                $server->id,
+                Arr::get($data, 'start_on_completion', false) ?? false
+            );
+
+            return $server;
+        }
+
+        // Synchronous creation (original behavior)
         try {
             $this->daemonServerRepository->setServer($server)->create(
                 Arr::get($data, 'start_on_completion', false) ?? false

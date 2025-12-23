@@ -55,11 +55,16 @@ class ServerController extends ApplicationApiController
      */
     public function store(StoreServerRequest $request): JsonResponse
     {
-        $server = $this->creationService->handle($request->validated(), $request->getDeploymentObject());
+        $data = $request->validated();
+        
+        // Force async creation for API requests to prevent timeouts
+        $data['async'] = true;
+        
+        $server = $this->creationService->handle($data, $request->getDeploymentObject());
 
         return $this->fractal->item($server)
             ->transformWith($this->getTransformer(ServerTransformer::class))
-            ->respond(201);
+            ->respond(202); // 202 Accepted - request accepted but processing is not complete
     }
 
     /**
