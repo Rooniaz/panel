@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="preconnect" href="https://rsms.me/" />
+    <link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300..700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        font-family: Inter, sans-serif;
+        font-feature-settings: "liga" 1, "calt" 1;
+        /* fix for Chrome */
+      }
+
+      @supports (font-variation-settings: normal) {
+        :root {
+          font-family: InterVariable, sans-serif;
+        }
+      }
+
+      body {
+        max-width: 700px;
+      }
+
+      img {
+        object-fit: contain;
+        max-width: 100%;
+        overflow: auto;
+      }
+
+      .danger {
+        padding: 3rem;
+        color: white;
+        background-color: rgb(200 0 0);
+      }
+
+      .cols {
+        display: flex;
+      }
+
+      .hidden {
+        display: none;
+      }
+
+      .theme-none .visible-none,
+      .theme-arix .visible-arix,
+      .theme-stellar .visible-stellar,
+      .theme-other .visible-other {
+        padding: 3rem;
+        background-color: rgb(0 200 200);
+        display: block;
+      }
+
+      @media (min-width: 900px) {
+        html {
+          display: flex;
+          justify-content: center;
+        }
+
+        pre {
+          position: relative;
+          right: calc((100vw - 700px) / 2 - 10vw);
+          width: 80vw;
+        }
+      }
+
+      pre,
+      code {
+        font-family: "Fira Code", monospace;
+      }
+
+      .sign {
+        user-select: none;
+        -webkit-user-select: none;
+      }
+
+      ins {
+        text-decoration: none;
+        display: inline-block;
+        background-color: oklch(0.792 0.209 151.711);
+      }
+
+      del {
+        text-decoration: none;
+        display: inline-block;
+        background-color: oklch(0.704 0.191 22.216);
+      }
+
+      h1,
+      h2,
+      h3,
+      h4 {
+        text-wrap: balance;
+      }
+    </style>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/default.min.css"
+    />
+  </head>
+
+  <body class="theme-none">
+    <h1>Minecraft Modpack Installer for Pterodactyl Installation Guide</h1>
+    <h2>Configuration</h2>
+    <p>
+      Customize the installation guide so only the relevant instructions are
+      shown to you.
+    </p>
+    <div>
+      <label for="pterodactyl-theme-input">Pterodactyl Panel theme</label>
+      <select id="pterodactyl-theme-input" type="text">
+        <option value="other">Other</option>
+        <option value="none">None</option>
+        <option value="arix">Arix or Nova</option>
+        <option value="stellar">Stellar</option>
+      </select>
+    </div>
+    <h2>Welcome</h2>
+    <p>
+      Welcome and thanks for buying this product, Minecraft Modpack Installer
+      for Pterodactyl! Contact information is available at the end of this
+      document, section <a href="#contact">Contact</a>. Please don't hesitate to
+      reach out if you have any questions.
+    </p>
+    <h2>How it works</h2>
+    <p>
+      This modpack installer uses an egg to which servers are switched to
+      temporarily. The egg has an install script which installs all the
+      necessary stuff to run the desired modpack. The modpack installer egg
+      can't be used to run modpacks directly. It is recommended to use the Forge
+      egg for that which already has a compatible startup command (it fetches
+      Java Virtual Machine options from
+      <code>/home/container/unix_args.txt</code>).
+    </p>
+    <h2>Wings modifications (optional)</h2>
+    <p>
+      This is the same modification as ric-rac's Minecraft Mod Manager &amp;
+      Plugin Manager. You shouldn't do it twice.
+    </p>
+    <p>
+      This allows to switch to the correct Java Docker image depending on the
+      software used by the modpacks.
+    </p>
+    <p>
+      You need to have the GoLang development tools and Make before proceeding.
+      On Debian-based operating systems (including Ubuntu) you can install them
+      using:
+    </p>
+    <pre><code>ARCH=$([ "$(uname -m)" = "x86_64" ] &amp;&amp; echo "amd64" || echo "arm64")
+wget "https://go.dev/dl/go1.23.3.linux-$ARCH.tar.gz"
+sudo rm -rf /usr/local/go &amp;&amp; sudo tar -C /usr/local -xzf "go1.23.3.linux-$ARCH.tar.gz"
+echo 'export PATH=$PATH:/usr/local/go/bin' | sudo tee -a /etc/profile &amp;&amp; . /etc/profile
+sudo apt install make</code></pre>
+    <p>
+      If you use the zsh shell, you may need to add the directory to the
+      <code>PATH</code> in <code>~/.zshrc</code> instead.
+    </p>
+    <p>Clone Pterodactyl Wings source code:</p>
+    <pre><code>git clone https://github.com/pterodactyl/wings.git
+cd wings</code></pre>
+    <p>
+      Upload the <code>wings.patch</code> contained within this archive to the
+      directory that was created
+    </p>
+    <p>Apply the changes, build the executable binaries:</p>
+    <pre><code>git apply wings.patch
+make build</code></pre>
+    <p>
+      On each node, you want to stop Wings, replace current wings by the one you
+      built and restart Wings:
+    </p>
+    <pre><code>systemctl stop wings
+cp build/wings_linux_amd64 /usr/local/bin/wings
+systemctl start wings</code></pre>
+    <h2>Setup</h2>
+    <h3>Configure a CFCore API key</h3>
+    <p>
+      This add-on makes use of external HTTP APIs. CurseForge is the only API
+      that <strong>requires</strong> authentication for the retrieval of
+      information about their platforms' modpacks.
+    </p>
+    <p>
+      To access the CurseForge API, you first need to
+      <a href="https://console.curseforge.com/?#/signup"
+        >create a CFCore account</a
+      >. Then, copy your API key and add another line in your
+      <code>.env</code> file like this:
+    </p>
+    <pre><code>CURSEFORGE_API_KEY="$2a$10$iZYWa6jrmyz7hN69sfmInes1FAqrn2ycR.ZdrKKrtOpz/Tn9ETMcK"</code></pre>
+    <p>(This API key will not work, it is just an example!)</p>
+    <h3>Install Node.js, npm and yarn</h3>
+    <p>
+      On your system, you'll need to install a recent version of Node.js, npm
+      and yarn if you don't have them installed yet. Please follow this link to
+      install Node.js (npm is packed with it):
+      <a href="https://nodejs.org/en/download/"
+        >https://nodejs.org/en/download/</a
+      >
+    </p>
+    <p>Then, install yarn globally with npm:</p>
+    <pre><code>npm install --global yarn</code></pre>
+    <h3>Install dependencies and build the panel assets</h3>
+    <p>
+      Next, we'll download dependencies then build the panel assets to check
+      that your configuration is operational.
+    </p>
+    <p>Navigate to where Pterodactyl is installed, e.g.</p>
+    <pre><code>cd /var/www/pterodactyl</code></pre>
+    <p>
+      Then, execute the following commands that will install the dependencies:
+    </p>
+    <pre><code>yarn install</code></pre>
+    <p>
+      If you're going to use a Node.js version greater than or equal to 17.x,
+      you may encounter errors due to an incompatibility between the new OpenSSL
+      and the version of webpack used by Pterodactyl. As a workaround, set this
+      environment variable before building assets:
+    </p>
+    <pre><code>export NODE_OPTIONS=--openssl-legacy-provider</code></pre>
+    <p>Run the panel development build:</p>
+    <pre><code>yarn run build</code></pre>
+    <p>
+      If that worked, we've confirmed that you can build your panel's assets for
+      development! If that failed and your screen turned to red:
+    </p>
+    <ol>
+      <li>
+        check if all the errors are only style errors (e.g. it asks to replace
+        spaces by tabs) => you can ignore them!
+      </li>
+      <li>otherwise, check the Troubleshooting section down below.</li>
+    </ol>
+    <h3>Upload the contents of the <code>upload</code> directory</h3>
+    <p>
+      To proceed, please upload the contents of the
+      <code>upload</code> directory inside the directory where Pterodactyl is
+      installed with your favorite (S)FTP client.
+    </p>
+    <h3 id="egg-import">Importing the egg</h3>
+    <p>
+      The add-on <strong>NEEDS</strong> an egg to work. You have two options to
+      import the egg (only one is necessary):
+    </p>
+    <ol>
+      <li>
+        <p>
+          Import the egg manually (you can find it at path
+          <code
+            >upload/database/Seeders/eggs/minecraft/egg-minecraft--java-edition-modpack-installer.json</code
+          >
+          of this archive).
+        </p>
+        <img src="media/nests-import.png" />
+        <img src="media/egg-import.png" />
+      </li>
+      <li>
+        Seed your database using
+        <code>php artisan migrate --force --seed</code>, which may overwrite
+        existing eggs if they match the nest and egg names in
+        <code>database/Seeders/eggs</code>.
+      </li>
+    </ol>
+    <h2>Make the necessary modifications to existing panel files</h2>
+    <p>
+      Now we just need to do some modifications on Panel files. Fortunately,
+      there are not much! Under each file name (relative to the directory your
+      Panel is installed in), there will be a diff. Your mission is to find the
+      lines which are NOT prefixed by <code>+</code> and add those that are
+      prefixed by a <code>+</code>.
+    </p>
+    <p>
+      <code>+</code> means "add this line". The <code>+</code> symbols at the
+      start of lines shouldn't be in the final code.
+    </p>
+    <h3><code>config/services.php</code></h3>
+    <p>
+      In this file, <strong>DON'T</strong> replace
+      <code>CURSEFORGE_API_KEY</code> by your API key. It should have been added
+      in <code>.env</code> by now.
+    </p>
+    <pre><code>     'ses' => [
+         'key' => env('AWS_ACCESS_KEY_ID'),
+         'secret' => env('AWS_SECRET_ACCESS_KEY'),
+         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
+     ],
++
++    'curseforge_api_key' => env('CURSEFORGE_API_KEY'),
+ ];</code></pre>
+    <h3>
+      <code
+        >app/Http/Controllers/Api/Remote/Servers/ServerInstallController.php</code
+      >
+    </h3>
+    <pre><code> use Pterodactyl\Http\Requests\Api\Remote\InstallationDataRequest;
++use Exception;
++use Illuminate\Support\Facades\DB;
++use Pterodactyl\Models\User;
++use Pterodactyl\Services\Minecraft\MinecraftSoftwareService;
++use Pterodactyl\Services\Servers\StartupModificationService;</code></pre>
+    <pre><code>-    public function __construct(private ServerRepository $repository, private EventDispatcher $eventDispatcher)
++    public function __construct(private ServerRepository $repository, private EventDispatcher $eventDispatcher,
++        private MinecraftSoftwareService $minecraftSoftwareService, private StartupModificationService $startupModificationService)
+     {</code></pre>
+    <pre><code>         // Make sure the type of failure is accurate
+         if (!$request->boolean('successful')) {
+             $status = Server::STATUS_INSTALL_FAILED;
+ 
+             if ($request->boolean('reinstall')) {
+                 $status = Server::STATUS_REINSTALL_FAILED;
+             }
++        } else {
++            $this->updateServerImageFromMinecraftSoftware($server);
+         }</code></pre>
+    <pre><code>         return new JsonResponse([], Response::HTTP_NO_CONTENT);
+     }
++
++    protected function updateServerImageFromMinecraftSoftware(Server $server) {
++        try {
++            if (DB::table('modpack_installations')
++                ->where('server_id', $server->id)
++                ->where('finalized', false)
++                ->exists()) {
++
++                    // Update Java Docker image depending on the detected Minecraft version.
++                    $this->minecraftSoftwareService->setServer($server);
++                    $buildInfo = $this->minecraftSoftwareService->getServerBuildInformation();
++
++                    if (isset($buildInfo['java'])) {
++                        $availableImages = $server->egg->docker_images;
++                        $newImage = $this->getImageForJavaVersion($availableImages, $buildInfo['java']) ?? 'ghcr.io/pterodactyl/yolks:java_' . $buildInfo['java'];
++                        $this->startupModificationService->setUserLevel(User::USER_LEVEL_ADMIN)->handle($server, [
++                            'docker_image' => $newImage,
++                        ]);
++                    }
++                    DB::table('modpack_installations')
++                        ->where('server_id', $server->id)
++                        ->where('finalized', false)
++                        ->update(['finalized' => true]);
++                }
++            } catch (Exception) {}
++    }
++
++    protected function getImageForJavaVersion(array $availableImages, string $javaVersion): ?string
++    {
++        if (function_exists('array_find')) {
++            return array_find($availableImages, fn ($v, $k) => str_ends_with($k, ' ' . $javaVersion));
++        }
++        foreach ($availableImages as $name => $avImage) {
++            if (str_ends_with($name, ' ' . $javaVersion)) {
++                return $avImage;
++            }
++        }
++        return null;
++    }
+ }</code></pre>
+    <h3><code>app/Repositories/Wings/DaemonFileRepository.php</code></h3>
+    <pre><code> use GuzzleHttp\Exception\TransferException;
++use GuzzleHttp\Psr7\Query;
+ use Pterodactyl\Exceptions\Http\Server\FileSizeTooLargeException;</code></pre>
+    <pre><code>        $length = (int) Arr::get($response->getHeader('Content-Length'), 0, 0);
+        if ($notLargerThan &amp;&amp; $length > $notLargerThan) {
+            throw new FileSizeTooLargeException();
+        }
+
+        return $response->getBody()->__toString();
+    }
+
++    /**
++     * Returns fingerprints of given files' content.
++     *
++     * @param  $path  string[]
++     * @param  $algorithm string should be `sha512` or `curseforge`
++     * @return array&lt;string, string>
++     *
++     * @throws \GuzzleHttp\Exception\TransferException
++     * @throws \Pterodactyl\Exceptions\Http\Connection\DaemonConnectionException
++     */
++    public function getFingerprints(array $paths, string $algorithm = 'sha512'): array
++    {
++        Assert::isInstanceOf($this->server, Server::class);
++
++        try {
++            $response = $this->getHttpClient()->get(
++                sprintf('/api/servers/%s/files/fingerprints', $this->server->uuid),
++                [
++                    'query' => Query::build(['files' => $paths, 'algorithm' => $algorithm]),
++                ]
++            );
++        } catch (ClientException|TransferException $exception) {
++            throw new DaemonConnectionException($exception);
++        }
++
++        $response = $response->getBody()->__toString();
++
++        return json_decode($response, true)['fingerprints'];
++    }</code></pre>
+    <p class="hidden visible-none visible-other">
+      Some of the following client-side routing related modifications are not
+      needed for every theme or some other add-on might already be adding
+      something similar. In case of doubt, contact us.
+    </p>
+    <div class="hidden visible-none visible-other">
+      <h3><code>app/Transformers/Api/Client/ServerTransformer.php</code></h3>
+      <p>
+        Your theme or another add-on may have already done this change so make
+        sure this isn't the case.
+      </p>
+      <pre><code>            'internal_id' => $server->id,
++           'egg_id' => $server->egg_id,
+            'uuid' => $server->uuid,</code></pre>
+
+      <h3><code>resources/scripts/api/server/getServer.ts</code></h3>
+      <p>
+        Your theme or another add-on may have already done these changes so make
+        sure this isn't the case.
+      </p>
+      <pre><code>export interface Server {
+    id: string;
+    internalId: number | string;
++   eggId: number;
+    uuid: string;</code></pre>
+      <pre><code>    internalId: data.internal_id,
++   eggId: data.egg_id,
+    uuid: data.uuid,</code></pre>
+    </div>
+    <h3>
+      <code>resources/scripts/routers/routes.ts</code> (or
+      <code>routes.tsx</code>)
+    </h3>
+    <pre><code> import FileManagerContainer from '@/components/server/files/FileManagerContainer';
++import ModpacksContainer from '@/components/server/minecraft-modpacks/ModpacksContainer';
+ import SettingsContainer from '@/components/server/settings/SettingsContainer';</code></pre>
+    <div class="hidden visible-none visible-other">
+      <p>
+        Your theme or another add-on may have already done the following change
+        so make sure this isn't the case.
+      </p>
+      <pre><code>interface ServerRouteDefinition extends RouteDefinition {
+    permission: string | string[] | null;
++   eggIds?: number[];
+}</code></pre>
+    </div>
+    <pre class="hidden visible-none visible-arix visible-other"><code>         {
+             path: '/files',
+             permission: 'file.*',
+             name: 'Files',
+             component: FileManagerContainer,
+         },
++        {
++            path: '/modpacks',
++            permission: 'file.*',
++            name: 'Modpacks',
++            component: ModpacksContainer,
++            eggIds: [1, 3],
++        },</code></pre>
+    <pre class="hidden visible-stellar"><code>         {
+             path: '/files',
+             permission: 'file.*',
+             name: Lang.Filemanager,
+             icon: Icon.Folder,
+             component: FileManagerContainer,
+         },
++        {
++            path: '/modpacks',
++            permission: 'file.*',
++            name: 'Modpacks',
++            component: ModpacksContainer,
++            icon: Icon.Folder,
++            eggIds: [1, 3],
++        },</code></pre>
+    <div class="danger">
+      <div>A note about eggs</div>
+      <div>
+        <p>
+          The file above contains the numeric identifiers for the eggs for which
+          the new "Modpacks" tab will be shown in the servers' dashboard. It is
+          pre-filled with the default Pterodactyl eggs "Forge Minecraft" and
+          "Vanilla Minecraft", please adjust as needed. Egg IDs can be found in
+          your Pterodactyl Panel, in the admin side. Navigate to "Nests", select
+          the appropriate nest and the egg IDs will be in the first column of
+          the table.
+        </p>
+      </div>
+      <div class="cols">
+        <img src="media/nests.png" />
+        <img src="media/eggs.png" />
+      </div>
+    </div>
+    <div class="hidden visible-none visible-other">
+      <h3><code>resources/scripts/routers/ServerRouter.tsx</code></h3>
+      <p>
+        Your theme or another add-on may have already done these changes so make
+        sure this isn't the case.
+      </p>
+      <pre><code>    const serverId = ServerContext.useStoreState((state) => state.server.data?.internalId);
++   const serverEggId = ServerContext.useStoreState((state) => state.server.data?.eggId);</code></pre>
+      <pre><code>                                 {routes.server
+                                     .filter((route) => !!route.name)
++                                    .filter((route) =>
++                                        route.eggIds &amp;&amp; serverEggId ? route.eggIds.includes(serverEggId) : true
++                                    )
+                                     .map((route) =></code></pre>
+    </div>
+
+    <h3><code>routes/api-client.php</code></h3>
+    <pre><code>     Route::group(['prefix' => '/settings'], function () {
+         Route::post('/rename', [Client\Servers\SettingsController::class, 'rename']);
+         Route::post('/reinstall', [Client\Servers\SettingsController::class, 'reinstall']);
+         Route::put('/docker-image', [Client\Servers\SettingsController::class, 'dockerImage']);
+     });
+ 
++    Route::group(['prefix' => '/minecraft-modpacks'], function () {
++        Route::get('/', [Client\Servers\ModpackController::class, 'index']);
++        Route::get('/versions', [Client\Servers\ModpackController::class, 'versions']);
++        Route::post('/install', [Client\Servers\ModpackController::class, 'install']);
++    });
+</code></pre>
+    <h3><code>resources/lang/en/activity.php</code> (optional)</h3>
+    <pre><code class="language-php">         'subuser' => [
+             'create' => 'Added :email as a subuser',
+             'update' => 'Updated the subuser permissions for :email',
+             'delete' => 'Removed :email as a subuser',
+         ],
++        'modpack' => [
++            'install' => 'Installed modpack :modpack_name (:modpack_id), version :modpack_version_id from :provider',
++        ],
+     ],
+ ];</code></pre>
+    <h2>Bring it live!</h2>
+    <p>
+      All the following commands need to be executed in the directory where
+      Pterodactyl is installed.
+    </p>
+    <p>Migrate the database:</p>
+    <pre><code>php artisan migrate</code></pre>
+    <p>Build the production assets with yarn:</p>
+    <pre><code>yarn run build:production</code></pre>
+    <p>Cache new routes and configuration:</p>
+    <pre><code>php artisan optimize</code></pre>
+    <p>You're done! Enjoy!</p>
+    <h2>Troubleshooting</h2>
+    <h3>The "Modpacks" tab doesn't appear.</h3>
+    <p>
+      Make sure you are viewing a server whose egg ID is within those specified
+      in <code>routes.ts</code>.
+    </p>
+    <h3>The route … could not be found</h3>
+    <p>
+      Run <code>php artisan optimize</code> in
+      <code>/var/www/pterodactyl</code>.
+    </p>
+    <h3>
+      "Please inform your system administrators that the modpack installation
+      service (egg) is missing."
+    </h3>
+    <p>
+      Please read the <a href="#egg-import">"Importing the egg" section</a> of
+      this document. You need to import an egg for the modpack installer to do
+      its thing.
+    </p>
+    <h3>CurseForge modpacks won't load</h3>
+    <ol>
+      <li value="1">
+        Check that you correctly edited <code>config/services.php</code> (it
+        should not contain the API key).
+      </li>
+      <li value="2">
+        Check that the API key is present in <code>.env</code> under the correct
+        variable name.
+      </li>
+      <li value="3">Try running <code>php artisan config:clear</code></li>
+      <li value="4">
+        You can check that the API key is correctly read by running
+        <code>php artisan tinker</code> and writing
+        <code>config('services.curseforge_api_key')</code> in the prompt.
+      </li>
+      <li value="5">
+        <p>Try replacing</p>
+        <pre><code>            'User-Agent' => $this->userAgent,</code></pre>
+        <p>by</p>
+        <pre><code>            'User-Agent' => 'Mozilla/5.0 (X11; Linux x86_64; rv:127.0) Gecko/20100101 Firefox/127.0',</code></pre>
+        <p>
+          in
+          <code
+            >app/Services/Minecraft/Modpacks/CurseForgeModpackService.php</code
+          >
+        </p>
+      </li>
+      <li value="6">
+        Make sure that your firewall isn't blocking anything (look in logs at
+        <code>storage/logs</code>).
+      </li>
+    </ol>
+    <h3 id="contact">Contact</h3>
+    <p>
+      If you have any questions about this product or need help with its
+      installation, You can contact us using the following services:
+    </p>
+    <ul>
+      <li>
+        Discord:
+        <a href="https://discord.gg/RJ2A8yYS2m"
+          >https://discord.gg/RJ2A8yYS2m</a
+        >
+      </li>
+      <li>
+        Email: <a href="mailto:contact@ric-rac.org">contact@ric-rac.org</a>
+      </li>
+      <li>X: <a href="https://twitter.com/ricxracx">@ricxracx</a></li>
+      <li>SMS: <a href="tel:+33611194971">+33 6 11 19 49 71</a></li>
+    </ul>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js"></script>
+
+    <script>
+      window.addEventListener("DOMContentLoaded", function () {
+        hljs.highlightAll();
+        document.querySelectorAll("pre code").forEach((el) => {
+          el.innerHTML = el.innerHTML
+            .split("\n")
+            .map((line) => {
+              if (line.startsWith("+"))
+                return (
+                  '<ins><span class="sign">+</span>' +
+                  line.substr(1) +
+                  "</ins>"
+                );
+              else if (line.startsWith("-"))
+                return (
+                  '<del><span class="sign">-</span>' +
+                  line.substr(1) +
+                  "</del>"
+                );
+              return line;
+            })
+            .join("\n");
+        });
+      });
+
+      const themeSelector = document.getElementById("pterodactyl-theme-input");
+
+      function setTheme(theme) {
+        document.body.classList.value = `theme-${theme}`;
+        localStorage.setItem("theme", theme);
+        themeSelector.value = theme;
+      }
+
+      const oldTheme = localStorage.getItem("theme");
+      if (oldTheme) {
+        setTheme(oldTheme);
+      }
+
+      themeSelector.addEventListener("change", function (event) {
+        setTheme(event.target.value);
+      });
+    </script>
+  </body>
+</html>

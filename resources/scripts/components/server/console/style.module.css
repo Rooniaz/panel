@@ -1,16 +1,28 @@
 .stat_block {
-    @apply flex items-center rounded shadow-lg relative;
+    @apply flex items-center rounded-xl relative;
     @apply col-span-3 md:col-span-2 lg:col-span-6;
     @apply px-3 py-2 md:p-3 lg:p-4;
+    @apply border border-white/10 backdrop-blur-sm;
+    @apply transition-all duration-300 ease-in-out;
+    background: linear-gradient(135deg, rgba(30, 41, 59, 0.85) 0%, rgba(15, 23, 42, 0.9) 100%);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+
+    &:hover {
+        @apply border-sky-400/30 transform -translate-y-0.5;
+        box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(56, 189, 248, 0.2),
+            inset 0 1px 0 rgba(255, 255, 255, 0.12);
+    }
 
     & > .status_bar {
         @apply w-1 h-full absolute left-0 top-0 rounded-l sm:hidden;
+        @apply transition-all duration-300;
     }
 
     & > .icon {
-        @apply hidden flex-shrink-0 items-center justify-center rounded-lg shadow-md w-12 h-12;
-        @apply transition-colors duration-500;
+        @apply hidden flex-shrink-0 items-center justify-center rounded-lg shadow-lg w-12 h-12;
+        @apply transition-all duration-300;
         @apply sm:flex sm:mr-4;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1);
 
         & > svg {
             @apply w-6 h-6 m-auto;
@@ -19,19 +31,26 @@
 }
 
 .terminal {
-    @apply flex flex-col w-full;
+    @apply flex flex-col w-full gap-2 sm:gap-3;
+    background: radial-gradient(120% 120% at 10% 20%, rgba(59, 130, 246, 0.18), transparent 40%),
+        radial-gradient(140% 140% at 90% 10%, rgba(96, 165, 250, 0.14), transparent 35%),
+        #081020;
+    @apply rounded-xl sm:rounded-2xl border border-white/5 shadow-[0_20px_60px_rgba(0,0,0,0.45)] p-2 sm:p-3 md:p-4;
 
     & .overflows_container {
-        @apply -ml-4 sm:ml-0;
-        width: calc(100% + 2rem);
-
-        @screen sm {
-            @apply w-full;
-        }
+        @apply w-full overflow-x-auto;
     }
 
     & > .container {
-        @apply rounded-t p-1 sm:p-2 bg-black min-h-[16rem] flex-1 font-mono text-sm;
+        @apply relative rounded-xl sm:rounded-2xl p-2 sm:p-3 md:p-4 min-h-[12rem] sm:min-h-[18rem] flex-1 font-mono text-xs sm:text-sm;
+        @apply border border-white/10 bg-[#050915]/80 backdrop-blur;
+        @apply shadow-[0_16px_40px_rgba(0,0,0,0.35)];
+
+        &::after {
+            content: '';
+            @apply absolute inset-0 rounded-xl sm:rounded-2xl pointer-events-none;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+        }
 
         & #terminal {
             @apply h-full;
@@ -41,21 +60,73 @@
             }
 
             &::-webkit-scrollbar-thumb {
-                @apply bg-gray-900;
+                @apply bg-gray-800;
             }
         }
     }
 
     & .command_icon {
-        @apply flex items-center top-0 left-0 absolute z-10 select-none h-full px-3 transition-colors duration-100;
+        @apply flex items-center top-0 left-0 absolute z-10 select-none h-full px-2 sm:px-3 transition-colors duration-200;
+        @apply text-sky-300;
     }
 
     & .command_input {
-        @apply relative bg-gray-900 px-2 text-gray-100 pl-10 pr-4 py-2 w-full font-mono text-sm sm:rounded-b;
-        @apply focus:ring-0 outline-none focus-visible:outline-none;
-        @apply border-0 border-b-2 border-transparent transition-colors duration-100;
-        @apply active:border-cyan-500 focus:border-cyan-500;
+        @apply relative w-full font-mono text-xs sm:text-sm pl-8 sm:pl-10 pr-3 sm:pr-4 py-2 sm:py-3 rounded-lg sm:rounded-xl;
+        @apply bg-slate-900/80 text-gray-100 border border-white/10;
+        @apply focus:ring-2 focus:ring-sky-500/70 focus:border-transparent;
+        @apply outline-none focus-visible:outline-none transition-all duration-150;
+        @apply shadow-inner shadow-black/60;
+        backdrop-filter: blur(8px);
     }
+}
+
+.card {
+    @apply rounded-xl sm:rounded-2xl border border-sky-200/10 bg-slate-900/70 backdrop-blur shadow-[0_12px_36px_rgba(0,0,0,0.35)];
+    @apply p-3 sm:p-4 md:p-5 text-gray-100;
+    min-width: 0; /* Prevent flex item overflow */
+}
+
+.card_header {
+    @apply flex flex-col sm:flex-row items-start sm:items-start justify-between gap-2 sm:gap-0 mb-3;
+}
+
+.card_title {
+    @apply text-base sm:text-lg font-semibold text-white tracking-tight;
+}
+
+.badge {
+    @apply inline-flex items-center px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full text-xs font-semibold whitespace-nowrap;
+    @apply bg-sky-500/20 text-sky-100 border border-sky-300/30;
+}
+
+.pill_row {
+    @apply flex flex-wrap gap-2;
+}
+
+.stat_row {
+    @apply flex items-center justify-between text-xs sm:text-sm text-gray-200 gap-1 sm:gap-2;
+    word-break: break-word;
+}
+
+.progress_track {
+    @apply w-full h-1.5 sm:h-2 rounded-full bg-white/10 overflow-hidden;
+}
+
+.progress_fill {
+    @apply h-full rounded-full transition-all duration-200;
+    background: linear-gradient(90deg, #38bdf8, #6366f1);
+}
+
+.muted {
+    @apply text-sm text-gray-300;
+}
+
+.banner {
+    @apply w-full rounded-xl border flex flex-col sm:flex-row items-start gap-2 sm:gap-3 px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm;
+    @apply shadow-[0_10px_30px_rgba(0,0,0,0.25)];
+    border-color: rgba(125, 211, 252, 0.35);
+    background: rgba(59, 130, 246, 0.12);
+    color: #e0f2fe;
 }
 
 .chart_container {

@@ -75,6 +75,17 @@ class StartupController extends ClientApiController
         $variable = $variable->refresh();
         $variable->server_value = $request->input('value');
 
+        // Clear MCPQueryService cache if version-related variables are changed
+        $versionVariables = ['mc_version', 'minecraft_version', 'vanilla_version'];
+        if (in_array(strtolower($variable->env_variable), $versionVariables)) {
+            try {
+                $mcpQueryService = app(\Pterodactyl\Services\Servers\MCPManager\MCPQueryService::class);
+                $mcpQueryService->clearCache($server);
+            } catch (\Exception $e) {
+                // Ignore if service is not available
+            }
+        }
+
         $startup = $this->startupCommandService->handle($server);
 
         if ($variable->env_variable !== $request->input('value')) {

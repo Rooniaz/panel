@@ -7,6 +7,7 @@ import { Formik, FormikHelpers, Field as FormikField, FieldProps } from 'formik'
 import { object, string } from 'yup';
 import Input from '@/components/elements/Input';
 import tw from 'twin.macro';
+import styled from 'styled-components/macro';
 import Button from '@/components/elements/Button';
 import Reaptcha from 'reaptcha';
 import useFlash from '@/plugins/useFlash';
@@ -15,6 +16,67 @@ interface Values {
     username: string;
     password: string;
 }
+
+const StyledInput = styled(Input)`
+    ${tw`transition-all duration-300`}
+    background: rgba(15, 23, 42, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #ffffff;
+    
+    &::placeholder {
+        color: rgba(255, 255, 255, 0.4);
+    }
+    
+    &:focus {
+        background: rgba(15, 23, 42, 0.8);
+        border-color: rgba(56, 189, 248, 0.5);
+        box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.1);
+    }
+    
+    &:hover:not(:focus) {
+        border-color: rgba(255, 255, 255, 0.2);
+    }
+`;
+
+const StyledButton = styled(Button)`
+    ${tw`w-full transition-all duration-300 font-semibold tracking-wide uppercase text-sm`}
+    background: linear-gradient(135deg, #3b82f6 0%, #6366f1 100%);
+    border: none;
+    box-shadow: 0 10px 25px rgba(59, 130, 246, 0.3);
+    
+    &:hover:not(:disabled) {
+        background: linear-gradient(135deg, #2563eb 0%, #4f46e5 100%);
+        box-shadow: 0 15px 35px rgba(59, 130, 246, 0.4);
+        transform: translateY(-2px);
+    }
+    
+    &:active:not(:disabled) {
+        transform: translateY(0);
+    }
+`;
+
+const ForgotPasswordLink = styled(Link)`
+    ${tw`text-neutral-300 no-underline transition-all duration-200`}
+    
+    &:hover {
+        color: #38bdf8;
+        text-shadow: 0 0 10px rgba(56, 189, 248, 0.3);
+    }
+`;
+
+const RegisterLink = styled(Link)`
+    ${tw`transition-all duration-200 font-semibold`}
+    color: #60a5fa;
+    
+    &:hover {
+        color: #38bdf8;
+        text-shadow: 0 0 10px rgba(56, 189, 248, 0.3);
+    }
+`;
+
+const LinksContainer = styled.div`
+    ${tw`mt-8 text-center text-sm space-y-3`}
+`;
 
 const LoginContainer = ({ history }: RouteComponentProps) => {
     const ref = useRef<Reaptcha>(null);
@@ -72,7 +134,7 @@ const LoginContainer = ({ history }: RouteComponentProps) => {
                 <LoginFormContainer title={'Welcome Back'}>
                     <FormikField name='username'>
                         {({ field, form: { errors, touched } }: FieldProps) => (
-                            <Input
+                            <StyledInput
                                 {...field}
                                 type='text'
                                 placeholder={'Username or Email'}
@@ -82,10 +144,10 @@ const LoginContainer = ({ history }: RouteComponentProps) => {
                         )}
                     </FormikField>
 
-                    <div css={tw`mt-6`}>
+                    <div css={tw`mt-5`}>
                         <FormikField name='password'>
                             {({ field, form: { errors, touched } }: FieldProps) => (
-                                <Input
+                                <StyledInput
                                     {...field}
                                     type='password'
                                     placeholder={'Password'}
@@ -96,10 +158,10 @@ const LoginContainer = ({ history }: RouteComponentProps) => {
                         </FormikField>
                     </div>
 
-                    <div css={tw`mt-6`}>
-                        <Button type={'submit'} size={'xlarge'} isLoading={isSubmitting} disabled={isSubmitting}>
+                    <div css={tw`mt-7`}>
+                        <StyledButton type={'submit'} size={'xlarge'} isLoading={isSubmitting} disabled={isSubmitting}>
                             Login
-                        </Button>
+                        </StyledButton>
                     </div>
 
                     {recaptchaEnabled && (
@@ -118,25 +180,19 @@ const LoginContainer = ({ history }: RouteComponentProps) => {
                         />
                     )}
 
-                    <div css={tw`mt-6 text-center text-sm space-y-2`}>
+                    <LinksContainer>
                         <div>
-                            <Link
-                                to={'/auth/password'}
-                                css={tw`text-neutral-300 no-underline hover:text-neutral-200 transition-colors duration-150`}
-                            >
+                            <ForgotPasswordLink to={'/auth/password'}>
                                 Forgot your password?
-                            </Link>
+                            </ForgotPasswordLink>
                         </div>
                         <div>
                             <span css={tw`text-neutral-400`}>ยังไม่มีบัญชี? </span>
-                            <Link
-                                to={'/auth/register'}
-                                css={tw`text-blue-400 hover:text-blue-300 transition-colors duration-150`}
-                            >
+                            <RegisterLink to={'/auth/register'}>
                                 สมัครสมาชิก
-                            </Link>
+                            </RegisterLink>
                         </div>
-                    </div>
+                    </LinksContainer>
                 </LoginFormContainer>
             )}
         </Formik>

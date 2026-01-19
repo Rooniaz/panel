@@ -17,14 +17,36 @@ import SubNavigation from '@/components/elements/SubNavigation';
 import InstallListener from '@/components/server/InstallListener';
 import ErrorBoundary from '@/components/elements/ErrorBoundary';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faExternalLinkAlt } from '@fortawesome/free-solid-svg-icons';
+import {
+    faExternalLinkAlt,
+    faTerminal,
+    faFolderOpen,
+    faDatabase,
+    faClock,
+    faUserFriends,
+    faCloudDownloadAlt,
+    faNetworkWired,
+    faBolt,
+    faCog,
+    faClipboardList,
+    faCubes,
+    faPlug,
+    faUsers,
+    faCube,
+    faList,
+    faGlobe,
+} from '@fortawesome/free-solid-svg-icons';
 import { useLocation } from 'react-router';
 import ConflictStateRenderer from '@/components/server/ConflictStateRenderer';
 import PermissionRoute from '@/components/elements/PermissionRoute';
 import routes from '@/routers/routes';
 
 const MainContent = styled.div`
-    ${tw`ml-64 min-h-screen`}
+    ${tw`ml-0 lg:ml-64 min-h-screen`}
+    @media (max-width: 1023px) {
+        width: 100%;
+        padding-left: 0;
+    }
 `;
 
 export default () => {
@@ -38,8 +60,66 @@ export default () => {
     const uuid = ServerContext.useStoreState((state) => state.server.data?.uuid);
     const inConflictState = ServerContext.useStoreState((state) => state.server.inConflictState);
     const serverId = ServerContext.useStoreState((state) => state.server.data?.internalId);
+    const serverData = ServerContext.useStoreState((state) => state.server.data);
     const getServer = ServerContext.useStoreActions((actions) => actions.server.getServer);
     const clearServerState = ServerContext.useStoreActions((actions) => actions.clearServerState);
+
+    const navIcons: Record<string, any> = {
+        Console: faTerminal,
+        Files: faFolderOpen,
+        Databases: faDatabase,
+        Schedules: faClock,
+        Users: faUserFriends,
+        Backups: faCloudDownloadAlt,
+        Network: faNetworkWired,
+        Startup: faBolt,
+        Settings: faCog,
+        Activity: faClipboardList,
+        Mods: faCubes,
+        Plugins: faPlug,
+        'Minecraft Player Manager': faUsers,
+        'Minecraft Version': faCube,
+        'Server Properties': faList,
+        Modpacks: faCubes,
+        Worlds: faGlobe,
+        Configs: faList,
+        Versions: faCube,
+        'Bedrock Addons': faCubes,
+        'Bedrock Config': faCog,
+        'Bedrock Version': faCube,
+    };
+
+    const renderNavLabel = (name?: string) => {
+        if (!name) return null;
+        const icon = navIcons[name];
+        return icon ? (
+            <span className={'flex items-center gap-2'}>
+                <FontAwesomeIcon icon={icon} />
+                <span>{name}</span>
+            </span>
+        ) : (
+            name
+        );
+    };
+
+    // Check if server is Bedrock edition
+    const isBedrockServer = React.useMemo(() => {
+        if (!serverData) return false;
+        const eggId = serverData.egg?.id;
+        const eggName = serverData.egg?.name?.toLowerCase() || '';
+        const dockerImage = (serverData.dockerImage || '').toLowerCase();
+        const description = (serverData.description || '').toLowerCase();
+
+        return (
+            eggId === 16 || // Vanilla Bedrock egg ID
+            eggName.includes('bedrock') ||
+            eggName.includes('mcbe') ||
+            dockerImage.includes('bedrock') ||
+            dockerImage.includes('mcbe') ||
+            description.includes('bedrock') ||
+            description.includes('mcbe')
+        );
+    }, [serverData]);
 
     const to = (value: string, url = false) => {
         if (value === '/') {
@@ -84,17 +164,36 @@ export default () => {
                             <SubNavigation>
                                 <div>
                                     {routes.server
-                                        .filter((route) => !!route.name)
+                                        .filter((route) => {
+                                            // Hide Bedrock routes if server is not Bedrock
+                                            if (!route.name) return false;
+                                            if (route.path.startsWith('/bedrock/')) {
+                                                return isBedrockServer;
+                                            }
+                                            // Hide Java Edition routes (mods, plugins, minecraft player manager, minecraft version) if server is Bedrock
+                                            if (isBedrockServer) {
+                                                const javaEditionRoutes = [
+                                                    '/mods',
+                                                    '/plugins',
+                                                    '/minecraft/player-manager',
+                                                    '/minecraft/version',
+                                                    '/modpacks',
+                                                    '/minecraft-worlds',
+                                                ];
+                                                return !javaEditionRoutes.includes(route.path);
+                                            }
+                                            return true;
+                                        })
                                         .map((route) =>
                                             route.permission ? (
                                                 <Can key={route.path} action={route.permission} matchAny>
                                                     <NavLink to={to(route.path, true)} exact={route.exact}>
-                                                        {route.name}
+                                                        {renderNavLabel(route.name)}
                                                     </NavLink>
                                                 </Can>
                                             ) : (
                                                 <NavLink key={route.path} to={to(route.path, true)} exact={route.exact}>
-                                                    {route.name}
+                                                    {renderNavLabel(route.name)}
                                                 </NavLink>
                                             )
                                         )}
@@ -117,13 +216,38 @@ export default () => {
                             <ErrorBoundary>
                                 <TransitionRouter>
                                     <Switch location={location}>
-                                        {routes.server.map(({ path, permission, component: Component }) => (
-                                            <PermissionRoute key={path} permission={permission} path={to(path)} exact>
-                                                <Spinner.Suspense>
-                                                    <Component />
-                                                </Spinner.Suspense>
-                                            </PermissionRoute>
-                                        ))}
+                                        {routes.server
+                                            .filter((route) => {
+                                                // Hide Bedrock routes if server is not Bedrock
+                                                if (route.path.startsWith('/bedrock/')) {
+                                                    return isBedrockServer;
+                                                }
+                                                // Hide Java Edition routes (mods, plugins, minecraft player manager, minecraft version) if server is Bedrock
+                                                if (isBedrockServer) {
+                                                    const javaEditionRoutes = [
+                                                        '/mods',
+                                                        '/plugins',
+                                                        '/minecraft/player-manager',
+                                                        '/minecraft/version',
+                                                        '/modpacks',
+                                                        '/minecraft-worlds',
+                                                    ];
+                                                    return !javaEditionRoutes.includes(route.path);
+                                                }
+                                                return true;
+                                            })
+                                            .map(({ path, permission, component: Component }) => (
+                                                <PermissionRoute
+                                                    key={path}
+                                                    permission={permission}
+                                                    path={to(path)}
+                                                    exact
+                                                >
+                                                    <Spinner.Suspense>
+                                                        <Component />
+                                                    </Spinner.Suspense>
+                                                </PermissionRoute>
+                                            ))}
                                         <Route path={'*'} component={NotFound} />
                                     </Switch>
                                 </TransitionRouter>

@@ -12,6 +12,8 @@ import {
     faEnvelope,
     faCog,
     faCogs,
+    faBars,
+    faTimes,
 } from '@fortawesome/free-solid-svg-icons';
 import { useStoreState } from 'easy-peasy';
 import { ApplicationStore } from '@/state';
@@ -22,8 +24,32 @@ import SpinnerOverlay from '@/components/elements/SpinnerOverlay';
 import Avatar from '@/components/Avatar';
 import getUserProfile from '@/api/spring/userProfile';
 
-const SidebarContainer = styled.div`
-    ${tw`fixed left-0 top-0 h-full bg-neutral-900 w-64 shadow-lg z-50 flex flex-col`}
+const SidebarContainer = styled.div<{ $open: boolean }>`
+    ${tw`fixed left-0 top-0 h-full bg-neutral-900 w-64 shadow-lg z-50 flex flex-col transition-transform duration-300`};
+    transform: ${({ $open }) => ($open ? 'translateX(0)' : 'translateX(-100%)')};
+
+    @media (min-width: 1024px) {
+        transform: translateX(0);
+    }
+`;
+
+const HamburgerButton = styled.button`
+    ${tw`fixed top-4 left-4 z-50 lg:hidden w-10 h-10 flex items-center justify-center rounded-lg bg-neutral-900 text-white shadow-lg border border-neutral-800`};
+    transition: all 0.3s ease;
+    
+    &:hover {
+        ${tw`bg-neutral-800 scale-110`};
+    }
+    
+    &:active {
+        ${tw`scale-95`};
+    }
+`;
+
+const Overlay = styled.div<{ $open: boolean }>`
+    ${tw`fixed inset-0 bg-black bg-opacity-50 z-40 transition-opacity duration-300 lg:hidden`};
+    pointer-events: ${({ $open }) => ($open ? 'auto' : 'none')};
+    opacity: ${({ $open }) => ($open ? 1 : 0)};
 `;
 
 const LogoSection = styled.div`
@@ -102,6 +128,7 @@ export default () => {
     const user = useStoreState((state: ApplicationStore) => state.user.data);
     const rootAdmin = useStoreState((state: ApplicationStore) => state.user.data?.rootAdmin);
     const [isLoggingOut, setIsLoggingOut] = useState(false);
+    const [menuOpen, setMenuOpen] = useState(false);
     const [creditBalance, setCreditBalance] = useState<string>('0.00');
 
     const onTriggerLogout = () => {
@@ -153,7 +180,11 @@ export default () => {
     return (
         <>
             <SpinnerOverlay visible={isLoggingOut} />
-            <SidebarContainer>
+            <HamburgerButton onClick={() => setMenuOpen((s) => !s)}>
+                <FontAwesomeIcon icon={menuOpen ? faTimes : faBars} />
+            </HamburgerButton>
+            <Overlay $open={menuOpen} onClick={() => setMenuOpen(false)} />
+            <SidebarContainer $open={menuOpen}>
                 <LogoSection>
                     <LogoLink to={'/'}>
                         <LogoIcon>

@@ -2,28 +2,31 @@ import styled from 'styled-components/macro';
 import tw, { theme } from 'twin.macro';
 
 const SubNavigation = styled.div`
-    ${tw`w-full bg-neutral-700 shadow overflow-x-auto`};
+    ${tw`w-full overflow-x-auto`};
+    background: #0b1220;
+    ${tw`border-b border-white/5 backdrop-blur`};
 
     & > div {
-        ${tw`flex items-center text-sm mx-auto px-2`};
-        max-width: 1200px;
+        ${tw`flex items-center text-sm px-3 py-2 gap-2`};
 
         & > a,
         & > div {
-            ${tw`inline-block py-3 px-4 text-neutral-300 no-underline whitespace-nowrap transition-all duration-150`};
-
-            &:not(:first-of-type) {
-                ${tw`ml-2`};
-            }
+            ${tw`inline-flex items-center h-10 px-4 rounded-full no-underline whitespace-nowrap transition-all duration-150`};
+            ${tw`text-white/80 bg-white/5 border border-white/10`};
 
             &:hover {
-                ${tw`text-neutral-100`};
+                ${tw`text-white bg-white/10 border-white/20`};
             }
 
             &:active,
             &.active {
-                ${tw`text-neutral-100`};
-                box-shadow: inset 0 -2px ${theme`colors.cyan.600`.toString()};
+                ${tw`text-white`};
+                background: linear-gradient(
+                    90deg,
+                    ${theme`colors.cyan.400`.toString()},
+                    ${theme`colors.indigo.500`.toString()}
+                );
+                ${tw`border-transparent shadow-[0_10px_30px_rgba(56,189,248,0.25)]`};
             }
         }
     }

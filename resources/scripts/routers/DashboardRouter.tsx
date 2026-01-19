@@ -15,13 +15,15 @@ import Spinner from '@/components/elements/Spinner';
 import routes from '@/routers/routes';
 import tw from 'twin.macro';
 import styled from 'styled-components/macro';
+import { useStoreState } from 'easy-peasy';
 
 const MainContent = styled.div`
-    ${tw`ml-64 min-h-screen`}
+    ${tw`min-h-screen w-full p-4 lg:p-8 lg:ml-64 transition-all duration-300`};
 `;
 
 export default () => {
     const location = useLocation();
+    const rootAdmin = useStoreState((state) => state.user.data?.rootAdmin);
 
     return (
         <>
@@ -50,7 +52,7 @@ export default () => {
                             </Route>
                             {routes.account.map(({ path, component: Component }) => (
                                 <Route key={path} path={`/account/${path}`.replace('//', '/')} exact>
-                                    {location.pathname.startsWith('/account') && (
+                                    {rootAdmin && location.pathname.startsWith('/account') && (
                                         <SubNavigation>
                                             <div>
                                                 {routes.account

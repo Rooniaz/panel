@@ -27,8 +27,31 @@ const IconDescription = styled.p<{ $alarm: boolean }>`
     ${(props) => (props.$alarm ? tw`text-white` : tw`text-neutral-400`)};
 `;
 
-const StatusIndicatorBox = styled(GreyRowBox)<{ $status: ServerPowerState | undefined }>`
-    ${tw`grid grid-cols-12 gap-4 relative`};
+const StatusIndicatorBox = styled(GreyRowBox)<{
+    $status: ServerPowerState | undefined;
+    $bgImage: string;
+    $bgGradient: string;
+}>`
+    ${tw`grid grid-cols-12 gap-4 relative overflow-hidden`};
+    min-height: 180px;
+    background-color: #0b1220;
+    background-image: ${({ $bgGradient, $bgImage }) => `${$bgGradient}, ${$bgImage}`};
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    position: relative;
+
+    &::after {
+        content: '';
+        ${tw`absolute inset-0 pointer-events-none`};
+        background: linear-gradient(180deg, rgba(0, 0, 0, 0.45) 0%, rgba(0, 0, 0, 0.7) 100%);
+        z-index: 0;
+    }
+
+    & > * {
+        position: relative;
+        z-index: 1;
+    }
 
     & .status-bar {
         ${tw`w-2 bg-red-500 absolute right-0 z-20 rounded-full m-1 opacity-50 transition-all duration-150`};
@@ -88,8 +111,25 @@ export default ({ server, className }: { server: Server; className?: string }) =
     const memoryLimit = server.limits.memory !== 0 ? bytesToString(mbToBytes(server.limits.memory)) : 'Unlimited';
     const cpuLimit = server.limits.cpu !== 0 ? server.limits.cpu + ' %' : 'Unlimited';
 
+    const isBedrock = (() => {
+        const text = `${server.name || ''} ${server.description || ''}`.toLowerCase();
+        return text.includes('bedrock');
+    })();
+
+    // Local images in /public
+    const base = process.env.PUBLIC_URL || (typeof window !== 'undefined' ? window.location.origin : '');
+    const bgImage = isBedrock ? `url('${base}/bedrock.png?v=1')` : `url('${base}/vanilla.png?v=1')`;
+    const bgGradient = 'linear-gradient(180deg, rgba(0,0,0,0.35), rgba(0,0,0,0.6))';
+
     return (
-        <StatusIndicatorBox as={Link} to={`/server/${server.id}`} className={className} $status={stats?.status}>
+        <StatusIndicatorBox
+            as={Link}
+            to={`/server/${server.id}`}
+            className={className}
+            $status={stats?.status}
+            $bgImage={bgImage}
+            $bgGradient={bgGradient}
+        >
             <div css={tw`flex items-center col-span-12 sm:col-span-5 lg:col-span-6`}>
                 <div className={'icon mr-4'}>
                     <FontAwesomeIcon icon={faServer} />

@@ -6,117 +6,150 @@ import { faMicrochip, faMemory, faHdd, faClock, faArrowLeft, faCheck } from '@fo
 import { Package, GameType } from './RentServerContainer';
 
 const Container = styled.div`
-    ${tw`space-y-6`}
+    ${tw`space-y-6 w-full max-w-6xl mx-auto px-3 sm:px-0`};
 `;
 
 const HeaderSection = styled.div`
-    ${tw`flex items-center justify-between mb-6`}
+    ${tw`flex flex-col md:flex-row items-start md:items-center justify-start md:justify-between gap-3 md:gap-4 mb-4 w-full`};
 `;
 
 const BackButton = styled.button`
-    ${tw`flex items-center space-x-2 px-4 py-2 bg-neutral-800 hover:bg-neutral-700 rounded-lg text-neutral-300 transition-colors`}
+    ${tw`inline-flex items-center justify-center space-x-2 px-4 py-3 rounded-2xl text-neutral-100 transition-all duration-200 border border-white/10 hover:-translate-y-0.5 backdrop-blur shadow-[0_12px_30px_rgba(0,0,0,0.35)] self-start`};
+    background: linear-gradient(135deg, rgba(30, 41, 59, 0.82), rgba(15, 23, 42, 0.82));
+    &:hover {
+        background: linear-gradient(135deg, rgba(30, 41, 59, 0.9), rgba(30, 41, 59, 0.85));
+    }
 `;
 
 const PackageInfo = styled.div`
-    ${tw`flex items-center space-x-4`}
+    ${tw`flex flex-col md:flex-row items-center md:items-start justify-center md:justify-start gap-2 md:gap-4 flex-1 flex-wrap text-center md:text-left w-full md:w-auto`};
 `;
 
 const PackageIcon = styled.div`
-    ${tw`w-16 h-16 bg-blue-500 rounded-lg flex items-center justify-center text-white text-2xl`}
+    ${tw`w-14 h-14 rounded-2xl text-white text-2xl flex items-center justify-center shadow-lg`};
+    background: linear-gradient(135deg, #38bdf8, #6366f1);
 `;
 
 const PackageDetails = styled.div`
-    ${tw`space-y-1`}
+    ${tw`space-y-1`};
 `;
 
 const PackageName = styled.h3`
-    ${tw`text-xl font-bold text-white`}
+    ${tw`text-lg font-semibold text-white`};
 `;
 
 const PackageSpecs = styled.div`
-    ${tw`flex items-center space-x-4 text-sm text-neutral-400`}
+    ${tw`flex items-center gap-3 text-sm text-gray-200`};
 `;
 
-const PriceButton = styled.button`
-    ${tw`flex items-center space-x-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 rounded-lg text-white transition-colors`}
+const PriceButton = styled.div`
+    ${tw`h-full flex items-center justify-center rounded-2xl px-4 py-3 text-white font-semibold border border-white/10 self-center md:self-center`};
+    background: linear-gradient(135deg, #38bdf8, #6366f1);
+    box-shadow: 0 12px 30px rgba(56, 189, 248, 0.35);
 `;
 
 const ProgressSection = styled.div`
-    ${tw`mb-6`}
+    ${tw`rounded-2xl border border-white/10 backdrop-blur shadow-[0_18px_45px_rgba(0,0,0,0.35)] p-4`};
+    background: linear-gradient(135deg, rgba(15, 23, 42, 0.82), rgba(30, 41, 59, 0.74));
 `;
 
 const ProgressSteps = styled.div`
-    ${tw`flex items-center justify-center space-x-8 mb-4`}
+    ${tw`flex items-center justify-between gap-3 mb-4`};
 `;
 
 const Step = styled.div<{ $active: boolean; $completed: boolean }>`
-    ${tw`flex flex-col items-center`}
+    ${tw`flex items-center gap-3 flex-1`};
 `;
 
 const StepCircle = styled.div<{ $active: boolean; $completed: boolean }>`
-    ${tw`w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg transition-all`}
+    ${tw`w-11 h-11 rounded-full flex items-center justify-center font-bold text-base transition-all shadow-inner`};
     ${(props) =>
         props.$completed
-            ? tw`bg-green-500 text-white`
+            ? tw`text-white`
             : props.$active
-            ? tw`bg-blue-500 text-white`
-            : tw`bg-neutral-700 text-neutral-400`}
+            ? tw`text-white shadow-[0_0_20px_rgba(56,189,248,0.45)]`
+            : tw`bg-white/10 text-gray-300 border border-white/10`};
+    ${(props) =>
+        props.$completed &&
+        `
+        background: linear-gradient(135deg, #22c55e, #16a34a);
+    `};
+    ${(props) =>
+        props.$active &&
+        `
+        background: linear-gradient(135deg, #38bdf8, #6366f1);
+    `};
 `;
 
 const StepLabel = styled.span<{ $active: boolean }>`
-    ${tw`mt-2 text-sm`}
-    ${(props) => (props.$active ? tw`text-blue-400 font-semibold` : tw`text-neutral-400`)}
+    ${tw`text-sm`};
+    ${(props) => (props.$active ? tw`text-white font-semibold` : tw`text-gray-300`)}
 `;
 
 const ProgressBar = styled.div`
-    ${tw`w-full h-1 bg-neutral-700 rounded-full overflow-hidden`}
+    ${tw`w-full h-2 rounded-full bg-white/10 overflow-hidden`};
 `;
 
 const ProgressFill = styled.div`
-    ${tw`h-full bg-gradient-to-r from-blue-500 to-purple-500 transition-all duration-300`}
+    ${tw`h-full transition-all duration-300`};
+    background: linear-gradient(90deg, #38bdf8, #6366f1);
     width: 33.33%;
+    box-shadow: 0 0 16px rgba(99, 102, 241, 0.35);
 `;
 
 const SectionTitle = styled.div`
-    ${tw`flex items-center space-x-3 mb-6`}
+    ${tw`flex items-center gap-3 mb-3`};
 `;
 
 const TitleBar = styled.div`
-    ${tw`w-1 h-8 bg-blue-500 rounded`}
+    ${tw`w-1.5 h-9 rounded-full`};
+    background: linear-gradient(180deg, #38bdf8, #6366f1);
 `;
 
 const TitleText = styled.h2`
-    ${tw`text-2xl font-bold text-white`}
+    ${tw`text-2xl font-bold text-white tracking-tight`};
 `;
 
 const GameGrid = styled.div`
-    ${tw`grid grid-cols-1 md:grid-cols-3 gap-6`}
+    ${tw`grid grid-cols-1 md:grid-cols-3 gap-5`};
 `;
 
 const GameCard = styled.div<{ $selected: boolean }>`
-    ${tw`relative rounded-lg p-6 cursor-pointer transition-all duration-300 border-2`}
-    ${(props) => (props.$selected ? tw`border-blue-500 shadow-lg` : tw`border-neutral-700 hover:border-blue-400`)}
-    background: linear-gradient(135deg, rgba(30, 30, 30, 0.9) 0%, rgba(20, 20, 20, 0.9) 100%);
+    ${tw`relative rounded-2xl p-5 cursor-pointer transition-all duration-200 border`};
+    background: linear-gradient(135deg, rgba(16, 24, 40, 0.9), rgba(8, 15, 30, 0.9));
+    box-shadow: 0 18px 45px rgba(0, 0, 0, 0.35);
     ${(props) =>
         props.$selected
-            ? 'box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.5), 0 4px 6px -2px rgba(59, 130, 246, 0.3);'
-            : ''}
+            ? `
+        border: 1px solid rgba(56, 189, 248, 0.85);
+        box-shadow: 0 16px 40px rgba(56, 189, 248, 0.3);
+    `
+            : `
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        &:hover {
+            border-color: rgba(56, 189, 248, 0.7);
+            transform: translateY(-4px);
+        }
+    `};
 `;
 
 const GameIcon = styled.div`
-    ${tw`w-16 h-16 bg-blue-500 rounded-lg flex items-center justify-center text-white text-2xl mb-4`}
+    ${tw`w-14 h-14 rounded-2xl text-white text-2xl flex items-center justify-center mb-3`};
+    background: linear-gradient(135deg, #38bdf8, #6366f1);
+    box-shadow: 0 10px 24px rgba(99, 102, 241, 0.35);
 `;
 
 const GameName = styled.h3`
-    ${tw`text-xl font-bold text-white mb-2`}
+    ${tw`text-lg font-semibold text-white mb-1`};
 `;
 
 const GameDescription = styled.p`
-    ${tw`text-neutral-400 text-sm`}
+    ${tw`text-gray-300 text-sm leading-relaxed`};
 `;
 
 const Checkmark = styled.div`
-    ${tw`absolute top-4 right-4 w-8 h-8 bg-green-500 rounded-full flex items-center justify-center text-white`}
+    ${tw`absolute top-4 right-4 w-7 h-7 rounded-full flex items-center justify-center text-white shadow-lg`};
+    background: linear-gradient(135deg, #22c55e, #16a34a);
 `;
 
 const games: GameType[] = [
@@ -195,7 +228,7 @@ export default ({ selectedPackage, onSelect, onBack }: Props) => {
                 </PackageInfo>
                 <PriceButton>
                     <FontAwesomeIcon icon={faClock} />
-                    <span>{selectedPackage.pricePerHour} เครดิต / ชั่วโมง</span>
+                    <span> {selectedPackage.pricePerHour} เครดิต / ชั่วโมง</span>
                 </PriceButton>
             </HeaderSection>
 

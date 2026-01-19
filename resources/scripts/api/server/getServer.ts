@@ -15,6 +15,7 @@ export interface Server {
     id: string;
     internalId: number | string;
     uuid: string;
+    externalId: number | null;
     name: string;
     node: string;
     isNodeUnderMaintenance: boolean;
@@ -43,12 +44,18 @@ export interface Server {
     isTransferring: boolean;
     variables: ServerEggVariable[];
     allocations: Allocation[];
+    egg?: {
+        id: number;
+        name: string;
+        nest_id: number;
+    };
 }
 
 export const rawDataToServerObject = ({ attributes: data }: FractalResponseData): Server => ({
     id: data.identifier,
     internalId: data.internal_id,
     uuid: data.uuid,
+    externalId: data.external_id ?? null,
     name: data.name,
     node: data.node,
     isNodeUnderMaintenance: data.is_node_under_maintenance,
@@ -70,6 +77,14 @@ export const rawDataToServerObject = ({ attributes: data }: FractalResponseData)
     allocations: ((data.relationships?.allocations as FractalResponseList | undefined)?.data || []).map(
         rawDataToServerAllocation
     ),
+    egg:
+        data.relationships?.egg && 'attributes' in data.relationships.egg
+            ? {
+                  id: (data.relationships.egg as FractalResponseData).attributes.id,
+                  name: (data.relationships.egg as FractalResponseData).attributes.name,
+                  nest_id: (data.relationships.egg as FractalResponseData).attributes.nest_id,
+              }
+            : undefined,
 });
 
 export default (uuid: string): Promise<[Server, string[]]> => {

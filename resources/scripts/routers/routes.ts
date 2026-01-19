@@ -13,6 +13,16 @@ import AccountApiContainer from '@/components/dashboard/AccountApiContainer';
 import AccountSSHContainer from '@/components/dashboard/ssh/AccountSSHContainer';
 import ActivityLogContainer from '@/components/dashboard/activity/ActivityLogContainer';
 import ServerActivityLogContainer from '@/components/server/ServerActivityLogContainer';
+import BedrockAddonsContainer from '@/components/server/addons/BedrockAddonsContainer';
+import ConfigEditorContainer from '@/components/server/bedrock/config/ConfigEditorContainer';
+import MCBEVersionChangerContainer from '@/components/server/mcbeversionchanger/Container';
+import ModContainer from '@/components/server/mods/ModContainer';
+import PluginContainer from '@/components/server/plugins/PluginContainer';
+import MCPManagerContainer from '@/components/server/mcpmanager/Container';
+import MinecraftVersionContainer from '@/components/server/minecraftversionchanger/MinecraftVersionContainer';
+import ServerPropertiesContainer from '@/components/server/properties/ServerPropertiesContainer';
+import ModpacksContainer from '@/components/server/minecraft-modpacks/ModpacksContainer';
+import MinecraftWorldContainer from '@/components/server/minecraft-worlds/MinecraftWorldContainer';
 
 // Each of the router files is already code split out appropriately — so
 // all of the items above will only be loaded in when that router is loaded.
@@ -139,6 +149,66 @@ export default {
             permission: 'activity.*',
             name: 'Activity',
             component: ServerActivityLogContainer,
+        },
+        {
+            path: '/bedrock/addons',
+            permission: 'file.*',
+            name: 'Bedrock Addons',
+            component: BedrockAddonsContainer,
+        },
+        {
+            path: '/bedrock/config',
+            permission: 'file.*',
+            name: 'Bedrock Config',
+            component: ConfigEditorContainer,
+        },
+        {
+            path: '/bedrock/version',
+            permission: 'file.*',
+            name: 'Bedrock Version',
+            component: MCBEVersionChangerContainer,
+        },
+        {
+            path: '/mods',
+            permission: 'file.*',
+            name: 'Mods',
+            component: ModContainer,
+        },
+        {
+            path: '/plugins',
+            permission: 'file.*',
+            name: 'Plugins',
+            component: PluginContainer,
+        },
+        {
+            path: '/minecraft/player-manager',
+            permission: 'file.read',
+            name: 'Minecraft Player Manager',
+            component: MCPManagerContainer,
+        },
+        {
+            path: '/modpacks',
+            permission: 'file.*',
+            name: 'Modpacks',
+            component: ModpacksContainer,
+        },
+        {
+            path: '/minecraft-worlds',
+            permission: 'file.*',
+            name: 'Worlds',
+            component: MinecraftWorldContainer,
+        },
+        {
+            path: '/minecraft/version',
+            permission: 'file.*',
+            name: 'Minecraft Version',
+            component: MinecraftVersionContainer,
+        },
+        {
+            path: '/properties',
+            permission: 'file.*',
+            name: 'Server Properties',
+            component: ServerPropertiesContainer,
         },
     ],
 } as Routes;

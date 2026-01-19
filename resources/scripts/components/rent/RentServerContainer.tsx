@@ -152,34 +152,72 @@ export default () => {
 
             setCreationProgress('กำลังสร้าง Server...');
 
-            // Map game.id to gameKey
+            // Map game.id to gameKey and egg type
+            // Bedrock uses Bedrock versions, others use Java versions
             const gameKeyMap: { [key: string]: string } = {
                 vanilla: 'MINECRAFT-JAVA',
                 bedrock: 'MINECRAFT-BEDROCK',
-                cross: 'MINECRAFT-CROSS',
-                plugin: 'MINECRAFT-PLUGIN',
-                mod: 'MINECRAFT-MOD',
+                cross: 'MINECRAFT-CROSS', // Cross uses Java versions but needs Geyser
+                plugin: 'MINECRAFT-PLUGIN', // Plugin uses Java versions but needs Paper
+                mod: 'MINECRAFT-MOD', // Mod uses Java versions but needs Fabric
             };
             const gameKey = gameKeyMap[selectedGame.id] || 'MINECRAFT-JAVA';
+
+            // Map game type to egg type for server creation
+            const eggTypeMap: { [key: string]: string } = {
+                vanilla: 'vanilla',
+                bedrock: 'bedrock',
+                cross: 'paper', // Cross uses Paper (not Vanilla) because Geyser needs Paper/Spigot
+                plugin: 'paper', // Plugin uses Paper
+                mod: 'forge', // Mod uses Forge
+            };
+            const eggType = eggTypeMap[selectedGame.id] || 'vanilla';
 
             // Extract version number (e.g., "1.21.5" from "1.21.5 | Java-21")
             const extractVersionNumber = (versionString: string): string => {
                 const match = versionString.match(/^(\d+\.\d+(\.\d+)?)/);
                 return match ? match[1] : versionString;
             };
-            const versionNumber = extractVersionNumber(selectedVersion.name);
+            // Extract clean version number (remove " | Java-XX" suffix)
+            const versionNumber = extractVersionNumber(selectedVersion.name).split('|')[0].trim();
 
-            // Call Spring Boot API
-            // Spring Boot API will map version → eggId automatically
-            const response = await createServer({
+            // Hard-override eggId by game type (do not trust version eggId = 6 from Java list)
+            const resolvedEggId = (() => {
+                if (selectedGame.id === 'mod') return 3; // Forge
+                if (selectedGame.id === 'plugin' || selectedGame.id === 'cross') return 4; // Paper
+                return selectedVersion.eggId;
+            })();
+
+            // Build payload with environment variables for each egg type
+            const payload: any = {
                 serverName: serverName.trim(),
                 packageId: selectedPackage.packageId,
                 gameKey: gameKey,
+                gameType: selectedGame.id, // vanilla, bedrock, cross, plugin, mod
+                eggType: eggType, // vanilla, bedrock, paper, fabric, forge
                 version: selectedVersion.name, // Keep original format
-                vanillaVersion: versionNumber, // Extract version number
-                eggId: selectedVersion.eggId, // Optional: if Spring Boot API provides it
-                enableBackup: true, // TODO: Get from ServerSettings backupEnabled
-            });
+                vanillaVersion: versionNumber, // Clean version number
+                eggId: resolvedEggId, // Override eggId
+                enableBackup: true,
+            };
+
+            // Add Forge-specific environment variables for mod servers
+            if (selectedGame.id === 'mod') {
+                payload.mcVersion = versionNumber; // MC_VERSION for Forge
+                payload.buildType = 'recommended'; // BUILD_TYPE: recommended or latest
+                payload.forgeVersion = ''; // FORGE_VERSION: empty = auto-select
+                payload.serverJarFile = 'server.jar'; // SERVER_JARFILE
+            }
+
+            // Add Geyser installation flag for cross-play servers
+            if (selectedGame.id === 'cross') {
+                payload.installGeyser = true;
+            } else if (selectedGame.id === 'plugin') {
+                payload.installGeyser = false;
+            }
+
+            // Call Spring Boot API
+            const response = await createServer(payload);
 
             if (!response.success || !response.serverId) {
                 // Check for duplicate server name error

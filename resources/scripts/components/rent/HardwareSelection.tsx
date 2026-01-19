@@ -6,7 +6,23 @@ import { faCheck } from '@fortawesome/free-solid-svg-icons';
 import { getHardwareList, Hardware } from '@/api/spring/hardware';
 
 const Container = styled.div`
-    ${tw`space-y-6`}
+    ${tw`space-y-8 relative`};
+    background: linear-gradient(180deg, rgba(6, 12, 24, 0.9) 0%, rgba(4, 10, 20, 0.95) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.04);
+    box-shadow: 0 25px 60px -25px rgba(0, 0, 0, 0.55);
+    border-radius: 18px;
+    padding: 24px;
+    overflow: hidden;
+
+    &::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(circle at 15% 20%, rgba(59, 130, 246, 0.18), transparent 30%),
+            radial-gradient(circle at 85% 0%, rgba(16, 185, 129, 0.16), transparent 30%);
+        opacity: 0.9;
+        pointer-events: none;
+    }
 `;
 
 const SectionTitle = styled.div`
@@ -22,30 +38,42 @@ const TitleText = styled.h2`
 `;
 
 const HardwareTypeGrid = styled.div`
-    ${tw`grid grid-cols-2 gap-6 mb-8`}
+    ${tw`grid grid-cols-2 gap-6 mb-10`};
 `;
 
 const HardwareTypeButton = styled.button<{ $selected: boolean }>`
-    ${tw`relative flex items-center justify-center space-x-4 p-6 rounded-lg border-2 transition-all`}
-    ${(props) =>
-        props.$selected
-            ? tw`border-yellow-500 shadow-lg`
-            : tw`border-neutral-700 bg-neutral-800 hover:border-yellow-400`}
-    ${(props) =>
-        props.$selected
-            ? `
-                background-color: rgba(234, 179, 8, 0.1);
-                box-shadow: 0 10px 15px -3px rgba(234, 179, 8, 0.5), 0 4px 6px -2px rgba(234, 179, 8, 0.3);
-            `
-            : ''}
+    ${tw`relative flex flex-col items-center justify-center space-y-3 p-6 rounded-2xl border-2 transition-all`};
+    background: linear-gradient(135deg, rgba(14, 23, 40, 0.9), rgba(8, 15, 28, 0.95));
+    border-color: ${({ $selected }) => ($selected ? 'rgba(255, 185, 64, 0.9)' : 'rgba(255,255,255,0.06)')};
+    box-shadow: ${({ $selected }) =>
+        $selected
+            ? '0 20px 35px -18px rgba(255,185,64,0.65), 0 10px 25px -20px rgba(59,130,246,0.45)'
+            : '0 10px 25px -22px rgba(0,0,0,0.55)'};
+    transform: ${({ $selected }) => ($selected ? 'translateY(-2px)' : 'none')};
+
+    &:hover {
+        border-color: rgba(255, 185, 64, 0.8);
+        box-shadow: 0 18px 32px -20px rgba(255, 185, 64, 0.55), 0 12px 28px -24px rgba(59, 130, 246, 0.35);
+        transform: translateY(-2px);
+    }
 `;
 
 const HardwareTypeIcon = styled.div`
-    ${tw`w-16 h-16 flex items-center justify-center text-4xl`}
+    ${tw`flex items-center justify-center rounded-full shadow-lg overflow-hidden`};
+    width: 72px;
+    height: 72px;
+    background: linear-gradient(135deg, #fbbf24 0%, #d97706 100%);
+    padding: 8px;
+    
+    img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+    }
 `;
 
 const HardwareTypeName = styled.span`
-    ${tw`text-xl font-bold text-white`}
+    ${tw`text-xl font-bold text-white tracking-wide`};
 `;
 
 const SelectedIndicator = styled.div`
@@ -53,62 +81,71 @@ const SelectedIndicator = styled.div`
 `;
 
 const ProcessorSection = styled.div`
-    ${tw`space-y-4`}
+    ${tw`space-y-4 relative z-10`};
 `;
 
 const ProcessorHeader = styled.div`
-    ${tw`flex items-center space-x-3 mb-4`}
+    ${tw`flex items-center space-x-3 mb-4`};
 `;
 
 const ProcessorIcon = styled.div`
-    ${tw`w-8 h-8 flex items-center justify-center text-xl`}
+    ${tw`w-9 h-9 flex items-center justify-center rounded-full shadow-lg overflow-hidden`};
+    background: linear-gradient(135deg, #22d3ee 0%, #3b82f6 100%);
+    padding: 4px;
+    
+    img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+    }
 `;
 
 const ProcessorSubtitle = styled.h3`
-    ${tw`text-lg font-semibold text-white`}
+    ${tw`text-lg font-semibold text-white tracking-wide`};
 `;
 
 const ProcessorGrid = styled.div`
-    ${tw`grid grid-cols-1 md:grid-cols-2 gap-4`}
+    ${tw`grid grid-cols-1 md:grid-cols-2 gap-4`};
 `;
 
 const ProcessorCard = styled.button<{ $selected: boolean }>`
-    ${tw`relative flex items-center justify-between p-4 rounded-lg border-2 transition-all text-left`}
-    ${(props) =>
-        props.$selected
-            ? tw`border-yellow-500 shadow-lg`
-            : tw`border-neutral-700 bg-neutral-800 hover:border-yellow-400`}
-    ${(props) =>
-        props.$selected
-            ? `
-                background-color: rgba(234, 179, 8, 0.1);
-                box-shadow: 0 10px 15px -3px rgba(234, 179, 8, 0.5), 0 4px 6px -2px rgba(234, 179, 8, 0.3);
-            `
-            : ''}
+    ${tw`relative flex items-center justify-between p-4 rounded-xl border-2 transition-all text-left`};
+    background: linear-gradient(135deg, rgba(15, 23, 42, 0.92), rgba(12, 18, 36, 0.95));
+    border-color: ${({ $selected }) => ($selected ? 'rgba(255,185,64,0.9)' : 'rgba(255,255,255,0.06)')};
+    box-shadow: ${({ $selected }) =>
+        $selected
+            ? '0 14px 28px -18px rgba(255,185,64,0.65), 0 10px 24px -20px rgba(59,130,246,0.35)'
+            : '0 12px 28px -24px rgba(0,0,0,0.6)'};
+    transform: ${({ $selected }) => ($selected ? 'translateY(-2px)' : 'none')};
+
+    &:hover {
+        border-color: rgba(255, 185, 64, 0.8);
+        transform: translateY(-2px);
+    }
 `;
 
 const ProcessorInfo = styled.div`
-    ${tw`flex-1`}
+    ${tw`flex-1`};
 `;
 
 const ProcessorName = styled.div`
-    ${tw`text-lg font-semibold text-white mb-1`}
+    ${tw`text-lg font-semibold text-white mb-1`};
 `;
 
 const ProcessorDescription = styled.div`
-    ${tw`text-sm text-neutral-400`}
+    ${tw`text-sm text-neutral-400`};
 `;
 
 const NewBadge = styled.span`
-    ${tw`ml-2 px-2 py-1 bg-green-500/20 text-green-400 rounded text-xs font-semibold`}
+    ${tw`ml-2 px-2 py-1 bg-yellow-500/20 text-yellow-200 rounded-full text-xs font-semibold tracking-wide`};
 `;
 
 const LoadingSpinner = styled.div`
-    ${tw`flex items-center justify-center py-12`}
+    ${tw`flex items-center justify-center py-12 text-neutral-300`};
 `;
 
 const ErrorMessage = styled.div`
-    ${tw`bg-red-500/20 border border-red-500 rounded-lg p-4 text-red-400`}
+    ${tw`bg-red-500/20 border border-red-500 rounded-lg p-4 text-red-400`};
 `;
 
 interface Props {
@@ -228,7 +265,9 @@ export default ({ onSelect }: Props) => {
                             <FontAwesomeIcon icon={faCheck} className='text-xs' />
                         </SelectedIndicator>
                     )}
-                    <HardwareTypeIcon>⚡</HardwareTypeIcon>
+                    <HardwareTypeIcon>
+                        <img src="/amd-icon.png" alt="AMD" />
+                    </HardwareTypeIcon>
                     <HardwareTypeName>AMD</HardwareTypeName>
                 </HardwareTypeButton>
 
@@ -238,7 +277,9 @@ export default ({ onSelect }: Props) => {
                             <FontAwesomeIcon icon={faCheck} className='text-xs' />
                         </SelectedIndicator>
                     )}
-                    <HardwareTypeIcon>🔷</HardwareTypeIcon>
+                    <HardwareTypeIcon>
+                        <img src="/intel-icon.png" alt="Intel" />
+                    </HardwareTypeIcon>
                     <HardwareTypeName>Intel</HardwareTypeName>
                 </HardwareTypeButton>
             </HardwareTypeGrid>
@@ -246,7 +287,12 @@ export default ({ onSelect }: Props) => {
             {selectedType && (
                 <ProcessorSection>
                     <ProcessorHeader>
-                        <ProcessorIcon>{selectedType === 'AMD' ? '⚡' : '🔷'}</ProcessorIcon>
+                        <ProcessorIcon>
+                            <img 
+                                src={selectedType === 'AMD' ? '/amd-icon.png' : '/intel-icon.png'} 
+                                alt={selectedType} 
+                            />
+                        </ProcessorIcon>
                         <ProcessorSubtitle>
                             {selectedType === 'AMD' ? 'AMD Processors' : 'Intel Processors'}
                         </ProcessorSubtitle>

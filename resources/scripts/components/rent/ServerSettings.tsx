@@ -16,161 +16,196 @@ import { Package, GameType, Version } from './RentServerContainer';
 import Switch from '@/components/elements/Switch';
 
 const Container = styled.div`
-    ${tw`space-y-6`}
+    ${tw`space-y-6 w-full max-w-6xl mx-auto px-3 sm:px-0`};
 `;
 
 const HeaderSection = styled.div`
-    ${tw`flex items-center justify-between mb-6`}
+    ${tw`flex flex-col md:flex-row items-center md:items-center justify-center md:justify-between gap-3 md:gap-4 mb-5 w-full`};
 `;
 
 const BackButton = styled.button`
-    ${tw`flex items-center space-x-2 px-4 py-2 bg-neutral-800 hover:bg-neutral-700 rounded-lg text-neutral-300 transition-colors`}
+    ${tw`inline-flex items-center justify-center space-x-2 px-4 py-3 rounded-2xl text-neutral-100 transition-all duration-200 border border-white/10 hover:-translate-y-0.5 backdrop-blur shadow-[0_12px_30px_rgba(0,0,0,0.35)] self-start`};
+    background: linear-gradient(135deg, rgba(30, 41, 59, 0.82), rgba(15, 23, 42, 0.82));
+    &:hover {
+        background: linear-gradient(135deg, rgba(30, 41, 59, 0.9), rgba(30, 41, 59, 0.85));
+    }
 `;
 
 const PackageInfo = styled.div`
-    ${tw`flex items-center space-x-4`}
+    ${tw`flex flex-col md:flex-row items-center md:items-start justify-center md:justify-start gap-2 md:gap-4 flex-1 flex-wrap text-center md:text-left w-full`};
 `;
 
 const PackageIcon = styled.div`
-    ${tw`w-16 h-16 bg-blue-500 rounded-lg flex items-center justify-center text-white text-2xl`}
+    ${tw`w-14 h-14 rounded-2xl text-white text-2xl flex items-center justify-center shadow-lg`};
+    background: linear-gradient(135deg, #38bdf8, #6366f1);
 `;
 
 const PackageDetails = styled.div`
-    ${tw`space-y-1`}
+    ${tw`space-y-1`};
 `;
 
 const PackageName = styled.h3`
-    ${tw`text-xl font-bold text-white`}
+    ${tw`text-base font-semibold text-white`};
 `;
 
 const PackageSpecs = styled.div`
-    ${tw`flex items-center space-x-4 text-sm text-neutral-400`}
+    ${tw`flex items-center gap-3 text-sm text-gray-300`};
 `;
 
-const PriceButton = styled.button`
-    ${tw`flex items-center space-x-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 rounded-lg text-white transition-colors`}
+const PriceButton = styled.div`
+    ${tw`h-full flex items-center justify-center rounded-2xl px-4 py-3 text-white font-semibold border border-white/10 self-center md:self-center`};
+    background: linear-gradient(135deg, #38bdf8, #6366f1);
+    box-shadow: 0 12px 30px rgba(56, 189, 248, 0.35);
 `;
 
 const ProgressSection = styled.div`
-    ${tw`mb-6`}
+    ${tw`rounded-2xl border border-white/10 backdrop-blur shadow-[0_18px_45px_rgba(0,0,0,0.35)] p-4`};
+    background: linear-gradient(135deg, rgba(15, 23, 42, 0.82), rgba(30, 41, 59, 0.74));
 `;
 
 const ProgressSteps = styled.div`
-    ${tw`flex items-center justify-center space-x-8 mb-4`}
+    ${tw`flex items-center justify-between gap-3 mb-4 flex-wrap`};
 `;
 
 const Step = styled.div<{ $active: boolean; $completed: boolean }>`
-    ${tw`flex flex-col items-center`}
+    ${tw`flex items-center gap-3 flex-1 min-w-[0]`};
 `;
 
 const StepCircle = styled.div<{ $active: boolean; $completed: boolean }>`
-    ${tw`w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg transition-all`}
+    ${tw`w-11 h-11 rounded-full flex items-center justify-center font-bold text-base transition-all shadow-inner`};
     ${(props) =>
         props.$completed
-            ? tw`bg-green-500 text-white`
+            ? tw`text-white`
             : props.$active
-            ? tw`bg-blue-500 text-white`
-            : tw`bg-neutral-700 text-neutral-400`}
+            ? tw`text-white shadow-[0_0_20px_rgba(56,189,248,0.45)]`
+            : tw`bg-white/10 text-gray-300 border border-white/10`};
+    ${(props) =>
+        props.$completed &&
+        `
+        background: linear-gradient(135deg, #22c55e, #16a34a);
+    `};
+    ${(props) =>
+        props.$active &&
+        `
+        background: linear-gradient(135deg, #38bdf8, #6366f1);
+    `};
 `;
 
 const StepLabel = styled.span<{ $active: boolean }>`
-    ${tw`mt-2 text-sm`}
-    ${(props) => (props.$active ? tw`text-blue-400 font-semibold` : tw`text-neutral-400`)}
+    ${tw`text-sm`};
+    ${(props) => (props.$active ? tw`text-white font-semibold` : tw`text-gray-300`)}
 `;
 
 const ProgressBar = styled.div`
-    ${tw`w-full h-1 bg-neutral-700 rounded-full overflow-hidden`}
+    ${tw`w-full h-2 rounded-full bg-white/10 overflow-hidden`};
 `;
 
 const ProgressFill = styled.div`
-    ${tw`h-full bg-gradient-to-r from-blue-500 to-purple-500 transition-all duration-300`}
+    ${tw`h-full transition-all duration-300`};
+    background: linear-gradient(90deg, #38bdf8, #6366f1);
     width: 100%;
+    box-shadow: 0 0 16px rgba(99, 102, 241, 0.35);
 `;
 
 const SettingsCard = styled.div`
-    ${tw`bg-neutral-800 rounded-lg p-6 space-y-6`}
+    ${tw`rounded-2xl p-6 space-y-6 border border-white/10 bg-white/5 backdrop-blur shadow-[0_18px_45px_rgba(0,0,0,0.35)]`};
 `;
 
 const SectionTitle = styled.h3`
-    ${tw`text-xl font-bold text-white mb-4`}
+    ${tw`text-lg font-bold text-white mb-4`};
 `;
 
 const GameSelectionInfo = styled.div`
-    ${tw`flex items-center space-x-4 p-4 bg-neutral-700 rounded-lg`}
+    ${tw`flex items-center gap-4 p-4 rounded-2xl border border-white/10 bg-white/5`};
 `;
 
 const GameIcon = styled.div`
-    ${tw`w-12 h-12 bg-blue-500 rounded-lg flex items-center justify-center text-white text-xl`}
+    ${tw`w-12 h-12 rounded-xl text-white text-xl flex items-center justify-center shadow-lg`};
+    background: linear-gradient(135deg, #38bdf8, #6366f1);
 `;
 
 const GameDetails = styled.div`
-    ${tw`flex-1`}
+    ${tw`flex-1`};
 `;
 
 const GameName = styled.h3`
-    ${tw`text-lg font-semibold text-white`}
+    ${tw`text-base font-semibold text-white`};
 `;
 
 const GameVersion = styled.p`
-    ${tw`text-sm text-neutral-400`}
+    ${tw`text-xs text-gray-300`};
 `;
 
 const InputGroup = styled.div`
-    ${tw`space-y-2`}
+    ${tw`space-y-2`};
 `;
 
 const Label = styled.label`
-    ${tw`block text-sm font-semibold text-neutral-300 mb-2`}
+    ${tw`block text-sm font-semibold text-gray-200 mb-2`};
 `;
 
 const Input = styled.input`
-    ${tw`w-full px-4 py-3 bg-neutral-700 border border-neutral-600 rounded-lg text-white placeholder-neutral-500 focus:outline-none focus:border-blue-500 transition-colors`}
+    ${tw`w-full px-4 py-3 rounded-xl text-white placeholder-gray-500 border border-white/10 bg-white/5 focus:outline-none transition-colors`};
+    &:focus {
+        border-color: rgba(56, 189, 248, 0.8);
+        box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.15);
+    }
 `;
 
 const AddonSection = styled.div`
-    ${tw`space-y-4`}
+    ${tw`space-y-4`};
 `;
 
 const AddonItem = styled.div`
-    ${tw`flex items-center justify-between p-4 bg-neutral-700 rounded-lg`}
+    ${tw`flex items-center justify-between p-4 rounded-2xl border border-white/10 bg-white/5`};
 `;
 
 const AddonInfo = styled.div`
-    ${tw`flex items-center space-x-3 flex-1`}
+    ${tw`flex items-center gap-3 flex-1`};
 `;
 
 const AddonIcon = styled.div`
-    ${tw`w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center text-white`}
+    ${tw`w-10 h-10 rounded-xl text-white flex items-center justify-center`};
+    background: linear-gradient(135deg, #38bdf8, #6366f1);
 `;
 
 const AddonDetails = styled.div`
-    ${tw`flex-1`}
+    ${tw`flex-1`};
 `;
 
 const AddonName = styled.h4`
-    ${tw`text-white font-semibold`}
+    ${tw`text-white font-semibold`};
 `;
 
 const AddonDescription = styled.p`
-    ${tw`text-sm text-neutral-400`}
+    ${tw`text-sm text-gray-300`};
 `;
 
 const FreeBadge = styled.span`
-    ${tw`ml-2 px-2 py-1 bg-green-500/20 text-green-400 rounded text-xs font-semibold`}
+    ${tw`ml-2 px-2 py-1 rounded text-xs font-semibold`};
+    color: #dcfce7;
+    border: 1px solid rgba(74, 222, 128, 0.4);
+    background: rgba(74, 222, 128, 0.15);
 `;
 
 const NavigationButtons = styled.div`
-    ${tw`flex items-center justify-between mt-6`}
+    ${tw`flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 mt-6`};
 `;
 
 const NavButton = styled.button<{ $primary?: boolean; $disabled?: boolean }>`
-    ${tw`flex items-center space-x-2 px-6 py-3 rounded-lg transition-colors`}
+    ${tw`w-full sm:w-auto inline-flex items-center justify-center space-x-2 px-6 py-3 rounded-2xl transition-all duration-200 font-semibold`};
     ${(props) => {
-        if (props.$disabled) return tw`opacity-50 cursor-not-allowed`;
-        if (props.$primary)
-            return tw`bg-gradient-to-r from-blue-500 to-purple-500 text-white hover:from-blue-600 hover:to-purple-600`;
-        return tw`bg-neutral-800 text-neutral-300 hover:bg-neutral-700`;
+        if (props.$disabled) return tw`opacity-50 cursor-not-allowed bg-white/5 text-gray-200`;
+        if (props.$primary) return tw`text-white shadow-[0_12px_30px_rgba(56,189,248,0.35)]`;
+        return tw`text-gray-100 border border-white/10 bg-white/5 hover:bg-white/10`;
     }}
+    ${(props) =>
+        props.$primary
+            ? `
+        background: linear-gradient(135deg, #38bdf8, #6366f1);
+        &:hover { background: linear-gradient(135deg, #38bdf8, #7c83ff); }
+    `
+            : ''};
 `;
 
 interface Props {
@@ -243,7 +278,7 @@ export default ({
                 </PackageInfo>
                 <PriceButton>
                     <FontAwesomeIcon icon={faClock} />
-                    <span>{selectedPackage.pricePerHour} เครดิต / ชั่วโมง</span>
+                    <span> {selectedPackage.pricePerHour} เครดิต / ชั่วโมง</span>
                 </PriceButton>
             </HeaderSection>
 

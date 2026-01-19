@@ -6,10 +6,13 @@ export interface CreateServerRequest {
     serverName: string;
     packageId: number;
     gameKey: string;
+    gameType?: string; // vanilla, bedrock, cross, plugin, mod
+    eggType?: string; // vanilla, bedrock, paper, fabric
     version: string;
     vanillaVersion?: string;
     eggId?: number; // Optional: if Spring Boot API provides it from version
     enableBackup: boolean;
+    installGeyser?: boolean; // Install Geyser plugin for Cross servers
 }
 
 export interface CreateServerResponse {
@@ -26,6 +29,38 @@ export interface ServerStatus {
     status: string;
     pterodactylId: number | null;
     createdAt: string;
+}
+
+export interface ServerBilling {
+    price_per_hour: number;
+    started_at: string;
+    paid_amount: number;
+    rented_hours: number;
+    package_name?: string;
+}
+
+export interface ServerWithBilling {
+    id: number;
+    serverName: string;
+    status: string;
+    edition: string;
+    version: string;
+    impl: string;
+    package?: {
+        id: number;
+        name: string;
+        cpu: number;
+        ram: number;
+        storage: number;
+    };
+    pterodactylIdentifier?: string; // short id (e.g. c447d8c5)
+    pterodactylUuid?: string; // uuid
+    pterodactylServerId?: number; // numeric id
+    createdAt?: string;
+    price_per_hour: number;
+    paid_amount: number;
+    started_at: string;
+    rented_hours: number;
 }
 
 /**
@@ -161,7 +196,72 @@ export const getUserServers = async (): Promise<ServerStatus[]> => {
 };
 
 /**
- * Delete a server
+ * Get servers with billing info (Spring Boot)
+ */
+export const getServersWithBilling = async (): Promise<ServerWithBilling[]> => {
+    const token = localStorage.getItem('auth_token');
+    if (!token) {
+        throw new Error('Authentication token not found. Please login again.');
+    }
+
+    try {
+        const response = await axios.get<ServerWithBilling[]>(`${SPRING_BOOT_API_URL}/api/servers`, {
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+        });
+        return response.data;
+    } catch (error: any) {
+        if (error.response?.status === 401 || error.response?.status === 403) {
+            localStorage.removeItem('auth_token');
+            window.location.href = '/auth/login';
+            throw new Error('Authentication failed. Please login again.');
+        }
+
+        throw new Error(error.response?.data?.message || error.message || 'Failed to get servers with billing.');
+    }
+};
+
+/**
+ * Get billing info for a server (Spring Boot)
+ */
+export const getServerBilling = async (serverId: number): Promise<ServerBilling> => {
+    const token = localStorage.getItem('auth_token');
+    if (!token) {
+        throw new Error('Authentication token not found. Please login again.');
+    }
+
+    try {
+        const response = await axios.get<ServerBilling>(`${SPRING_BOOT_API_URL}/api/servers/${serverId}/billing`, {
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+        });
+        return response.data;
+    } catch (error: any) {
+        if (error.response?.status === 401 || error.response?.status === 403) {
+            localStorage.removeItem('auth_token');
+            window.location.href = '/auth/login';
+            throw new Error('Authentication failed. Please login again.');
+        }
+
+        throw new Error(error.response?.data?.message || error.message || 'Failed to get server billing.');
+    }
+};
+
+/**
+ * Helper: find Spring server by Pterodactyl ID, then get billing.
+ * Returns null if not found.
+ */
+export const getServerBillingByPterodactylId = async (pterodactylId: number): Promise<ServerBilling | null> => {
+    const servers = await getUserServers();
+    const match = servers.find((s) => s.pterodactylId === pterodactylId);
+    if (!match) return null;
+    return getServerBilling(match.id);
+};
+
+/**
+ * Delete a server by Spring Boot server ID
  */
 export const deleteServer = async (serverId: number): Promise<void> => {
     const token = localStorage.getItem('auth_token');
@@ -183,5 +283,44 @@ export const deleteServer = async (serverId: number): Promise<void> => {
         }
 
         throw new Error(error.response?.data?.message || error.message || 'Failed to delete server.');
+    }
+};
+
+/**
+ * Delete a server by Pterodactyl UUID
+ * This will delete the server from both Spring Boot and Pterodactyl databases
+ */
+export const deleteServerByUuid = async (uuid: string): Promise<void> => {
+    const token = localStorage.getItem('auth_token');
+    if (!token) {
+        throw new Error('Authentication token not found. Please login again.');
+    }
+
+    try {
+        console.log(`[Spring Boot API] Deleting server by UUID: ${uuid}`);
+        const response = await axios.delete(`${SPRING_BOOT_API_URL}/api/servers/${uuid}`, {
+            headers: {
+                Authorization: `Bearer ${token}`,
+                'Content-Type': 'application/json',
+            },
+            withCredentials: true,
+        });
+
+        console.log('[Spring Boot API] Server deleted successfully:', response.data);
+        return response.data;
+    } catch (error: any) {
+        console.error('[Spring Boot API] Delete failed:', error.response?.data || error.message);
+
+        if (error.response?.status === 401 || error.response?.status === 403) {
+            localStorage.removeItem('auth_token');
+            window.location.href = '/auth/login';
+            throw new Error('Authentication failed. Please login again.');
+        }
+
+        if (error.response?.status === 404) {
+            throw new Error('Server not found in Spring Boot database.');
+        }
+
+        throw new Error(error.response?.data?.message || error.message || 'Failed to delete server from Spring Boot.');
     }
 };

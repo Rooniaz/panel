@@ -16,7 +16,7 @@ use Pterodactyl\Services\Servers\StartupCommandService;
 
 class ServerTransformer extends BaseClientTransformer
 {
-    protected array $defaultIncludes = ['allocations', 'variables'];
+    protected array $defaultIncludes = ['allocations', 'variables', 'egg'];
 
     protected array $availableIncludes = ['egg', 'subusers'];
 
@@ -41,6 +41,7 @@ class ServerTransformer extends BaseClientTransformer
             'identifier' => $server->uuidShort,
             'internal_id' => $server->id,
             'uuid' => $server->uuid,
+            'external_id' => $server->external_id,
             'name' => $server->name,
             'node' => $server->node->name,
             'is_node_under_maintenance' => $server->node->isUnderMaintenance(),

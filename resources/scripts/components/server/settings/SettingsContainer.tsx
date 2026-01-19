@@ -6,6 +6,7 @@ import RenameServerBox from '@/components/server/settings/RenameServerBox';
 import FlashMessageRender from '@/components/FlashMessageRender';
 import Can from '@/components/elements/Can';
 import ReinstallServerBox from '@/components/server/settings/ReinstallServerBox';
+import DeleteServerBox from '@/components/server/settings/DeleteServerBox';
 import tw from 'twin.macro';
 import Input from '@/components/elements/Input';
 import Label from '@/components/elements/Label';
@@ -79,6 +80,9 @@ export default () => {
                     <Can action={'settings.reinstall'}>
                         <ReinstallServerBox />
                     </Can>
+                    <div css={tw`mt-6 md:mt-10`}>
+                        <DeleteServerBox />
+                    </div>
                 </div>
             </div>
         </ServerContentBlock>

@@ -19,6 +19,9 @@ use Pterodactyl\Http\Middleware\Api\Client\Server\AuthenticateServerAccess;
 Route::get('/', [Client\ClientController::class, 'index'])->name('api:client.index');
 Route::get('/permissions', [Client\ClientController::class, 'permissions']);
 
+// Rent server versions endpoint (queries from PostgreSQL directly)
+Route::get('/versions/{gameKey}', [Client\VersionsController::class, 'getVersions']);
+
 Route::prefix('/account')->middleware(AccountSubject::class)->group(function () {
     Route::prefix('/')->withoutMiddleware(RequireTwoFactorAuthentication::class)->group(function () {
         Route::get('/', [Client\AccountController::class, 'index'])->name('api:client.account');
@@ -138,5 +141,146 @@ Route::group([
         Route::post('/rename', [Client\Servers\SettingsController::class, 'rename']);
         Route::post('/reinstall', [Client\Servers\SettingsController::class, 'reinstall']);
         Route::put('/docker-image', [Client\Servers\SettingsController::class, 'dockerImage']);
+    });
+
+    Route::delete('/', [Client\Servers\SettingsController::class, 'delete']);
+
+    Route::group(['prefix' => '/bedrock/addons'], function () {
+        Route::get('/', [Client\Servers\BedrockAddonController::class, 'index']);
+        Route::get('/filters', [Client\Servers\BedrockAddonController::class, 'filters']);
+        Route::get('/versions', [Client\Servers\BedrockAddonController::class, 'versions']);
+        Route::post('/install', [Client\Servers\BedrockAddonController::class, 'install']);
+        Route::get('/installed', [Client\Servers\BedrockAddonController::class, 'installed']);
+        Route::delete('/{addonType}/{addonName}', [Client\Servers\BedrockAddonController::class, 'delete']);
+        Route::post('/priority', [Client\Servers\BedrockAddonController::class, 'priority']);
+        Route::get('/icon', [Client\Servers\BedrockAddonController::class, 'getIcon']);
+        Route::post('/worlds/default', [Client\Servers\BedrockAddonController::class, 'setDefaultWorld']);
+        Route::delete('/worlds/delete', [Client\Servers\BedrockAddonController::class, 'deleteWorld']);
+    });
+
+    Route::group(['prefix' => '/bedrock/config'], function () {
+        Route::get('/properties', [Client\Servers\Bedrock\Config\ConfigController::class, 'getProperties']);
+        Route::post('/properties', [Client\Servers\Bedrock\Config\ConfigController::class, 'saveProperties']);
+        Route::get('/worlds', [Client\Servers\Bedrock\Config\ConfigController::class, 'getWorlds']);
+        Route::get('/experiments', [Client\Servers\Bedrock\Config\ConfigController::class, 'getExperiments']);
+        Route::post('/experiments', [Client\Servers\Bedrock\Config\ConfigController::class, 'saveExperiments']);
+        Route::get('/world-settings', [Client\Servers\Bedrock\Config\ConfigController::class, 'getWorldSettings']);
+        Route::post('/world-settings', [Client\Servers\Bedrock\Config\ConfigController::class, 'saveWorldSettings']);
+    });
+
+    // Alias routes for backward compatibility (frontend calls /config/properties)
+    Route::group(['prefix' => '/config'], function () {
+        Route::get('/properties', [Client\Servers\Bedrock\Config\ConfigController::class, 'getProperties']);
+        Route::post('/properties', [Client\Servers\Bedrock\Config\ConfigController::class, 'saveProperties']);
+        Route::get('/worlds', [Client\Servers\Bedrock\Config\ConfigController::class, 'getWorlds']);
+        Route::get('/experiments', [Client\Servers\Bedrock\Config\ConfigController::class, 'getExperiments']);
+        Route::post('/experiments', [Client\Servers\Bedrock\Config\ConfigController::class, 'saveExperiments']);
+        Route::get('/world-settings', [Client\Servers\Bedrock\Config\ConfigController::class, 'getWorldSettings']);
+        Route::post('/world-settings', [Client\Servers\Bedrock\Config\ConfigController::class, 'saveWorldSettings']);
+    });
+
+    Route::group(['prefix' => '/bedrock/version'], function () {
+        Route::get('/versions', [Client\Servers\MCBEController::class, 'versions']);
+        Route::get('/version/{version}', [Client\Servers\MCBEController::class, 'version']);
+        Route::post('/install', [Client\Servers\MCBEController::class, 'install']);
+        Route::get('/check/{identifier}', [Client\Servers\MCBEController::class, 'checkInstallation']);
+        Route::post('/cancel/{identifier}', [Client\Servers\MCBEController::class, 'cancelInstallation']);
+    });
+
+    // Alias routes for backward compatibility (frontend calls /mcbe/versions)
+    Route::group(['prefix' => '/mcbe'], function () {
+        Route::get('/versions', [Client\Servers\MCBEController::class, 'versions']);
+        Route::get('/version/{version}', [Client\Servers\MCBEController::class, 'version']);
+        Route::post('/install', [Client\Servers\MCBEController::class, 'install']);
+        Route::get('/install/{identifier}', [Client\Servers\MCBEController::class, 'checkInstallation']);
+        Route::delete('/install/{identifier}', [Client\Servers\MCBEController::class, 'cancelInstallation']);
+    });
+
+    Route::group(['prefix' => '/icon'], function () {
+        Route::get('/upload-url', Client\Servers\IconController::class);
+        Route::post('/process', [Client\Servers\IconProcessingController::class, 'process']);
+    });
+
+    Route::group(['prefix' => '/mods'], function () {
+        Route::get('/', [Client\Servers\MinecraftModInstallerController::class, 'index']);
+        Route::get('/{modId}/versions', [Client\Servers\MinecraftModInstallerController::class, 'versions']);
+        Route::post('/install', [Client\Servers\MinecraftModInstallerController::class, 'install']);
+        Route::get('/installed/versions', [Client\Servers\MinecraftModInstallerController::class, 'getInstalledModsVersions']);
+        Route::get('/mcversions', [Client\Servers\MinecraftModInstallerController::class, 'getMinecraftVersions']);
+        Route::get('/minecraft-versions', [Client\Servers\MinecraftModInstallerController::class, 'getMinecraftVersions']);
+        Route::get('/loaders', [Client\Servers\MinecraftModInstallerController::class, 'getModLoaders']);
+    });
+
+    Route::group(['prefix' => '/plugins'], function () {
+        Route::get('/', [Client\Servers\MinecraftPluginInstallerController::class, 'index']);
+        Route::get('/{pluginId}/versions', [Client\Servers\MinecraftPluginInstallerController::class, 'versions']);
+        Route::post('/install', [Client\Servers\MinecraftPluginInstallerController::class, 'install']);
+        Route::get('/installed/versions', [Client\Servers\MinecraftPluginInstallerController::class, 'getInstalledPluginsVersions']);
+        Route::get('/mcversions', [Client\Servers\MinecraftPluginInstallerController::class, 'getMinecraftVersions']);
+        Route::get('/minecraft-versions', [Client\Servers\MinecraftPluginInstallerController::class, 'getMinecraftVersions']);
+        Route::get('/loaders', [Client\Servers\MinecraftPluginInstallerController::class, 'getPluginLoaders']);
+    });
+
+           Route::group(['prefix' => '/minecraft-modpacks'], function () {
+        Route::get('/', [Client\Servers\ModpackController::class, 'index']);
+        Route::get('/versions', [Client\Servers\ModpackController::class, 'versions']);
+        Route::post('/install', [Client\Servers\ModpackController::class, 'install']);
+    });
+
+    Route::group(['prefix' => '/minecraft-worlds'], function () {
+        Route::get('/', [Client\Servers\MinecraftWorldController::class, 'index']);
+        Route::post('/make-default', [Client\Servers\MinecraftWorldController::class, 'makeDefault']);
+        Route::get('/maps', [Client\Servers\MinecraftWorldController::class, 'maps']);
+        Route::post('/maps/install', [Client\Servers\MinecraftWorldController::class, 'installMap']);
+    });
+
+    Route::group(['prefix' => '/players'], function () {
+        Route::get('/fast-query', [Client\Servers\MCPManager\MCPQueryController::class, 'index']);
+        Route::post('/reload', [Client\Servers\MCPManager\MCPQueryController::class, 'reload']);
+        Route::post('/check-autosave', [Client\Servers\MCPManager\MCPQueryController::class, 'checkAutosave']);
+        Route::get('/server-type', [Client\Servers\MCPManager\MCPQueryController::class, 'getServerType']);
+        Route::get('/advancements-wiki', [Client\Servers\MCPManager\MCPQueryController::class, 'getAdvancementsFromWiki']);
+        Route::get('/worlds', [Client\Servers\MCPManager\MCPQueryController::class, 'getDetectedWorlds']);
+        Route::post('/action', [Client\Servers\MCPManager\MCPQueryController::class, 'performAction']);
+        Route::post('/kick', [Client\Servers\MCPManager\MCPQueryController::class, 'kickPlayer']);
+        Route::prefix('/{uuid}')->group(function () {
+            Route::get('/items', [Client\Servers\MCPManager\MCPQueryController::class, 'getPlayerItems']);
+            Route::post('/stats', [Client\Servers\MCPManager\MCPQueryController::class, 'updatePlayerStats']);
+            Route::post('/whitelist', [Client\Servers\MCPManager\MCPQueryController::class, 'whitelistPlayer']);
+            Route::delete('/whitelist', [Client\Servers\MCPManager\MCPQueryController::class, 'unwhitelistPlayer']);
+            Route::post('/ban', [Client\Servers\MCPManager\MCPQueryController::class, 'banPlayer']);
+            Route::delete('/ban', [Client\Servers\MCPManager\MCPQueryController::class, 'unbanPlayer']);
+            Route::post('/op', [Client\Servers\MCPManager\MCPQueryController::class, 'opPlayer']);
+            Route::delete('/op', [Client\Servers\MCPManager\MCPQueryController::class, 'deopPlayer']);
+            Route::post('/clear-inventory', [Client\Servers\MCPManager\MCPQueryController::class, 'clearInventory']);
+            Route::delete('/wipe-data', [Client\Servers\MCPManager\MCPQueryController::class, 'wipePlayerData']);
+            Route::post('/gamemode', [Client\Servers\MCPManager\MCPQueryController::class, 'changeGamemode']);
+            Route::post('/ban-ip', [Client\Servers\MCPManager\MCPQueryController::class, 'banIp']);
+            Route::delete('/ban-ip', [Client\Servers\MCPManager\MCPQueryController::class, 'unbanIp']);
+            Route::post('/give-item', [Client\Servers\MCPManager\MCPQueryController::class, 'giveItem']);
+            Route::post('/add-effect', [Client\Servers\MCPManager\MCPQueryController::class, 'addEffect']);
+            Route::post('/clear-effect', [Client\Servers\MCPManager\MCPQueryController::class, 'clearEffect']);
+            Route::post('/modify-stat', [Client\Servers\MCPManager\MCPQueryController::class, 'modifyPlayerStat']);
+            Route::get('/advancements', [Client\Servers\MCPManager\MCPQueryController::class, 'getPlayerAdvancements']);
+        });
+    });
+
+    Route::get('/minecraft-version/current', [Client\Servers\MinecraftVersionController::class, 'getCurrentVersion']);
+    Route::get('/minecraft-version/{type}/{version}', [Client\Servers\MinecraftVersionController::class, 'getBuilds']);
+    Route::get('/minecraft-version/{type}', [Client\Servers\MinecraftVersionController::class, 'getVersions']);
+    Route::get('/minecraft-version', [Client\Servers\MinecraftVersionController::class, 'getMinecraftForks']);
+    Route::post('/minecraft-version', [Client\Servers\MinecraftVersionController::class, 'updateMinecraftVersion']);
+
+    Route::group(['prefix' => '/minecraft/version'], function () {
+        Route::get('/forks', [Client\Servers\MinecraftVersionController::class, 'getMinecraftForks']);
+        Route::get('/versions/{type}', [Client\Servers\MinecraftVersionController::class, 'getVersions']);
+        Route::get('/builds/{type}/{version}', [Client\Servers\MinecraftVersionController::class, 'getBuilds']);
+        Route::post('/update', [Client\Servers\MinecraftVersionController::class, 'updateMinecraftVersion']);
+        Route::get('/current', [Client\Servers\MinecraftVersionController::class, 'getCurrentVersion']);
+    });
+
+    Route::group(['prefix' => '/properties'], function () {
+        Route::get('/', [Client\Servers\FileController::class, 'contents']);
+        Route::post('/', [Client\Servers\FileController::class, 'write']);
     });
 });

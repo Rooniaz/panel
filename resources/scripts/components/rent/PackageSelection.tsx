@@ -7,89 +7,125 @@ import { Package } from './RentServerContainer';
 import { getHardwareDetail } from '@/api/spring/hardware';
 
 const Container = styled.div`
-    ${tw`space-y-6`}
+    ${tw`space-y-6 w-full max-w-6xl mx-auto px-3 sm:px-0`};
 `;
 
 const SectionTitle = styled.div`
-    ${tw`flex items-center space-x-3 mb-6`}
+    ${tw`flex items-center gap-3 mb-4`};
 `;
 
 const TitleBar = styled.div`
-    ${tw`w-1 h-8 bg-blue-500 rounded`}
+    ${tw`w-1.5 h-9 rounded-full`};
+    background: linear-gradient(180deg, #38bdf8, #6366f1);
 `;
 
 const TitleText = styled.h2`
-    ${tw`text-2xl font-bold text-white`}
+    ${tw`text-2xl font-bold text-white tracking-tight`};
 `;
 
 const PackageGrid = styled.div`
-    ${tw`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6`}
+    ${tw`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5`};
 `;
 
 const PackageCard = styled.div<{ $isFull: boolean; $isRecommended?: boolean }>`
-    ${tw`relative rounded-lg p-6 cursor-pointer transition-all duration-300`}
-    ${(props) => (props.$isRecommended ? tw`border-2 border-blue-500 shadow-lg` : tw`border border-neutral-700`)}
-    ${(props) => (props.$isFull ? tw`opacity-50 cursor-not-allowed` : tw`hover:border-blue-500 hover:shadow-lg`)}
-    background: linear-gradient(135deg, rgba(30, 30, 30, 0.9) 0%, rgba(20, 20, 20, 0.9) 100%);
+    ${tw`relative rounded-2xl p-5 cursor-pointer transition-all duration-200 border`};
+    background: linear-gradient(135deg, rgba(16, 24, 40, 0.9), rgba(8, 15, 30, 0.9));
+    box-shadow: 0 18px 45px rgba(0, 0, 0, 0.35);
     ${(props) =>
         props.$isRecommended
-            ? 'box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.5), 0 4px 6px -2px rgba(59, 130, 246, 0.3);'
-            : ''}
+            ? tw`shadow-[0_16px_40px_rgba(56,189,248,0.3)]`
+            : tw`border-white/10 hover:-translate-y-1`};
+    ${(props) =>
+        props.$isRecommended
+            ? `
+        border-color: rgba(56, 189, 248, 0.7);
+    `
+            : `
+        border-color: rgba(255,255,255,0.1);
+        &:hover { border-color: rgba(56, 189, 248, 0.7); }
+    `};
+    ${(props) => (props.$isFull ? tw`opacity-50 cursor-not-allowed hover:translate-y-0 hover:border-white/10` : '')};
 `;
 
-const PackageImage = styled.div`
-    ${tw`w-full h-32 mb-4 rounded bg-neutral-800`}
+const PackageImage = styled.div<{ $backgroundImage?: string }>`
+    ${tw`w-full h-32 mb-4 rounded-xl`}
+    background: ${({ $backgroundImage }) =>
+        $backgroundImage
+            ? `url(${$backgroundImage})`
+            : 'linear-gradient(135deg, rgba(56, 189, 248, 0.08), rgba(99, 102, 241, 0.08))'};
     background-size: cover;
     background-position: center;
+    background-repeat: no-repeat;
+    border: 1px solid rgba(255, 255, 255, 0.06);
 `;
 
 const PackageHeader = styled.div`
-    ${tw`flex items-center justify-between mb-4`}
+    ${tw`flex items-center justify-between mb-3`};
 `;
 
 const PackageName = styled.h3`
-    ${tw`text-xl font-bold text-white`}
+    ${tw`text-lg font-semibold text-white`};
 `;
 
 const StatusBadge = styled.div<{ $isFull: boolean }>`
-    ${tw`flex items-center space-x-2 px-3 py-1 rounded-full text-xs font-semibold`}
-    ${(props) => (props.$isFull ? tw`bg-red-500/20 text-red-400` : tw`bg-green-500/20 text-green-400`)}
+    ${tw`flex items-center space-x-2 px-3 py-1 rounded-full text-xs font-semibold border`};
+    ${(props) =>
+        props.$isFull
+            ? `
+        border: 1px solid rgba(248, 113, 113, 0.55);
+        color: #fecdd3;
+        background: rgba(248, 113, 113, 0.12);
+    `
+            : `
+        border: 1px solid rgba(74, 222, 128, 0.55);
+        color: #dcfce7;
+        background: rgba(74, 222, 128, 0.12);
+    `};
 `;
 
 const RecommendedBadge = styled.div`
-    ${tw`absolute top-4 right-4 bg-blue-500 text-white px-3 py-1 rounded-full text-xs font-semibold flex items-center space-x-1`}
+    ${tw`absolute top-4 right-4 px-3 py-1 rounded-full text-xs font-semibold flex items-center space-x-1 text-white border border-white/10`};
+    background: linear-gradient(135deg, #38bdf8, #6366f1);
+    box-shadow: 0 12px 28px rgba(99, 102, 241, 0.35);
 `;
 
 const SpecsList = styled.div`
-    ${tw`space-y-2 mb-4`}
+    ${tw`space-y-2 mb-4 text-gray-200`};
 `;
 
 const SpecItem = styled.div`
-    ${tw`flex items-center space-x-2 text-neutral-300`}
+    ${tw`flex items-center gap-2 text-sm`};
 `;
 
 const PriceInfo = styled.div`
-    ${tw`flex items-center justify-between mt-4 pt-4 border-t border-neutral-700`}
+    ${tw`flex items-center justify-between pt-4 border-t border-white/10`};
 `;
 
 const PriceText = styled.div`
-    ${tw`flex items-center space-x-2 text-blue-400 font-semibold`}
+    ${tw`flex items-center space-x-2 font-semibold text-primary-300`};
 `;
 
 const BackButton = styled.button`
-    ${tw`flex items-center space-x-2 px-4 py-2 bg-neutral-800 hover:bg-neutral-700 rounded-lg text-neutral-300 transition-colors mb-6`}
+    ${tw`inline-flex items-center justify-center space-x-2 px-4 py-3 rounded-2xl text-neutral-100 transition-all duration-200 border border-white/10 hover:-translate-y-0.5 backdrop-blur shadow-[0_12px_30px_rgba(0,0,0,0.35)] mb-4`};
+    background: linear-gradient(135deg, rgba(30, 41, 59, 0.82), rgba(15, 23, 42, 0.82));
+    &:hover {
+        background: linear-gradient(135deg, rgba(30, 41, 59, 0.9), rgba(30, 41, 59, 0.85));
+    }
 `;
 
 const LoadingSpinner = styled.div`
-    ${tw`flex items-center justify-center py-12`}
+    ${tw`flex items-center justify-center py-12 text-gray-300`};
 `;
 
 const ErrorMessage = styled.div`
-    ${tw`bg-red-500/20 border border-red-500 rounded-lg p-4 text-red-400`}
+    ${tw`rounded-2xl p-4`};
+    border: 1px solid rgba(248, 113, 113, 0.6);
+    background: rgba(248, 113, 113, 0.12);
+    color: #fecdd3;
 `;
 
 const HeaderSection = styled.div`
-    ${tw`flex items-center justify-between mb-6`}
+    ${tw`flex items-center justify-between mb-4`};
 `;
 
 interface Props {
@@ -179,7 +215,7 @@ export default ({ hardwareId, onSelect, onBack }: Props) => {
             <HeaderSection>
                 <BackButton onClick={onBack}>
                     <FontAwesomeIcon icon={faArrowLeft} />
-                    <span>← ย้อนกลับ</span>
+                    <span>ย้อนกลับ</span>
                 </BackButton>
             </HeaderSection>
 
@@ -189,20 +225,25 @@ export default ({ hardwareId, onSelect, onBack }: Props) => {
             </SectionTitle>
 
             <PackageGrid>
-                {packages.map((pkg) => (
-                    <PackageCard
-                        key={pkg.id}
-                        $isFull={pkg.isFull}
-                        $isRecommended={pkg.isRecommended}
-                        onClick={() => !pkg.isFull && onSelect(pkg)}
-                    >
-                        {pkg.isRecommended && (
-                            <RecommendedBadge>
-                                <span>⭐</span>
-                                <span>RECOMMEND</span>
-                            </RecommendedBadge>
-                        )}
-                        <PackageImage />
+                {packages.map((pkg) => {
+                    // Get package background image (package1.gif to package6.gif)
+                    const base = process.env.PUBLIC_URL || (typeof window !== 'undefined' ? window.location.origin : '');
+                    const packageImage = `${base}/package${pkg.packageId}.gif?v=1`;
+
+                    return (
+                        <PackageCard
+                            key={pkg.id}
+                            $isFull={pkg.isFull}
+                            $isRecommended={pkg.isRecommended}
+                            onClick={() => !pkg.isFull && onSelect(pkg)}
+                        >
+                            {pkg.isRecommended && (
+                                <RecommendedBadge>
+                                    <span>⭐</span>
+                                    <span>RECOMMEND</span>
+                                </RecommendedBadge>
+                            )}
+                            <PackageImage $backgroundImage={packageImage} />
                         <PackageHeader>
                             <PackageName>{pkg.name}</PackageName>
                             <StatusBadge $isFull={pkg.isFull}>
@@ -230,8 +271,9 @@ export default ({ hardwareId, onSelect, onBack }: Props) => {
                                 <span>ชั่วโมงละ {pkg.pricePerHour} เครดิต</span>
                             </PriceText>
                         </PriceInfo>
-                    </PackageCard>
-                ))}
+                        </PackageCard>
+                    );
+                })}
             </PackageGrid>
         </Container>
     );

@@ -1,25 +1,151 @@
-import React, { memo } from 'react';
+import React, { memo, useEffect, useMemo, useState } from 'react';
 import { ServerContext } from '@/state/server';
 import Can from '@/components/elements/Can';
 import ServerContentBlock from '@/components/elements/ServerContentBlock';
 import isEqual from 'react-fast-compare';
 import Spinner from '@/components/elements/Spinner';
-import Features from '@feature/Features';
 import Console from '@/components/server/console/Console';
-import StatGraphs from '@/components/server/console/StatGraphs';
 import PowerButtons from '@/components/server/console/PowerButtons';
-import ServerDetailsBlock from '@/components/server/console/ServerDetailsBlock';
 import { Alert } from '@/components/elements/alert';
+import styles from './style.module.css';
+import { SocketEvent, SocketRequest } from '@/components/server/events';
+import useWebsocketEvent from '@/plugins/useWebsocketEvent';
+import { bytesToString, ip, mbToBytes } from '@/lib/formatters';
+import classNames from 'classnames';
+import UptimeDuration from '@/components/server/UptimeDuration';
+import {
+    ClipboardCopyIcon,
+    ClockIcon,
+    ColorSwatchIcon,
+    ServerIcon,
+    LightningBoltIcon,
+    CashIcon,
+} from '@heroicons/react/solid';
+import Features from '@feature/Features';
+import { getServersWithBilling, ServerBilling, ServerWithBilling } from '@/api/spring/servers';
 
 export type PowerAction = 'start' | 'stop' | 'restart' | 'kill';
+
+type Stats = Record<'memory' | 'cpu' | 'disk' | 'uptime', number>;
+
+const formatLimit = (value?: number | null) => {
+    if (!value) return null;
+    return bytesToString(mbToBytes(value));
+};
+
+const ProgressRow = ({
+    label,
+    value,
+    maxText,
+    percent,
+}: {
+    label: string;
+    value: string;
+    maxText?: string | null;
+    percent: number;
+}) => (
+    <div className={'space-y-1'}>
+        <div className={styles.stat_row}>
+            <span className={'text-sm text-white/80'}>{label}</span>
+            <span className={'text-sm font-semibold text-white'}>
+                {value}
+                {maxText ? <span className={'text-white/60'}> / {maxText}</span> : null}
+            </span>
+        </div>
+        <div className={styles.progress_track}>
+            <div className={styles.progress_fill} style={{ width: `${Math.min(100, Math.max(0, percent))}%` }} />
+        </div>
+    </div>
+);
 
 const ServerConsoleContainer = () => {
     const name = ServerContext.useStoreState((state) => state.server.data!.name);
     const description = ServerContext.useStoreState((state) => state.server.data!.description);
     const isInstalling = ServerContext.useStoreState((state) => state.server.isInstalling);
     const isTransferring = ServerContext.useStoreState((state) => state.server.data!.isTransferring);
-    const eggFeatures = ServerContext.useStoreState((state) => state.server.data!.eggFeatures, isEqual);
     const isNodeUnderMaintenance = ServerContext.useStoreState((state) => state.server.data!.isNodeUnderMaintenance);
+    const eggFeatures = ServerContext.useStoreState((state) => state.server.data!.eggFeatures, isEqual);
+    const status = ServerContext.useStoreState((state) => state.status.value);
+    const connected = ServerContext.useStoreState((state) => state.socket.connected);
+    const instance = ServerContext.useStoreState((state) => state.socket.instance);
+    const limits = ServerContext.useStoreState((state) => state.server.data!.limits);
+    const allocations = ServerContext.useStoreState((state) => state.server.data!.allocations);
+    const pteroInternalId = ServerContext.useStoreState((state) => state.server.data?.internalId);
+    const pteroIdentifier = ServerContext.useStoreState((state) => state.server.data?.id);
+    const pteroUuid = ServerContext.useStoreState((state) => state.server.data?.uuid);
+
+    const [stats, setStats] = useState<Stats>({ memory: 0, cpu: 0, disk: 0, uptime: 0 });
+    const [billing, setBilling] = useState<ServerBilling | null>(null);
+    const [billingError, setBillingError] = useState<string | null>(null);
+    const [loadingBilling, setLoadingBilling] = useState<boolean>(false);
+    const [packageName, setPackageName] = useState<string | undefined>(undefined);
+
+    const allocation = useMemo(() => {
+        const match = allocations.find((a) => a.isDefault);
+        return !match ? 'n/a' : `${match.alias || ip(match.ip)}:${match.port}`;
+    }, [allocations]);
+
+    useEffect(() => {
+        if (!connected || !instance) return;
+        instance.send(SocketRequest.SEND_STATS);
+    }, [connected, instance]);
+
+    useWebsocketEvent(SocketEvent.STATS, (data) => {
+        try {
+            const parsed = JSON.parse(data);
+            setStats({
+                memory: parsed.memory_bytes,
+                cpu: parsed.cpu_absolute,
+                disk: parsed.disk_bytes,
+                uptime: parsed.uptime || 0,
+            });
+        } catch {
+            return;
+        }
+    });
+
+    const cpuLimit = limits?.cpu ? `${limits.cpu}%` : null;
+    const memLimit = formatLimit(limits?.memory);
+    const diskLimit = formatLimit(limits?.disk);
+
+    const cpuPercent = limits?.cpu ? Math.min(100, (stats.cpu / limits.cpu) * 100) : stats.cpu;
+    const memPercent = limits?.memory ? (stats.memory / mbToBytes(limits.memory)) * 100 : 0;
+    const diskPercent = limits?.disk ? (stats.disk / mbToBytes(limits.disk)) * 100 : 0;
+
+    useEffect(() => {
+        const fetchBilling = async () => {
+            setLoadingBilling(true);
+            try {
+                const list: ServerWithBilling[] = await getServersWithBilling();
+                const match = list.find((s) => {
+                    if (pteroIdentifier && s.pterodactylIdentifier === pteroIdentifier) return true;
+                    if (pteroInternalId && s.pterodactylServerId === Number(pteroInternalId)) return true;
+                    if (pteroUuid && s.pterodactylUuid === pteroUuid) return true;
+                    return false;
+                });
+                if (!match) {
+                    setBillingError('ไม่พบข้อมูล billing');
+                    setBilling(null);
+                    return;
+                }
+                setBilling({
+                    price_per_hour: Number(match.price_per_hour) || 0,
+                    started_at: match.started_at,
+                    paid_amount: Number(match.paid_amount) || 0,
+                    rented_hours: Number(match.rented_hours) || 0,
+                    package_name: match.package?.name,
+                });
+                setPackageName(match.package?.name);
+                setBillingError(null);
+            } catch (err: any) {
+                setBillingError('โหลดข้อมูล billing ไม่สำเร็จ');
+                setBilling(null);
+            } finally {
+                setLoadingBilling(false);
+            }
+        };
+        fetchBilling();
+    }, [pteroInternalId, pteroIdentifier, pteroUuid]);
 
     return (
         <ServerContentBlock title={'Console'}>
@@ -32,29 +158,160 @@ const ServerConsoleContainer = () => {
                         : 'This server is currently being transferred to another node and all actions are unavailable.'}
                 </Alert>
             )}
-            <div className={'grid grid-cols-4 gap-4 mb-4'}>
-                <div className={'hidden sm:block sm:col-span-2 lg:col-span-3 pr-4'}>
-                    <h1 className={'font-header text-2xl text-gray-50 leading-relaxed line-clamp-1'}>{name}</h1>
-                    <p className={'text-sm line-clamp-2'}>{description}</p>
+            <div className={classNames(styles.banner, 'mb-4')}>
+                <span className={'font-semibold'}>ระบบจะทำการตัดสิทธิ์บางอย่างหากการใช้งานไม่เป็นไปตามเงื่อนไข</span>
+                <span className={'text-amber-200/80'}>โปรดตรวจสอบสถานะและรีสตาร์ทหากจำเป็น</span>
+            </div>
+
+            <div className={'grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-4 mb-4 sm:mb-5'}>
+                <div className={styles.card}>
+                    <div className={styles.card_header}>
+                        <div className={'min-w-0 flex-1'}>
+                            <p className={'text-xs uppercase text-white/60 mb-1 flex items-center gap-1.5 sm:gap-2'}>
+                                <ServerIcon className={'w-3 h-3 sm:w-4 sm:h-4 text-sky-300 flex-shrink-0'} />
+                                <span className={'truncate'}>Minecraft Server</span>
+                            </p>
+                            <h1 className={'font-header text-xl sm:text-2xl text-white leading-tight line-clamp-1 break-words'}>{name}</h1>
+                            <p className={'text-xs sm:text-sm text-white/70 line-clamp-2 mt-1 break-words'}>
+                                {packageName || description || '—'}
+                            </p>
+                        </div>
+                        <span className={styles.badge}>{status ? status.toUpperCase() : 'UNKNOWN'}</span>
+                    </div>
+                    <div className={styles.pill_row}>
+                        <span className={styles.badge}>Console</span>
+                        <span className={styles.badge}>Bedrock</span>
+                        <span className={styles.badge}>Logs</span>
+                    </div>
+                    <div className={'space-y-2 mt-3'}>
+                        <div className={styles.stat_row}>
+                            <span className={'text-white/70 flex items-center gap-2'}>
+                                <CashIcon className={'w-4 h-4 text-sky-300'} />
+                                จ่ายไปแล้ว
+                            </span>
+                            <span className={'text-white font-semibold'}>
+                                {billing
+                                    ? `${(billing.price_per_hour * billing.rented_hours).toFixed(2)} เครดิต`
+                                    : billingError || (loadingBilling ? 'กำลังโหลด...' : '—')}
+                            </span>
+                        </div>
+                        <div className={styles.stat_row}>
+                            <span className={'text-white/70 flex items-center gap-2'}>
+                                <ClockIcon className={'w-4 h-4 text-sky-300'} />
+                                เช่ามาแล้ว
+                            </span>
+                            <span className={'text-white font-semibold'}>
+                                {billing
+                                    ? `${billing.rented_hours} ชม`
+                                    : billingError || (loadingBilling ? 'กำลังโหลด...' : '—')}
+                            </span>
+                        </div>
+                        <div className={styles.stat_row}>
+                            <span className={'text-white/70 flex items-center gap-2'}>
+                                <LightningBoltIcon className={'w-4 h-4 text-sky-300'} />
+                                ราคาต่อชั่วโมง
+                            </span>
+                            <span className={'text-white font-semibold'}>
+                                {billing
+                                    ? `${billing.price_per_hour.toFixed(2)} เครดิต/ชม`
+                                    : billingError || (loadingBilling ? 'กำลังโหลด...' : '—')}
+                            </span>
+                        </div>
+                    </div>
                 </div>
-                <div className={'col-span-4 sm:col-span-2 lg:col-span-1 self-end'}>
+
+                <div className={styles.card}>
+                    <div className={styles.card_header}>
+                        <div className={'min-w-0 flex-1'}>
+                            <p className={'text-xs uppercase text-white/60 mb-1 flex items-center gap-1.5 sm:gap-2'}>
+                                <LightningBoltIcon className={'w-3 h-3 sm:w-4 sm:h-4 text-sky-300 flex-shrink-0'} />
+                                <span className={'truncate'}>Control</span>
+                            </p>
+                            <p className={'text-xs sm:text-sm text-white/70 truncate'}>
+                                Uptime:{' '}
+                                {stats.uptime > 0 ? (
+                                    <UptimeDuration uptime={stats.uptime / 1000} />
+                                ) : (
+                                    <span className={'text-white/50'}>{status ? status : '—'}</span>
+                                )}
+                            </p>
+                        </div>
                     <Can action={['control.start', 'control.stop', 'control.restart']} matchAny>
-                        <PowerButtons className={'flex sm:justify-end space-x-2'} />
+                            <PowerButtons className={'flex flex-wrap sm:justify-end gap-1.5 sm:gap-2'} />
                     </Can>
+                    </div>
+
+                    <div className={'space-y-3 mt-2'}>
+                        <ProgressRow
+                            label={'CPU'}
+                            value={`${stats.cpu.toFixed(1)}%`}
+                            maxText={cpuLimit}
+                            percent={cpuPercent}
+                        />
+                        <ProgressRow
+                            label={'Memory'}
+                            value={bytesToString(stats.memory)}
+                            maxText={memLimit}
+                            percent={memPercent}
+                        />
+                        <ProgressRow
+                            label={'Disk'}
+                            value={bytesToString(stats.disk)}
+                            maxText={diskLimit}
+                            percent={diskPercent}
+                        />
+                    </div>
+                </div>
+
+                <div className={styles.card}>
+                    <div className={styles.card_header}>
+                        <div>
+                            <p className={'text-xs uppercase text-white/60 mb-1 flex items-center gap-2'}>
+                                <ColorSwatchIcon className={'w-4 h-4 text-sky-300'} />
+                                Server Information
+                            </p>
+                            <p className={'text-sm text-white/80 flex items-center gap-2'}>
+                                Address
+                                <ClockIcon className={'w-4 h-4 text-white/60'} />
+                            </p>
+                            <button
+                                type={'button'}
+                                className={
+                                    'text-base font-semibold text-white flex items-center gap-2 hover:text-sky-300 transition-colors'
+                                }
+                                onClick={() => navigator?.clipboard?.writeText(allocation)}
+                                title={'Copy address'}
+                            >
+                                {allocation}
+                                <ClipboardCopyIcon className={'w-4 h-4 text-sky-300'} />
+                            </button>
+                        </div>
+                    </div>
+                    <div className={'space-y-2 mt-2'}>
+                        <div className={styles.stat_row}>
+                            <span className={'text-white/70'}>Status</span>
+                            <span className={'text-white font-semibold'}>{status || '—'}</span>
+                        </div>
+                        <div className={styles.stat_row}>
+                            <span className={'text-white/70'}>Uptime</span>
+                            <span className={'text-white font-semibold'}>
+                                {stats.uptime > 0 ? <UptimeDuration uptime={stats.uptime / 1000} /> : '—'}
+                            </span>
+                        </div>
+                        <div className={styles.stat_row}>
+                            <span className={'text-white/70'}>Primary Port</span>
+                            <span className={'text-white font-semibold'}>{allocation}</span>
+                        </div>
+                    </div>
                 </div>
             </div>
-            <div className={'grid grid-cols-4 gap-2 sm:gap-4 mb-4'}>
-                <div className={'flex col-span-4 lg:col-span-3'}>
+
+            <div className={'grid grid-cols-4 gap-2 sm:gap-4'}>
+                <div className={'flex col-span-4'}>
                     <Spinner.Suspense>
                         <Console />
                     </Spinner.Suspense>
                 </div>
-                <ServerDetailsBlock className={'col-span-4 lg:col-span-1 order-last lg:order-none'} />
-            </div>
-            <div className={'grid grid-cols-1 md:grid-cols-3 gap-2 sm:gap-4'}>
-                <Spinner.Suspense>
-                    <StatGraphs />
-                </Spinner.Suspense>
             </div>
             <Features enabled={eggFeatures} />
         </ServerContentBlock>

@@ -13,8 +13,10 @@ const SPRING_BOOT_API_URL = 'http://localhost:9000';
 
 /**
  * Get game versions for a specific game type
+ * Uses Spring Boot API
  */
 export default async (gameKey: string): Promise<GameVersion[]> => {
+    // Use Spring Boot API
     const token = localStorage.getItem('auth_token');
 
     if (!token) {
