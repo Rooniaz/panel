@@ -11,6 +11,7 @@ import { object, string } from 'yup';
 import tw from 'twin.macro';
 import Button from '@/components/elements/Button';
 import Reaptcha from 'reaptcha';
+import Turnstile from 'react-turnstile';
 import useFlash from '@/plugins/useFlash';
 
 interface Values {
@@ -18,13 +19,13 @@ interface Values {
 }
 
 export default () => {
-    const ref = useRef<Reaptcha>(null);
+    const recaptchaRef = useRef<Reaptcha>(null);
     const [token, setToken] = useState('');
 
     const { clearFlashes, addFlash } = useFlash();
-    const { enabled: recaptchaEnabled, siteKey } = useStoreState(
-        (state) => state.settings.data?.recaptcha || { enabled: false, siteKey: '' }
-    );
+    const settingsData = useStoreState((state) => state.settings.data);
+    const recaptchaData = settingsData?.recaptcha || { enabled: false, siteKey: '' };
+    const turnstileData = (settingsData as any)?.turnstile || { enabled: false, siteKey: '' };
 
     useEffect(() => {
         clearFlashes();
@@ -34,16 +35,22 @@ export default () => {
         clearFlashes();
 
         // If there is no token in the state yet, request the token and then abort this submit request
-        // since it will be re-submitted when the recaptcha data is returned by the component.
-        if (recaptchaEnabled && !token) {
-            ref.current!.execute().catch((error) => {
-                console.error(error);
+        // since it will be re-submitted when the recaptcha/turnstile data is returned by the component.
+        if (!token) {
+            if (recaptchaData?.enabled) {
+                recaptchaRef.current?.execute().catch((error) => {
+                    console.error(error);
 
+                    setSubmitting(false);
+                    addFlash({ type: 'error', title: 'Error', message: httpErrorToHuman(error) });
+                });
+                return;
+            } else if (turnstileData?.enabled) {
+                // Turnstile will execute automatically when rendered
+                // Token will be set via onVerify callback
                 setSubmitting(false);
-                addFlash({ type: 'error', title: 'Error', message: httpErrorToHuman(error) });
-            });
-
-            return;
+                return;
+            }
         }
 
         requestPasswordResetEmail(email, token)
@@ -57,7 +64,12 @@ export default () => {
             })
             .then(() => {
                 setToken('');
-                if (ref.current) ref.current.reset();
+                if (recaptchaData?.enabled) {
+                    recaptchaRef.current?.reset();
+                } else if (turnstileData?.enabled) {
+                    // Turnstile will reset automatically via state changes
+                    setToken('');
+                }
 
                 setSubmitting(false);
             });
@@ -89,11 +101,11 @@ export default () => {
                             Send Email
                         </Button>
                     </div>
-                    {recaptchaEnabled && (
+                    {recaptchaData?.enabled ? (
                         <Reaptcha
-                            ref={ref}
+                            ref={recaptchaRef}
                             size={'invisible'}
-                            sitekey={siteKey || '_invalid_key'}
+                            sitekey={recaptchaData.siteKey || '_invalid_key'}
                             onVerify={(response) => {
                                 setToken(response);
                                 submitForm();
@@ -103,7 +115,21 @@ export default () => {
                                 setToken('');
                             }}
                         />
-                    )}
+                    ) : turnstileData?.enabled ? (
+                        <div css={tw`mt-3 flex justify-center`}>
+                            <Turnstile
+                                sitekey={turnstileData.siteKey || '_invalid_key'}
+                                onVerify={(response) => {
+                                    setToken(response);
+                                    submitForm();
+                                }}
+                                onExpire={() => {
+                                    setSubmitting(false);
+                                    setToken('');
+                                }}
+                            />
+                        </div>
+                    ) : null}
                     <div css={tw`mt-6 text-center`}>
                         <Link
                             to={'/auth/login'}

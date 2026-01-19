@@ -10,6 +10,7 @@ import Input from '@/components/elements/Input';
 import tw from 'twin.macro';
 import Button from '@/components/elements/Button';
 import Reaptcha from 'reaptcha';
+import Turnstile from 'react-turnstile';
 import useFlash from '@/plugins/useFlash';
 
 interface Values {
@@ -20,15 +21,15 @@ interface Values {
 }
 
 const RegisterContainer = ({ history: _history }: RouteComponentProps) => {
-    const ref = useRef<Reaptcha>(null);
+    const recaptchaRef = useRef<Reaptcha>(null);
     const [token, setToken] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [showPasswordConfirmation, setShowPasswordConfirmation] = useState(false);
 
     const { clearFlashes, clearAndAddHttpError, addFlash } = useFlash();
-    const { enabled: recaptchaEnabled, siteKey } = useStoreState(
-        (state) => state.settings.data?.recaptcha || { enabled: false, siteKey: '' }
-    );
+    const settingsData = useStoreState((state) => state.settings.data);
+    const recaptchaData = settingsData?.recaptcha || { enabled: false, siteKey: '' };
+    const turnstileData = (settingsData as any)?.turnstile || { enabled: false, siteKey: '' };
 
     useEffect(() => {
         clearFlashes();
@@ -38,16 +39,22 @@ const RegisterContainer = ({ history: _history }: RouteComponentProps) => {
         clearFlashes();
 
         // If there is no token in the state yet, request the token and then abort this submit request
-        // since it will be re-submitted when the recaptcha data is returned by the component.
-        if (recaptchaEnabled && !token) {
-            ref.current!.execute().catch((error) => {
-                console.error(error);
+        // since it will be re-submitted when the recaptcha/turnstile data is returned by the component.
+        if (!token) {
+            if (recaptchaData?.enabled) {
+                recaptchaRef.current?.execute().catch((error) => {
+                    console.error(error);
 
+                    setSubmitting(false);
+                    clearAndAddHttpError({ error });
+                });
+                return;
+            } else if (turnstileData?.enabled) {
+                // Turnstile will execute automatically when rendered
+                // Token will be set via onVerify callback
                 setSubmitting(false);
-                clearAndAddHttpError({ error });
-            });
-
-            return;
+                return;
+            }
         }
 
         // Register with both Pterodactyl and Spring Boot
@@ -94,7 +101,12 @@ const RegisterContainer = ({ history: _history }: RouteComponentProps) => {
                         // Pterodactyl succeeded but Spring Boot failed
                         console.error('Spring Boot registration error:', springError);
                         setToken('');
-                        if (ref.current) ref.current.reset();
+                        if (recaptchaData?.enabled) {
+                            recaptchaRef.current?.reset();
+                        } else if (turnstileData?.enabled) {
+                            // Turnstile will reset automatically via state changes
+                            setToken('');
+                        }
                         setSubmitting(false);
                         clearAndAddHttpError({
                             error: new Error(
@@ -109,7 +121,12 @@ const RegisterContainer = ({ history: _history }: RouteComponentProps) => {
                 console.error('Pterodactyl registration error:', error);
 
                 setToken('');
-                if (ref.current) ref.current.reset();
+                if (recaptchaData?.enabled) {
+                    recaptchaRef.current?.reset();
+                } else if (turnstileData?.enabled) {
+                    // Turnstile will reset automatically via state changes
+                    setToken('');
+                }
 
                 setSubmitting(false);
                 clearAndAddHttpError({ error });
@@ -475,11 +492,11 @@ const RegisterContainer = ({ history: _history }: RouteComponentProps) => {
                                 สมัครสมาชิก
                             </Button>
                         </div>
-                        {recaptchaEnabled && (
+                        {recaptchaData?.enabled ? (
                             <Reaptcha
-                                ref={ref}
+                                ref={recaptchaRef}
                                 size={'invisible'}
-                                sitekey={siteKey || '_invalid_key'}
+                                sitekey={recaptchaData.siteKey || '_invalid_key'}
                                 onVerify={(response) => {
                                     setToken(response);
                                     submitForm();
@@ -489,7 +506,21 @@ const RegisterContainer = ({ history: _history }: RouteComponentProps) => {
                                     setToken('');
                                 }}
                             />
-                        )}
+                        ) : turnstileData?.enabled ? (
+                            <div css={tw`mt-3 flex justify-center`}>
+                                <Turnstile
+                                    sitekey={turnstileData.siteKey || '_invalid_key'}
+                                    onVerify={(response) => {
+                                        setToken(response);
+                                        submitForm();
+                                    }}
+                                    onExpire={() => {
+                                        setSubmitting(false);
+                                        setToken('');
+                                    }}
+                                />
+                            </div>
+                        ) : null}
                         <div css={tw`mt-4 text-center`}>
                             <span css={tw`text-sm text-neutral-400`}>มีบัญชีอยู่แล้ว? </span>
                             <Link

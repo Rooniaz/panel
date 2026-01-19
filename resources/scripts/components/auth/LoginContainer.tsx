@@ -10,6 +10,7 @@ import tw from 'twin.macro';
 import styled from 'styled-components/macro';
 import Button from '@/components/elements/Button';
 import Reaptcha from 'reaptcha';
+import Turnstile from 'react-turnstile';
 import useFlash from '@/plugins/useFlash';
 
 interface Values {
@@ -79,13 +80,13 @@ const LinksContainer = styled.div`
 `;
 
 const LoginContainer = ({ history }: RouteComponentProps) => {
-    const ref = useRef<Reaptcha>(null);
+    const recaptchaRef = useRef<Reaptcha>(null);
     const [token, setToken] = useState('');
 
     const { clearFlashes, clearAndAddHttpError } = useFlash();
-    const { enabled: recaptchaEnabled, siteKey } = useStoreState(
-        (state) => state.settings.data?.recaptcha || { enabled: false, siteKey: '' }
-    );
+    const settingsData = useStoreState((state) => state.settings.data);
+    const recaptchaData = settingsData?.recaptcha || { enabled: false, siteKey: '' };
+    const turnstileData = (settingsData as any)?.turnstile || { enabled: false, siteKey: '' };
 
     useEffect(() => {
         clearFlashes();
@@ -94,13 +95,20 @@ const LoginContainer = ({ history }: RouteComponentProps) => {
     const onSubmit = (values: Values, { setSubmitting }: FormikHelpers<Values>) => {
         clearFlashes();
 
-        if (recaptchaEnabled && !token) {
-            ref.current!.execute().catch((error) => {
-                console.error(error);
+        if (!token) {
+            if (recaptchaData?.enabled) {
+                recaptchaRef.current?.execute().catch((error) => {
+                    console.error(error);
+                    setSubmitting(false);
+                    clearAndAddHttpError({ error });
+                });
+                return;
+            } else if (turnstileData?.enabled) {
+                // Turnstile will execute automatically when rendered
+                // Token will be set via onVerify callback
                 setSubmitting(false);
-                clearAndAddHttpError({ error });
-            });
-            return;
+                return;
+            }
         }
 
         login({ ...values, recaptchaData: token })
@@ -115,7 +123,12 @@ const LoginContainer = ({ history }: RouteComponentProps) => {
             .catch((error) => {
                 console.error(error);
                 setToken('');
-                if (ref.current) ref.current.reset();
+                if (recaptchaData?.enabled) {
+                    recaptchaRef.current?.reset();
+                } else if (turnstileData?.enabled) {
+                    // Turnstile will reset automatically via state changes
+                    setToken('');
+                }
                 setSubmitting(false);
                 clearAndAddHttpError({ error });
             });
@@ -164,11 +177,11 @@ const LoginContainer = ({ history }: RouteComponentProps) => {
                         </StyledButton>
                     </div>
 
-                    {recaptchaEnabled && (
+                    {recaptchaData?.enabled ? (
                         <Reaptcha
-                            ref={ref}
+                            ref={recaptchaRef}
                             size={'invisible'}
-                            sitekey={siteKey || '_invalid_key'}
+                            sitekey={recaptchaData.siteKey || '_invalid_key'}
                             onVerify={(response) => {
                                 setToken(response);
                                 submitForm();
@@ -178,7 +191,21 @@ const LoginContainer = ({ history }: RouteComponentProps) => {
                                 setToken('');
                             }}
                         />
-                    )}
+                    ) : turnstileData?.enabled ? (
+                        <div css={tw`mt-3 flex justify-center`}>
+                            <Turnstile
+                                sitekey={turnstileData.siteKey || '_invalid_key'}
+                                onVerify={(response) => {
+                                    setToken(response);
+                                    submitForm();
+                                }}
+                                onExpire={() => {
+                                    setSubmitting(false);
+                                    setToken('');
+                                }}
+                            />
+                        </div>
+                    ) : null}
 
                     <LinksContainer>
                         <div>
