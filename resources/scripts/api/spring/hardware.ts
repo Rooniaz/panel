@@ -17,6 +17,11 @@ export interface PackageContainer {
     storage: string;
     ram: string;
     hourlyRate: number;
+    packageId?: number; // Real package ID from database
+    price?: number; // Price from packages table (if different from hourlyRate)
+    capacity?: number; // Maximum number of servers that can be rented for this package
+    rentedCount?: number; // Current number of servers rented for this package
+    availableCount?: number; // Available slots (capacity - rentedCount)
 }
 
 export interface HardwareDetail {

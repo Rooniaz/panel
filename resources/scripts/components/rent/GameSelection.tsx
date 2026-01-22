@@ -49,8 +49,7 @@ const PriceButton = styled.div`
 `;
 
 const ProgressSection = styled.div`
-    ${tw`rounded-2xl border border-white/10 backdrop-blur shadow-[0_18px_45px_rgba(0,0,0,0.35)] p-4`};
-    background: linear-gradient(135deg, rgba(15, 23, 42, 0.82), rgba(30, 41, 59, 0.74));
+    ${tw`rounded-2xl backdrop-blur p-4`};
 `;
 
 const ProgressSteps = styled.div`

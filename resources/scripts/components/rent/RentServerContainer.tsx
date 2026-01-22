@@ -14,7 +14,7 @@ import { useHistory } from 'react-router-dom';
 import FlashMessageRender from '@/components/FlashMessageRender';
 
 const Container = styled.div`
-    ${tw`min-h-screen bg-neutral-900 py-8`}
+    ${tw`min-h-screen px-4 py-4 sm:px-6 sm:py-6 lg:px-8 lg:py-8 lg:ml-64 overflow-x-hidden`}
 `;
 
 const WarningBanner = styled.div`
@@ -27,14 +27,17 @@ const WarningText = styled.p`
 
 export interface Package {
     id: string;
-    packageId: number; // Real package ID from Spring Boot
+    packageId: number; // Real package ID from Spring Boot (from packages table)
     name: string;
     cpu: number;
     ram: number;
     storage: number;
-    pricePerHour: number;
-    isFull: boolean;
+    pricePerHour: number; // Price from packages.price (should match database)
+    isFull: boolean; // true if capacity reached
     isRecommended?: boolean;
+    capacity?: number; // Maximum number of servers for this package
+    rentedCount?: number; // Current number of rented servers
+    availableCount?: number; // Available slots remaining
 }
 
 export interface GameType {
@@ -265,7 +268,7 @@ export default () => {
 
     return (
         <Container>
-            <div css={tw`max-w-6xl mx-auto px-4`}>
+            <div css={tw`w-full max-w-full`}>
                 <FlashMessageRender byKey='server:create' css={tw`mb-4`} />
                 <WarningBanner>
                     <WarningText>

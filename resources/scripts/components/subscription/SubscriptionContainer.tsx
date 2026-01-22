@@ -6,7 +6,7 @@ import { faStar, faCrown, faCheck, faAward } from '@fortawesome/free-solid-svg-i
 import ConfirmationModal from './ConfirmationModal';
 
 const Container = styled.div`
-    ${tw`min-h-screen bg-neutral-900 py-8`}
+    ${tw`flex items-center justify-center relative lg:ml-64 lg:mt-8`}
 `;
 
 const HeaderSection = styled.div`

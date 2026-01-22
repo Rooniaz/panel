@@ -13,6 +13,7 @@ import useSWR from 'swr';
 import { PaginatedResult } from '@/api/http';
 import Pagination from '@/components/elements/Pagination';
 import { useLocation } from 'react-router-dom';
+import styled from 'styled-components/macro';
 
 export default () => {
     const { search } = useLocation();
@@ -28,6 +29,10 @@ export default () => {
         ['/api/client/servers', showOnlyAdmin && rootAdmin, page],
         () => getServers({ page, type: showOnlyAdmin && rootAdmin ? 'admin' : undefined })
     );
+
+    const Container = styled.div`
+        ${tw`min-h-screen py-4 sm:py-6 lg:py-8 lg:ml-64 overflow-x-hidden`}
+    `;
 
     useEffect(() => {
         if (!servers) return;
@@ -49,40 +54,42 @@ export default () => {
     }, [error]);
 
     return (
-        <PageContentBlock title={'Dashboard'} showFlashKey={'dashboard'}>
-            {rootAdmin && (
-                <div css={tw`mb-6 flex justify-end items-center`}>
-                    <p css={tw`uppercase text-xs text-neutral-400 mr-2 font-semibold`}>
-                        {showOnlyAdmin ? "Showing others' servers" : 'Showing your servers'}
-                    </p>
-                    <Switch
-                        name={'show_all_servers'}
-                        defaultChecked={showOnlyAdmin}
-                        onChange={() => setShowOnlyAdmin((s) => !s)}
-                    />
-                </div>
-            )}
-            {!servers ? (
-                <Spinner centered size={'large'} />
-            ) : (
-                <Pagination data={servers} onPageSelect={setPage}>
-                    {({ items }) =>
-                        items.length > 0 ? (
-                            <div css={tw`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6`}>
-                                {items.map((server) => (
-                                    <ServerCard key={server.uuid} server={server} />
-                                ))}
-                            </div>
-                        ) : (
-                            <p css={tw`text-center text-sm text-neutral-400 py-12`}>
-                                {showOnlyAdmin
-                                    ? 'There are no other servers to display.'
-                                    : 'There are no servers associated with your account.'}
-                            </p>
-                        )
-                    }
-                </Pagination>
-            )}
-        </PageContentBlock>
+        <Container>
+            <PageContentBlock title={'Dashboard'} showFlashKey={'dashboard'}>
+                {rootAdmin && (
+                    <div css={tw`mb-6 flex justify-end items-center`}>
+                        <p css={tw`uppercase text-xs text-neutral-400 mr-2 font-semibold`}>
+                            {showOnlyAdmin ? "Showing others' servers" : 'Showing your servers'}
+                        </p>
+                        <Switch
+                            name={'show_all_servers'}
+                            defaultChecked={showOnlyAdmin}
+                            onChange={() => setShowOnlyAdmin((s) => !s)}
+                        />
+                    </div>
+                )}
+                {!servers ? (
+                    <Spinner centered size={'large'} />
+                ) : (
+                    <Pagination data={servers} onPageSelect={setPage}>
+                        {({ items }) =>
+                            items.length > 0 ? (
+                                <div css={tw`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6`}>
+                                    {items.map((server) => (
+                                        <ServerCard key={server.uuid} server={server} />
+                                    ))}
+                                </div>
+                            ) : (
+                                <p css={tw`text-center text-sm text-neutral-400 py-12`}>
+                                    {showOnlyAdmin
+                                        ? 'There are no other servers to display.'
+                                        : 'There are no servers associated with your account.'}
+                                </p>
+                            )
+                        }
+                    </Pagination>
+                )}
+            </PageContentBlock>
+        </Container>
     );
 };

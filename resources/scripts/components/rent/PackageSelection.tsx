@@ -30,21 +30,18 @@ const PackageGrid = styled.div`
 const PackageCard = styled.div<{ $isFull: boolean; $isRecommended?: boolean }>`
     ${tw`relative rounded-2xl p-5 cursor-pointer transition-all duration-200 border`};
     background: linear-gradient(135deg, rgba(16, 24, 40, 0.9), rgba(8, 15, 30, 0.9));
-    box-shadow: 0 18px 45px rgba(0, 0, 0, 0.35);
-    ${(props) =>
-        props.$isRecommended
-            ? tw`shadow-[0_16px_40px_rgba(56,189,248,0.3)]`
-            : tw`border-white/10 hover:-translate-y-1`};
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+    ${(props) => (props.$isRecommended ? tw`shadow-[0_8px_20px_rgba(56,189,248,0.15)]` : tw`border-white/5 hover:-translate-y-1`)};
     ${(props) =>
         props.$isRecommended
             ? `
-        border-color: rgba(56, 189, 248, 0.7);
+        border-color: rgba(56, 189, 248, 0.3);
     `
             : `
-        border-color: rgba(255,255,255,0.1);
-        &:hover { border-color: rgba(56, 189, 248, 0.7); }
+        border-color: rgba(255,255,255,0.05);s
+        &:hover { border-color: rgba(56, 189, 248, 0.3); }
     `};
-    ${(props) => (props.$isFull ? tw`opacity-50 cursor-not-allowed hover:translate-y-0 hover:border-white/10` : '')};
+    ${(props) => (props.$isFull ? tw`opacity-50 cursor-not-allowed hover:translate-y-0 hover:border-white/5` : '')};
 `;
 
 const PackageImage = styled.div<{ $backgroundImage?: string }>`
@@ -152,22 +149,39 @@ export default ({ hardwareId, onSelect, onBack }: Props) => {
 
                 Object.values(hardwareDetail.categoryContainers).forEach((categoryPackages) => {
                     categoryPackages.forEach((pkg) => {
-                        // Check if package is full (has containers)
-                        const isFull = pkg.containers.length > 0;
+                        // Get real packageId from API (fallback to index if not provided)
+                        const packageId = pkg.packageId || packageIndex++;
+
+                        // Use price from packages table if available, otherwise use hourlyRate
+                        const pricePerHour = pkg.price ?? pkg.hourlyRate;
+
+                        // Get capacity and rented count from API
+                        const capacity = pkg.capacity;
+                        const rentedCount = pkg.rentedCount ?? 0;
+                        const availableCount = pkg.availableCount ?? (capacity ? capacity - rentedCount : undefined);
+
+                        // Check if package is full
+                        // If capacity is provided, use it. Otherwise, check containers.length as fallback
+                        const isFull = capacity !== undefined 
+                            ? rentedCount >= capacity 
+                            : pkg.containers.length > 0;
 
                         // Check if it's Diamond Pack (recommended)
                         const isRecommended = pkg.name.toLowerCase().includes('diamond');
 
                         allPackages.push({
                             id: `${hardwareId}-${pkg.name}`,
-                            packageId: packageIndex++, // TODO: Get real packageId from Spring Boot API
+                            packageId: packageId,
                             name: pkg.name,
                             cpu: parseInt(pkg.cpu, 10),
                             ram: parseInt(pkg.ram.replace(' GB', ''), 10),
                             storage: parseInt(pkg.storage.replace(' GB', ''), 10),
-                            pricePerHour: pkg.hourlyRate,
-                            isFull,
-                            isRecommended,
+                            pricePerHour: pricePerHour, // Use price from packages table
+                            isFull: isFull,
+                            isRecommended: isRecommended,
+                            capacity: capacity,
+                            rentedCount: rentedCount,
+                            availableCount: availableCount,
                         });
                     });
                 });
@@ -248,7 +262,13 @@ export default ({ hardwareId, onSelect, onBack }: Props) => {
                             <PackageName>{pkg.name}</PackageName>
                             <StatusBadge $isFull={pkg.isFull}>
                                 <span className={'w-2 h-2 rounded-full bg-current'} />
-                                <span>{pkg.isFull ? 'เซิร์ฟเวอร์เต็ม' : 'พร้อมใช้งาน'}</span>
+                                <span>
+                                    {pkg.isFull 
+                                        ? 'เซิร์ฟเวอร์เต็ม' 
+                                        : pkg.availableCount !== undefined 
+                                            ? `เหลือ ${pkg.availableCount} อัน` 
+                                            : 'พร้อมใช้งาน'}
+                                </span>
                             </StatusBadge>
                         </PackageHeader>
                         <SpecsList>

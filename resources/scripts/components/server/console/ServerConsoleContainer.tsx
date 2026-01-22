@@ -23,6 +23,7 @@ import {
 } from '@heroicons/react/solid';
 import Features from '@feature/Features';
 import { getServersWithBilling, ServerBilling, ServerWithBilling } from '@/api/spring/servers';
+import Toast from '@/components/topup/Toast';
 
 export type PowerAction = 'start' | 'stop' | 'restart' | 'kill';
 
@@ -79,6 +80,7 @@ const ServerConsoleContainer = () => {
     const [billingError, setBillingError] = useState<string | null>(null);
     const [loadingBilling, setLoadingBilling] = useState<boolean>(false);
     const [packageName, setPackageName] = useState<string | undefined>(undefined);
+    const [copiedAddress, setCopiedAddress] = useState(false);
 
     const allocation = useMemo(() => {
         const match = allocations.find((a) => a.isDefault);
@@ -279,7 +281,15 @@ const ServerConsoleContainer = () => {
                                 className={
                                     'text-base font-semibold text-white flex items-center gap-2 hover:text-sky-300 transition-colors'
                                 }
-                                onClick={() => navigator?.clipboard?.writeText(allocation)}
+                                onClick={async () => {
+                                    try {
+                                        await navigator?.clipboard?.writeText(allocation);
+                                        setCopiedAddress(true);
+                                        setTimeout(() => setCopiedAddress(false), 2500);
+                                    } catch (err) {
+                                        console.error('Failed to copy:', err);
+                                    }
+                                }}
                                 title={'Copy address'}
                             >
                                 {allocation}
@@ -314,6 +324,9 @@ const ServerConsoleContainer = () => {
                 </div>
             </div>
             <Features enabled={eggFeatures} />
+            <Toast show={copiedAddress} type='success' onClose={() => setCopiedAddress(false)} duration={2500}>
+                คัดลอก "{allocation}" ลงคลิปบอร์ดแล้ว
+            </Toast>
         </ServerContentBlock>
     );
 };

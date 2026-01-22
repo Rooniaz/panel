@@ -6,12 +6,20 @@ import { faCheck } from '@fortawesome/free-solid-svg-icons';
 import { getHardwareList, Hardware } from '@/api/spring/hardware';
 
 const Container = styled.div`
-    ${tw`space-y-8 relative`};
+    ${tw`space-y-8 relative w-full max-w-full`};
     background: linear-gradient(180deg, rgba(6, 12, 24, 0.9) 0%, rgba(4, 10, 20, 0.95) 100%);
     border: 1px solid rgba(255, 255, 255, 0.04);
     box-shadow: 0 25px 60px -25px rgba(0, 0, 0, 0.55);
-    border-radius: 18px;
-    padding: 24px;
+    border-radius: 20px;
+    padding: 20px 12px;
+    
+    @media (min-width: 640px) {
+        padding: 24px 16px;
+    }
+    
+    @media (min-width: 1024px) {
+        padding: 28px 20px;
+    }
     overflow: hidden;
 
     &::before {
@@ -38,7 +46,7 @@ const TitleText = styled.h2`
 `;
 
 const HardwareTypeGrid = styled.div`
-    ${tw`grid grid-cols-2 gap-6 mb-10`};
+    ${tw`grid grid-cols-2 gap-4 sm:gap-5 md:gap-6 mb-8`};
 `;
 
 const HardwareTypeButton = styled.button<{ $selected: boolean }>`
@@ -105,7 +113,7 @@ const ProcessorSubtitle = styled.h3`
 `;
 
 const ProcessorGrid = styled.div`
-    ${tw`grid grid-cols-1 md:grid-cols-2 gap-4`};
+    ${tw`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5`};
 `;
 
 const ProcessorCard = styled.button<{ $selected: boolean }>`
@@ -206,7 +214,9 @@ export default ({ onSelect }: Props) => {
 
                 // Auto-select first type if available
                 if (data.length > 0) {
-                    const firstType = data[0].key as 'AMD' | 'Intel';
+                    // ✅ แปลง key เป็น uppercase เพื่อเปรียบเทียบ (รองรับทั้ง 'AMD'/'INTEL' และ 'AMD'/'Intel')
+                    const firstKey = data[0].key?.toUpperCase();
+                    const firstType = (firstKey === 'AMD' ? 'AMD' : 'Intel') as 'AMD' | 'Intel';
                     setSelectedType(firstType);
                 }
             } catch (err: any) {
@@ -219,8 +229,9 @@ export default ({ onSelect }: Props) => {
         fetchHardware();
     }, []);
 
-    const amdHardware = hardwareList.filter((h) => h.key === 'AMD');
-    const intelHardware = hardwareList.filter((h) => h.key === 'Intel');
+    // ✅ Filter hardware โดยไม่สน case (uppercase/lowercase)
+    const amdHardware = hardwareList.filter((h) => h.key?.toUpperCase() === 'AMD');
+    const intelHardware = hardwareList.filter((h) => h.key?.toUpperCase() === 'INTEL');
     const currentHardwareList = selectedType === 'AMD' ? amdHardware : intelHardware;
 
     const handleTypeSelect = (type: 'AMD' | 'Intel') => {

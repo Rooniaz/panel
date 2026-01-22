@@ -5,21 +5,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faHeadset } from '@fortawesome/free-solid-svg-icons';
 
 const Container = styled.div`
-    ${tw`min-h-screen bg-neutral-900 flex items-center justify-center relative`}
-    background: linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.95) 100%);
-    padding: 2rem 1rem;
-
-    &::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background-image: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZGVmcz48cGF0dGVybiBpZD0iZ3JpZCIgd2lkdGg9IjEwMCIgaGVpZ2h0PSIxMDAiIHBhdHRlcm5Vbml0cz0idXNlclNwYWNlT25Vc2UiPjxwYXRoIGQ9Ik0gMTAwIDAgTCAwIDAgMCAxMDAiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzFmMjkzMyIgc3Ryb2tlLXdpZHRoPSIxIi8+PC9wYXR0ZXJuPjwvZGVmcz48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0idXJsKCNncmlkKSIvPjwvc3ZnPg==');
-        opacity: 0.1;
-        z-index: 0;
-    }
+    ${tw`flex items-center justify-center relative lg:ml-64 lg:pt-32`}
 `;
 
 const ContactCard = styled.div`
@@ -88,7 +74,7 @@ export default () => {
                         </ButtonIcon>
                         <ButtonText>Facebook</ButtonText>
                     </ContactButton>
-                    <ContactButton $variant='discord' href='https://discord.com' target='_blank' rel='noreferrer'>
+                    <ContactButton $variant='discord' href='https://discord.gg/zajKr6bgS4' target='_blank' rel='noreferrer'>
                         <ButtonIcon>
                             <svg
                                 width='24'

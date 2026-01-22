@@ -2,13 +2,14 @@ import React, { useState } from 'react';
 import tw from 'twin.macro';
 import styled from 'styled-components/macro';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faUser } from '@fortawesome/free-solid-svg-icons';
+import { faUser, faClock } from '@fortawesome/free-solid-svg-icons';
 import TermsModal from './TermsModal';
 import BankTab from './BankTab';
 import TrueMoneyTab from './TrueMoneyTab';
+import HistoryTab from './HistoryTab';
 
 const Container = styled.div`
-    ${tw`min-h-screen bg-neutral-900 py-8`}
+    ${tw`min-h-screen bg-[#0c1226] py-8 lg:ml-64`}
 `;
 
 const ContentGrid = styled.div`
@@ -24,40 +25,77 @@ const SidePanel = styled.div`
 `;
 
 const TabContainer = styled.div`
-    ${tw`flex items-center space-x-4 mb-6`}
+    ${tw`flex items-center space-x-3 mb-8 flex-wrap gap-3`}
 `;
 
 const TabButton = styled.button<{ $active: boolean }>`
-    ${tw`px-8 py-3 rounded-xl font-semibold transition-all duration-300`}
+    ${tw`px-6 py-3 rounded-xl font-semibold transition-all duration-300 flex items-center space-x-2 relative overflow-hidden`}
     ${({ $active }) =>
         $active
             ? `
                 background: linear-gradient(135deg, #3b82f6, #22d3ee);
                 color: white;
-                box-shadow: 0 8px 25px rgba(34,211,238,.35);
+                box-shadow: 0 8px 25px rgba(34,211,238,.35), 0 0 0 1px rgba(56, 189, 248, 0.2);
+                transform: translateY(-2px);
             `
             : `
-                background: #1f2933;
+                background: rgba(31, 41, 55, 0.8);
                 color: #9ca3af;
+                border: 1px solid rgba(255, 255, 255, 0.1);
                 &:hover {
-                    background: #374151;
+                    background: rgba(55, 65, 81, 0.9);
                     color: white;
+                    border-color: rgba(56, 189, 248, 0.3);
+                    transform: translateY(-1px);
                 }
             `}
+    
+    &::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+        transition: left 0.5s;
+    }
+    
+    &:hover::before {
+        left: 100%;
+    }
 `;
 
 const ViewRatesButton = styled.button`
-    ${tw`ml-auto px-4 py-2 bg-neutral-800 hover:bg-neutral-700 rounded-lg text-neutral-300 transition-colors flex items-center space-x-2`}
+    ${tw`ml-auto px-4 py-2 bg-gradient-to-r from-neutral-800 to-neutral-700 hover:from-neutral-700 hover:to-neutral-600 rounded-lg text-neutral-300 transition-all duration-300 flex items-center space-x-2 border border-white/10`}
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    
+    &:hover {
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        transform: translateY(-1px);
+    }
 `;
 
 const RatesCard = styled.div`
-    ${tw`relative bg-neutral-800 rounded-xl p-6`}
-    box-shadow: 0 10px 25px rgba(0,0,0,.4);
-    border: 1px solid rgba(255, 255, 255, 0.06);
+    ${tw`relative bg-gradient-to-br from-neutral-800/95 via-neutral-800/90 to-neutral-900/95 rounded-2xl p-6 border border-white/10 backdrop-blur-sm`}
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.05),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    
+    &:hover {
+        box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(56, 189, 248, 0.3),
+            inset 0 1px 0 rgba(255, 255, 255, 0.15);
+        transform: translateY(-4px);
+        border-color: rgba(56, 189, 248, 0.2);
+    }
 `;
 
 const RatesTitle = styled.h3`
-    ${tw`text-xl font-bold text-white mb-4`}
+    ${tw`text-xl font-bold text-white mb-4 flex items-center space-x-2`}
+    background: linear-gradient(135deg, #ffffff 0%, #a0a0a0 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
 `;
 
 const LevelSection = styled.div`
@@ -153,7 +191,7 @@ const TopupRatesPanel = () => {
     );
 };
 
-type TabType = 'bank' | 'truemoney';
+type TabType = 'bank' | 'truemoney' | 'history';
 
 export default () => {
     const [activeTab, setActiveTab] = useState<TabType>('bank');
@@ -161,18 +199,26 @@ export default () => {
 
     return (
         <Container>
-            <div css={tw`max-w-7xl mx-auto px-4`}>
+            <div css={tw`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8`}>
                 <TabContainer>
                     <TabButton $active={activeTab === 'bank'} onClick={() => setActiveTab('bank')}>
-                        ธนาคาร
+                        <FontAwesomeIcon icon={faUser} className={'w-4 h-4'} />
+                        <span>ธนาคาร</span>
                     </TabButton>
                     <TabButton $active={activeTab === 'truemoney'} onClick={() => setActiveTab('truemoney')}>
-                        ทรูมันนี่วอลเล็ท
+                        <FontAwesomeIcon icon={faUser} className={'w-4 h-4'} />
+                        <span>ทรูมันนี่วอลเล็ท</span>
                     </TabButton>
-                    <ViewRatesButton>
-                        <FontAwesomeIcon icon={faUser} />
-                        <span>ดูอัตราการเติมเงิน</span>
-                    </ViewRatesButton>
+                    <TabButton $active={activeTab === 'history'} onClick={() => setActiveTab('history')}>
+                        <FontAwesomeIcon icon={faClock} className={'w-4 h-4'} />
+                        <span>ประวัติเติมเงิน</span>
+                    </TabButton>
+                    {activeTab !== 'history' && (
+                        <ViewRatesButton>
+                            <FontAwesomeIcon icon={faUser} />
+                            <span>ดูอัตราการเติมเงิน</span>
+                        </ViewRatesButton>
+                    )}
                 </TabContainer>
 
                 {activeTab === 'bank' ? (
@@ -184,9 +230,13 @@ export default () => {
                             <TopupRatesPanel />
                         </SidePanel>
                     </ContentGrid>
-                ) : (
+                ) : activeTab === 'truemoney' ? (
                     <div css={tw`max-w-3xl mx-auto`}>
                         <TrueMoneyTab onShowTerms={() => setShowTermsModal(true)} />
+                    </div>
+                ) : (
+                    <div css={tw`max-w-5xl mx-auto`}>
+                        <HistoryTab />
                     </div>
                 )}
 

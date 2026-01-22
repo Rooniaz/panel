@@ -43,7 +43,7 @@ const PackageSpecs = styled.div`
 `;
 
 const ProgressSection = styled.div`
-    ${tw`rounded-2xl border border-white/10 bg-gradient-to-br from-slate-900/80 to-slate-800/70 backdrop-blur shadow-[0_18px_45px_rgba(0,0,0,0.35)] p-4`};
+    ${tw`rounded-2xl backdrop-blur p-4`};
 `;
 
 const ProgressSteps = styled.div`

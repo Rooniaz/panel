@@ -2,7 +2,7 @@ import React, { useState, useRef, useMemo } from 'react';
 import tw from 'twin.macro';
 import styled from 'styled-components/macro';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faBuilding, faCopy, faUpload, faCheck, faInfo } from '@fortawesome/free-solid-svg-icons';
+import { faLandmark, faCopy, faUpload, faCheck, faInfoCircle } from '@fortawesome/free-solid-svg-icons';
 import Switch from '@/components/elements/Switch';
 import Input from '@/components/elements/Input';
 import Button from '@/components/elements/Button';
@@ -11,12 +11,25 @@ import Toast from './Toast';
 const SPRING_BOOT_API_URL = 'http://localhost:9000';
 
 const Card = styled.div`
-    ${tw`bg-neutral-800 rounded-xl p-6 border border-white/10`}
-    box-shadow: 0 10px 25px rgba(0,0,0,.3);
+    ${tw`bg-gradient-to-br from-neutral-800/95 via-neutral-800/90 to-neutral-900/95 rounded-2xl p-6 border border-white/10 backdrop-blur-sm`}
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.05),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+    &:hover {
+        box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(56, 189, 248, 0.3),
+            inset 0 1px 0 rgba(255, 255, 255, 0.15);
+        transform: translateY(-2px);
+        border-color: rgba(56, 189, 248, 0.2);
+    }
 `;
 
 const SectionTitle = styled.h3`
-    ${tw`text-xl font-bold text-white mb-6`}
+    ${tw`text-2xl font-bold text-white mb-6 flex items-center space-x-3`}
+    background: linear-gradient(135deg, #ffffff 0%, #a0a0a0 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
 `;
 
 const BankInfoSection = styled.div`
@@ -28,7 +41,8 @@ const InfoRow = styled.div`
 `;
 
 const InfoIcon = styled.div`
-    ${tw`w-10 h-10 rounded-xl bg-black/30 grid place-items-center`}
+    ${tw`w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500/20 to-purple-500/20 border border-blue-500/30 grid place-items-center`}
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
 `;
 
 const InfoContent = styled.div`
@@ -44,7 +58,8 @@ const InfoValue = styled.div`
 `;
 
 const AccountNumberBox = styled.div`
-    ${tw`flex items-center justify-between rounded-xl bg-black/20 p-4`}
+    ${tw`flex items-center justify-between rounded-xl bg-gradient-to-r from-black/30 via-black/20 to-black/30 p-4 border border-white/10`}
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.05);
 `;
 
 const AccountNumber = styled.div`
@@ -52,15 +67,28 @@ const AccountNumber = styled.div`
 `;
 
 const CopyButton = styled.button`
-    ${tw`inline-flex items-center gap-2 rounded-lg border border-white/10 bg-white/10 px-3 py-2 text-sm hover:bg-white/20 transition-colors`}
+    ${tw`inline-flex items-center gap-2 rounded-lg border border-blue-500/30 bg-blue-500/10 px-3 py-2 text-sm hover:bg-blue-500/20 transition-all duration-200`}
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.2);
+
+    &:hover {
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        transform: translateY(-1px);
+        border-color: rgba(59, 130, 246, 0.5);
+    }
 `;
 
 const UploadArea = styled.div<{ $state: string }>`
-    ${tw`flex cursor-pointer flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed p-8 transition`}
+    ${tw`flex cursor-pointer flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed p-8 transition-all duration-300`}
     ${(props) =>
         props.$state === 'drag'
-            ? tw`border-blue-400/80 bg-blue-400/10`
-            : tw`border-white/20 hover:border-white/40 hover:bg-white/5`}
+            ? tw`border-blue-400/80 bg-gradient-to-br from-blue-400/20 to-purple-400/10`
+            : tw`border-white/20 hover:border-blue-400/50 hover:bg-gradient-to-br hover:from-blue-400/10 hover:to-purple-400/5`}
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+
+    &:hover {
+        box-shadow: 0 8px 24px rgba(59, 130, 246, 0.3);
+        transform: translateY(-2px);
+    }
 `;
 
 const UploadIcon = styled.div`
@@ -269,7 +297,7 @@ export default ({ onShowTerms }: Props) => {
                     <BankInfoSection>
                         <InfoRow>
                             <InfoIcon>
-                                <FontAwesomeIcon icon={faBuilding} className={'h-5 w-5'} />
+                                <FontAwesomeIcon icon={faLandmark} className={'h-5 w-5'} />
                             </InfoIcon>
                             <InfoContent>
                                 <InfoLabel>ธนาคาร</InfoLabel>
@@ -288,7 +316,7 @@ export default ({ onShowTerms }: Props) => {
                         </AccountNumberBox>
                         <InfoRow>
                             <InfoIcon>
-                                <FontAwesomeIcon icon={faInfo} className={'h-5 w-5'} />
+                                <FontAwesomeIcon icon={faInfoCircle} className={'h-5 w-5'} />
                             </InfoIcon>
                             <InfoContent>
                                 <InfoLabel>ชื่อบัญชี</InfoLabel>
