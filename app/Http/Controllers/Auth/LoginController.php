@@ -51,7 +51,7 @@ class LoginController extends AbstractLoginController
             /** @var \Pterodactyl\Models\User $user */
             $user = User::query()->where($this->getField($username), $username)->firstOrFail();
         } catch (ModelNotFoundException) {
-            $this->sendFailedLoginResponse($request);
+            $this->sendFailedLoginResponse($request, null, trans('auth.user_not_found'));
         }
 
         // Ensure that the account is using a valid username and password before trying to
@@ -59,7 +59,7 @@ class LoginController extends AbstractLoginController
         // a flaw in which you can discover if an account exists simply by seeing if you
         // can proceed to the next step in the login process.
         if (!password_verify($request->input('password'), $user->password)) {
-            $this->sendFailedLoginResponse($request, $user);
+            $this->sendFailedLoginResponse($request, $user, trans('auth.password_incorrect'));
         }
 
         if (!$user->use_totp) {

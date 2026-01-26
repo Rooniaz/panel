@@ -4,6 +4,8 @@ return [
     'sign_in' => 'Sign In',
     'go_to_login' => 'Go to Login',
     'failed' => 'No account matching those credentials could be found.',
+    'user_not_found' => 'ไม่พบผู้ใช้นี้',
+    'password_incorrect' => 'รหัสผ่านไม่ถูกต้อง',
 
     'forgot_password' => [
         'label' => 'Forgot Password?',

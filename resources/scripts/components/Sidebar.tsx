@@ -14,6 +14,8 @@ import {
     faCogs,
     faBars,
     faTimes,
+    faChartBar,
+    faCube,
 } from '@fortawesome/free-solid-svg-icons';
 import { useStoreState } from 'easy-peasy';
 import { ApplicationStore } from '@/state';
@@ -36,11 +38,11 @@ const SidebarContainer = styled.div<{ $open: boolean }>`
 const HamburgerButton = styled.button`
     ${tw`fixed top-4 left-4 z-50 lg:hidden w-10 h-10 flex items-center justify-center rounded-lg bg-neutral-900 text-white shadow-lg border border-neutral-800`};
     transition: all 0.3s ease;
-    
+
     &:hover {
         ${tw`bg-neutral-800 scale-110`};
     }
-    
+
     &:active {
         ${tw`scale-95`};
     }
@@ -259,6 +261,12 @@ export default () => {
                     </MenuItem>
                     {rootAdmin && (
                         <>
+                            <MenuItem to={'/admin-dashboard'}>
+                                <MenuIcon>
+                                    <FontAwesomeIcon icon={faChartBar} />
+                                </MenuIcon>
+                                <MenuText>Dashboard</MenuText>
+                            </MenuItem>
                             <MenuItem to={'/add-server'}>
                                 <MenuIcon>
                                     <FontAwesomeIcon icon={faServer} />

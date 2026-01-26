@@ -27,7 +27,7 @@ const Container = styled.div`
 `;
 
 const ContainerHeader = styled.div`
-    ${tw`py-4 sm:py-6 lg:py-8 lg:ml-64 lg:mt-16 overflow-x-hidden`}
+    ${tw`py-4 sm:py-6 lg:py-8 lg:mt-16 overflow-x-hidden`}
 `;
 
 export default () => {

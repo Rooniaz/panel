@@ -2,8 +2,8 @@ import React, { useState, useRef, useMemo } from 'react';
 import tw from 'twin.macro';
 import styled from 'styled-components/macro';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faLandmark, faCopy, faUpload, faCheck, faInfoCircle } from '@fortawesome/free-solid-svg-icons';
-import Switch from '@/components/elements/Switch';
+import { faLandmark, faCopy, faUpload, faCheck, faUser } from '@fortawesome/free-solid-svg-icons';
+import Checkbox from '@/components/elements/inputs/Checkbox';
 import Input from '@/components/elements/Input';
 import Button from '@/components/elements/Button';
 import Toast from './Toast';
@@ -41,8 +41,12 @@ const InfoRow = styled.div`
 `;
 
 const InfoIcon = styled.div`
-    ${tw`w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500/20 to-purple-500/20 border border-blue-500/30 grid place-items-center`}
+    ${tw`w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500/20 to-purple-500/20 border border-blue-500/30 flex items-center justify-center flex-shrink-0`}
     box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+`;
+
+const IconWrapper = styled.div`
+    ${tw`flex items-center justify-center w-full h-full`}
 `;
 
 const InfoContent = styled.div`
@@ -116,13 +120,38 @@ const Label = styled.label`
 `;
 
 const TermsLink = styled.button`
-    ${tw`underline`}
+    ${tw`underline text-blue-400 hover:text-blue-300 transition-colors`}
     text-decoration-style: dotted;
     text-underline-offset: 0.25rem;
 `;
 
 const CheckboxContainer = styled.div`
     ${tw`flex items-center gap-3 mt-2`}
+`;
+
+const StyledCheckbox = styled(Checkbox)`
+    ${tw`w-5 h-5 rounded border-2 border-blue-500 bg-transparent cursor-pointer appearance-none`}
+    accent-color: #3b82f6;
+    transition: all 0.2s;
+
+    &:checked {
+        background-color: #3b82f6;
+        border-color: #3b82f6;
+        background-image: url("data:image/svg+xml,%3csvg viewBox='0 0 16 16' fill='white' xmlns='http://www.w3.org/2000/svg'%3e%3cpath d='M5.707 7.293a1 1 0 0 0-1.414 1.414l2 2a1 1 0 0 0 1.414 0l4-4a1 1 0 0 0-1.414-1.414L7 8.586 5.707 7.293z'/%3e%3c/svg%3e");
+        background-size: 100% 100%;
+        background-position: center;
+        background-repeat: no-repeat;
+    }
+
+    &:hover {
+        border-color: #60a5fa;
+    }
+
+    &:focus {
+        outline: none;
+        ring: 2px;
+        ring-color: rgba(59, 130, 246, 0.5);
+    }
 `;
 
 const CheckboxLabel = styled.label`
@@ -191,7 +220,7 @@ export default ({ onShowTerms }: Props) => {
     const fileRef = useRef<HTMLInputElement>(null);
 
     const bankInfo = {
-        bankName: 'ธนาคารไทยพาณิชย์',
+        bankName: 'ไทยพาณิชย์',
         accountNo: '512331232',
         accountHolder: 'นายบัวลอย หมูหวาน',
     };
@@ -297,7 +326,9 @@ export default ({ onShowTerms }: Props) => {
                     <BankInfoSection>
                         <InfoRow>
                             <InfoIcon>
-                                <FontAwesomeIcon icon={faLandmark} className={'h-5 w-5'} />
+                                <IconWrapper>
+                                    <FontAwesomeIcon icon={faLandmark} css={tw`h-5 w-5 text-white`} />
+                                </IconWrapper>
                             </InfoIcon>
                             <InfoContent>
                                 <InfoLabel>ธนาคาร</InfoLabel>
@@ -316,7 +347,9 @@ export default ({ onShowTerms }: Props) => {
                         </AccountNumberBox>
                         <InfoRow>
                             <InfoIcon>
-                                <FontAwesomeIcon icon={faInfoCircle} className={'h-5 w-5'} />
+                                <IconWrapper>
+                                    <FontAwesomeIcon icon={faUser} css={tw`h-5 w-5 text-white`} />
+                                </IconWrapper>
                             </InfoIcon>
                             <InfoContent>
                                 <InfoLabel>ชื่อบัญชี</InfoLabel>
@@ -330,15 +363,24 @@ export default ({ onShowTerms }: Props) => {
                 <Card>
                     <SectionTitle>อัปโหลดสลิปโอนเงิน</SectionTitle>
                     <UploadArea $state={uploadState} onClick={handlePickFile}>
-                        <UploadIcon>
-                            <FontAwesomeIcon icon={faUpload} />
-                        </UploadIcon>
-                        <UploadText>เลือกไฟล์สลิป…</UploadText>
-                        <UploadSubtext>รองรับไฟล์ภาพ JPG/PNG หรือ PDF</UploadSubtext>
-                        {fileName && (
-                            <div css={tw`mt-2 text-sm text-neutral-300`}>
-                                ไฟล์ที่เลือก: <span css={tw`font-medium`}>{fileName}</span>
+                        {fileName ? (
+                            <div css={tw`flex flex-col items-center justify-center gap-2`}>
+                                <UploadIcon>
+                                    <FontAwesomeIcon icon={faCheck} className={'text-green-400'} />
+                                </UploadIcon>
+                                <UploadText css={tw`text-center`}>
+                                    <span css={tw`font-medium text-cyan-400`}>{fileName}</span>
+                                </UploadText>
+                                <UploadSubtext>คลิกเพื่อเปลี่ยนไฟล์</UploadSubtext>
                             </div>
+                        ) : (
+                            <>
+                                <UploadIcon>
+                                    <FontAwesomeIcon icon={faUpload} />
+                                </UploadIcon>
+                                <UploadText>เลือกไฟล์สลิป…</UploadText>
+                                <UploadSubtext>รองรับไฟล์ภาพ JPG/PNG หรือ PDF</UploadSubtext>
+                            </>
                         )}
                     </UploadArea>
                     <input
@@ -365,9 +407,9 @@ export default ({ onShowTerms }: Props) => {
                     </InputGroup>
 
                     <CheckboxContainer>
-                        <Switch
-                            name='accept-terms-bank'
-                            defaultChecked={acceptedTerms}
+                        <StyledCheckbox
+                            id='accept-terms-bank'
+                            checked={acceptedTerms}
                             onChange={(e) => {
                                 setAcceptedTerms(e.target.checked);
                             }}
@@ -380,13 +422,37 @@ export default ({ onShowTerms }: Props) => {
                         </CheckboxLabel>
                     </CheckboxContainer>
 
-                    <div css={tw`mt-6 flex justify-end`}>
+                    <div css={tw`mt-6 flex justify-center`}>
                         <Button
                             type='button'
                             onClick={handleSubmit}
                             disabled={!canSubmit || uploadState === 'uploading'}
                             size={'xlarge'}
-                            css={tw`inline-flex items-center gap-2 rounded-xl bg-blue-600 px-6 py-3 font-bold disabled:cursor-not-allowed disabled:opacity-60`}
+                            css={tw`inline-flex items-center justify-center gap-2 rounded-xl px-12 py-5 text-lg font-bold disabled:cursor-not-allowed disabled:opacity-60 transition-all duration-300 w-full max-w-md`}
+                            style={{
+                                background:
+                                    canSubmit && uploadState !== 'uploading'
+                                        ? 'linear-gradient(135deg, #3b82f6 0%, #6366f1 50%, #8b5cf6 100%)'
+                                        : 'linear-gradient(135deg, #475569 0%, #334155 100%)',
+                                boxShadow:
+                                    canSubmit && uploadState !== 'uploading'
+                                        ? '0 8px 25px rgba(59, 130, 246, 0.4), 0 0 0 1px rgba(59, 130, 246, 0.2)'
+                                        : '0 4px 12px rgba(0, 0, 0, 0.2)',
+                            }}
+                            onMouseEnter={(e) => {
+                                if (canSubmit && uploadState !== 'uploading') {
+                                    e.currentTarget.style.transform = 'translateY(-2px)';
+                                    e.currentTarget.style.boxShadow =
+                                        '0 12px 35px rgba(59, 130, 246, 0.5), 0 0 0 1px rgba(59, 130, 246, 0.3)';
+                                }
+                            }}
+                            onMouseLeave={(e) => {
+                                if (canSubmit && uploadState !== 'uploading') {
+                                    e.currentTarget.style.transform = 'translateY(0)';
+                                    e.currentTarget.style.boxShadow =
+                                        '0 8px 25px rgba(59, 130, 246, 0.4), 0 0 0 1px rgba(59, 130, 246, 0.2)';
+                                }
+                            }}
                         >
                             {uploadState === 'done' && <FontAwesomeIcon icon={faCheck} className={'h-5 w-5'} />}
                             {uploadState === 'uploading'

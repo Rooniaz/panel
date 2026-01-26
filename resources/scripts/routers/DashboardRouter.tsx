@@ -7,6 +7,7 @@ import SubscriptionContainer from '@/components/subscription/SubscriptionContain
 import TopupContainer from '@/components/topup/TopupContainer';
 import ContactContainer from '@/components/contact/ContactContainer';
 import AddServerContainer from '@/components/admin/AddServerContainer';
+import AdminDashboardContainer from '@/components/admin/AdminDashboardContainer';
 import { NotFound } from '@/components/elements/ScreenBlock';
 import TransitionRouter from '@/TransitionRouter';
 import SubNavigation from '@/components/elements/SubNavigation';
@@ -19,6 +20,10 @@ import { useStoreState } from 'easy-peasy';
 
 const MainContent = styled.div`
     ${tw`w-full transition-all duration-300 `};
+`;
+
+const AccountContentWrapper = styled.div`
+    ${tw`lg:ml-64`};
 `;
 
 export default () => {
@@ -50,26 +55,31 @@ export default () => {
                             <Route path={'/add-server'}>
                                 <AddServerContainer />
                             </Route>
+                            <Route path={'/admin-dashboard'}>
+                                <AdminDashboardContainer />
+                            </Route>
                             {routes.account.map(({ path, component: Component }) => (
                                 <Route key={path} path={`/account/${path}`.replace('//', '/')} exact>
-                                    {rootAdmin && location.pathname.startsWith('/account') && (
-                                        <SubNavigation>
-                                            <div>
-                                                {routes.account
-                                                    .filter((route) => !!route.name)
-                                                    .map(({ path: accountPath, name, exact = false }) => (
-                                                        <NavLink
-                                                            key={accountPath}
-                                                            to={`/account/${accountPath}`.replace('//', '/')}
-                                                            exact={exact}
-                                                        >
-                                                            {name}
-                                                        </NavLink>
-                                                    ))}
-                                            </div>
-                                        </SubNavigation>
-                                    )}
-                                    <Component />
+                                    <AccountContentWrapper>
+                                        {rootAdmin && location.pathname.startsWith('/account') && (
+                                            <SubNavigation>
+                                                <div>
+                                                    {routes.account
+                                                        .filter((route) => !!route.name)
+                                                        .map(({ path: accountPath, name, exact = false }) => (
+                                                            <NavLink
+                                                                key={accountPath}
+                                                                to={`/account/${accountPath}`.replace('//', '/')}
+                                                                exact={exact}
+                                                            >
+                                                                {name}
+                                                            </NavLink>
+                                                        ))}
+                                                </div>
+                                            </SubNavigation>
+                                        )}
+                                        <Component />
+                                    </AccountContentWrapper>
                                 </Route>
                             ))}
                             <Route path={'*'}>

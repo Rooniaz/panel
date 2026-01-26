@@ -20,39 +20,80 @@ interface Values {
 
 const StyledInput = styled(Input)`
     ${tw`transition-all duration-300`}
-    background: rgba(15, 23, 42, 0.6);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(15, 23, 42, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.12);
     color: #ffffff;
+    border-radius: 0.75rem;
+    padding: 0.875rem 1rem;
     
     &::placeholder {
-        color: rgba(255, 255, 255, 0.4);
+        color: rgba(255, 255, 255, 0.5);
     }
     
     &:focus {
-        background: rgba(15, 23, 42, 0.8);
-        border-color: rgba(56, 189, 248, 0.5);
-        box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.1);
+        background: rgba(15, 23, 42, 0.9);
+        border-color: rgba(99, 102, 241, 0.6);
+        box-shadow: 
+            0 0 0 3px rgba(99, 102, 241, 0.15),
+            0 4px 12px rgba(99, 102, 241, 0.1);
+        outline: none;
     }
     
     &:hover:not(:focus) {
-        border-color: rgba(255, 255, 255, 0.2);
+        border-color: rgba(255, 255, 255, 0.25);
+        background: rgba(15, 23, 42, 0.75);
+    }
+    
+    &[disabled] {
+        opacity: 0.6;
+        cursor: not-allowed;
     }
 `;
 
 const StyledButton = styled(Button)`
-    ${tw`w-full transition-all duration-300 font-semibold tracking-wide uppercase text-sm`}
-    background: linear-gradient(135deg, #3b82f6 0%, #6366f1 100%);
+    ${tw`w-full transition-all duration-300 font-semibold tracking-wide uppercase text-sm py-3`}
+    background: linear-gradient(135deg, #4f46e5 0%, #6366f1 50%, #818cf8 100%);
     border: none;
-    box-shadow: 0 10px 25px rgba(59, 130, 246, 0.3);
+    border-radius: 0.75rem;
+    box-shadow: 
+        0 10px 25px rgba(79, 70, 229, 0.4),
+        0 0 0 1px rgba(255, 255, 255, 0.1) inset;
+    position: relative;
+    overflow: hidden;
+    
+    &::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+        transition: left 0.5s;
+    }
     
     &:hover:not(:disabled) {
-        background: linear-gradient(135deg, #2563eb 0%, #4f46e5 100%);
-        box-shadow: 0 15px 35px rgba(59, 130, 246, 0.4);
+        background: linear-gradient(135deg, #4338ca 0%, #5b21b6 50%, #6366f1 100%);
+        box-shadow: 
+            0 15px 35px rgba(79, 70, 229, 0.5),
+            0 0 0 1px rgba(255, 255, 255, 0.15) inset;
         transform: translateY(-2px);
+        
+        &::before {
+            left: 100%;
+        }
     }
     
     &:active:not(:disabled) {
         transform: translateY(0);
+        box-shadow: 
+            0 8px 20px rgba(79, 70, 229, 0.4),
+            0 0 0 1px rgba(255, 255, 255, 0.1) inset;
+    }
+    
+    &[disabled] {
+        opacity: 0.7;
+        cursor: not-allowed;
     }
 `;
 
@@ -139,34 +180,44 @@ const LoginContainer = ({ history }: RouteComponentProps) => {
             onSubmit={onSubmit}
             initialValues={{ username: '', password: '' }}
             validationSchema={object().shape({
-                username: string().required('A username or email must be provided.'),
-                password: string().required('Please enter your account password.'),
+                username: string().required('กรุณากรอกชื่อผู้ใช้หรืออีเมล'),
+                password: string().required('กรุณากรอกรหัสผ่าน'),
             })}
         >
             {({ isSubmitting, setSubmitting, submitForm }) => (
                 <LoginFormContainer title={'Welcome Back'}>
                     <FormikField name='username'>
                         {({ field, form: { errors, touched } }: FieldProps) => (
-                            <StyledInput
-                                {...field}
-                                type='text'
-                                placeholder={'Username or Email'}
-                                disabled={isSubmitting}
-                                hasError={!!(touched.username && errors.username)}
-                            />
+                            <div>
+                                <StyledInput
+                                    {...field}
+                                    type='text'
+                                    placeholder={'Username or Email'}
+                                    disabled={isSubmitting}
+                                    hasError={!!(touched.username && errors.username)}
+                                />
+                                {touched.username && errors.username && (
+                                    <p css={tw`text-xs text-red-400 mt-2 ml-1`}>{errors.username}</p>
+                                )}
+                            </div>
                         )}
                     </FormikField>
 
                     <div css={tw`mt-5`}>
                         <FormikField name='password'>
                             {({ field, form: { errors, touched } }: FieldProps) => (
-                                <StyledInput
-                                    {...field}
-                                    type='password'
-                                    placeholder={'Password'}
-                                    disabled={isSubmitting}
-                                    hasError={!!(touched.password && errors.password)}
-                                />
+                                <div>
+                                    <StyledInput
+                                        {...field}
+                                        type='password'
+                                        placeholder={'Password'}
+                                        disabled={isSubmitting}
+                                        hasError={!!(touched.password && errors.password)}
+                                    />
+                                    {touched.password && errors.password && (
+                                        <p css={tw`text-xs text-red-400 mt-2 ml-1`}>{errors.password}</p>
+                                    )}
+                                </div>
                             )}
                         </FormikField>
                     </div>

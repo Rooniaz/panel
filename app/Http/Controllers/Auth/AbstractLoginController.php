@@ -62,7 +62,7 @@ abstract class AbstractLoginController extends Controller
             throw new DisplayException($message ?? trans('auth.two_factor.checkpoint_failed'));
         }
 
-        throw new DisplayException(trans('auth.failed'));
+        throw new DisplayException($message ?? trans('auth.failed'));
     }
 
     /**

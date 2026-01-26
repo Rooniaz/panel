@@ -31,12 +31,14 @@ const Container = styled.div`
 const LoginFormBox = styled.div`
     ${tw`w-full relative z-10 rounded-3xl p-8 md:p-10 border backdrop-blur-xl shadow-2xl`}
     max-width: 450px;
-    background: linear-gradient(135deg, rgba(30, 41, 59, 0.85) 0%, rgba(15, 23, 42, 0.9) 100%);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: linear-gradient(135deg, rgba(30, 41, 59, 0.9) 0%, rgba(15, 23, 42, 0.95) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.15);
     box-shadow: 
-        0 20px 60px rgba(0, 0, 0, 0.5),
-        0 0 0 1px rgba(255, 255, 255, 0.05),
-        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        0 25px 70px rgba(0, 0, 0, 0.6),
+        0 0 0 1px rgba(255, 255, 255, 0.08),
+        inset 0 1px 0 rgba(255, 255, 255, 0.15),
+        0 0 40px rgba(99, 102, 241, 0.1);
+    transition: all 0.3s ease-in-out;
 
     ${breakpoint('sm')`
         max-width: 450px;
@@ -45,17 +47,36 @@ const LoginFormBox = styled.div`
 
 const Title = styled.h2`
     ${tw`text-center mb-8 text-3xl md:text-4xl font-bold tracking-tight`}
-    background: linear-gradient(135deg, #ffffff 0%, #e0e7ff 100%);
+    background: linear-gradient(135deg, #ffffff 0%, #c7d2fe 50%, #a5b4fc 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
-    text-shadow: 0 0 30px rgba(99, 102, 241, 0.3);
+    filter: drop-shadow(0 0 20px rgba(99, 102, 241, 0.4));
+    letter-spacing: -0.02em;
+`;
+
+const ErrorMessageContainer = styled.div`
+    ${tw`mb-6`}
+    animation: slideDown 0.3s ease-out;
+    
+    @keyframes slideDown {
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
 `;
 
 export default forwardRef<HTMLFormElement, Props>(({ title, ...props }, ref) => (
     <Container>
         <LoginFormBox>
-            <FlashMessageRender css={tw`mb-6`} />
+            <ErrorMessageContainer>
+                <FlashMessageRender />
+            </ErrorMessageContainer>
             {title && <Title>{title}</Title>}
             <Form {...props} ref={ref}>
                 {props.children}
