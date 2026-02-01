@@ -108,7 +108,7 @@ class HangarPluginService extends AbstractPluginService
                 'id' => $hangarPlugin['name'],
                 'name' => $hangarPlugin['name'],
                 'short_description' => $hangarPlugin['description'],
-                'url' => 'https://hangar.papermc.io/projects/' . $hangarPlugin['name'],
+                'url' => 'https://hangar.papermc.io/' . $hangarPlugin['namespace']['owner'] . '/' . $hangarPlugin['name'],
                 'icon_url' => $hangarPlugin['avatarUrl'],
                 'downloads' => $hangarPlugin['stats']['downloads'] ?? 0,
                 'followers' => $hangarPlugin['stats']['stars'] ?? 0,

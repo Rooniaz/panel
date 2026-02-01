@@ -37,7 +37,7 @@ class CurseForgeModService extends AbstractModService
         $this->client = new Client([
             'headers' => [
                 'User-Agent' => $this->userAgent,
-                'X-API-Key' => config('services.curseforge_api_key'),
+                'X-API-Key' => config('services.curseforge.api_key'),
                 'Accept' => 'application/json',
             ],
             'base_uri' => 'https://api.curseforge.com/v1/',
@@ -60,6 +60,15 @@ class CurseForgeModService extends AbstractModService
         }
 
         try {
+            $apiKey = config('services.curseforge.api_key');
+            if (empty($apiKey)) {
+                logger()->error('CurseForge API key is not configured. Please set CURSEFORGE_API_KEY in your .env file.');
+                return [
+                    'data' => [],
+                    'total' => 0,
+                ];
+            }
+
             $response = json_decode($this->client->get('mods/search', [
                 'query' => [
                     'gameId' => self::CURSEFORGE_MINECRAFT_GAME_ID,
@@ -72,9 +81,27 @@ class CurseForgeModService extends AbstractModService
                     'index' => ($page - 1) * $pageSize,
                 ],
             ])->getBody(), true);
+
+            if (!isset($response['data']) || !is_array($response['data'])) {
+                logger()->error('CurseForge API returned unexpected response structure.', ['response' => $response]);
+                return [
+                    'data' => [],
+                    'total' => 0,
+                ];
+            }
         } catch (TransferException $e) {
             if ($e instanceof BadResponseException) {
-                logger()->error('Received bad response when fetching CurseForge mods.', ['response' => \GuzzleHttp\Psr7\Message::toString($e->getResponse())]);
+                $statusCode = $e->getResponse()->getStatusCode();
+                $responseBody = $e->getResponse()->getBody()->getContents();
+                logger()->error('Received bad response when fetching CurseForge mods.', [
+                    'status_code' => $statusCode,
+                    'response' => $responseBody,
+                    'api_key_configured' => !empty(config('services.curseforge.api_key')),
+                ]);
+            } else {
+                logger()->error('Transfer exception when fetching CurseForge mods.', [
+                    'message' => $e->getMessage(),
+                ]);
             }
 
             return [

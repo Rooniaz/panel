@@ -94,20 +94,46 @@ class ModrinthPluginService extends AbstractPluginService
 
     public function versions(string $pluginId, ?string $pluginLoader = null, ?string $minecraftVersion = null): array
     {
-        $loaders = empty($pluginLoader) ? $this->getPluginLoaders() : [$pluginLoader];
+        $queryParams = [];
+        
+        // Only filter by loader if explicitly provided
+        if (!empty($pluginLoader)) {
+            $queryParams['loaders'] = json_encode([$pluginLoader]);
+        }
+        
+        // Only filter by minecraft version if explicitly provided
+        if (!empty($minecraftVersion)) {
+            $queryParams['game_versions'] = json_encode([$minecraftVersion]);
+        }
 
         try {
             $response = json_decode($this->client->get('project/' . $pluginId . '/version', [
-                'query' => [
-                    'loaders' => json_encode($loaders),
-                    'game_versions' => empty($minecraftVersion) ? null : json_encode([$minecraftVersion]),
-                ],
+                'query' => $queryParams,
             ])->getBody(), true);
         } catch (TransferException $e) {
             if ($e instanceof BadResponseException) {
-                logger()->error('Received bad response when fetching Modrinth plugin files.', ['response' => \GuzzleHttp\Psr7\Message::toString($e->getResponse())]);
+                $statusCode = $e->getResponse()->getStatusCode();
+                $responseBody = $e->getResponse()->getBody()->getContents();
+                logger()->error('Received bad response when fetching Modrinth plugin versions.', [
+                    'status_code' => $statusCode,
+                    'response' => $responseBody,
+                    'plugin_id' => $pluginId,
+                ]);
+            } else {
+                logger()->error('Transfer exception when fetching Modrinth plugin versions.', [
+                    'message' => $e->getMessage(),
+                    'plugin_id' => $pluginId,
+                ]);
             }
             
+            return [];
+        }
+
+        if (!is_array($response)) {
+            logger()->error('Modrinth API returned unexpected response structure.', [
+                'plugin_id' => $pluginId,
+                'response' => $response,
+            ]);
             return [];
         }
 

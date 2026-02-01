@@ -26,6 +26,7 @@ import {
     faGamepad,
     faSort,
     faExclamationCircle,
+    faExternalLinkAlt,
 } from '@fortawesome/free-solid-svg-icons';
 
 const FilterContainer = styled.div`
@@ -68,6 +69,14 @@ const PluginCard = styled.div`
     &::after {
         content: '';
         ${tw`absolute inset-0 bg-white opacity-0 transition-opacity duration-150`};
+    }
+`;
+
+const ExternalLinkButton = styled.a`
+    ${tw`absolute top-3 right-3 w-8 h-8 flex items-center justify-center rounded-lg bg-neutral-800/80 hover:bg-blue-500/80 border border-neutral-600 hover:border-blue-400 transition-all duration-200 z-10`};
+    &:hover {
+        transform: scale(1.1);
+        ${tw`shadow-lg`};
     }
 `;
 
@@ -308,29 +317,35 @@ export default () => {
             },
         })
             .then(({ data }) => {
-                if (data && data.meta && data.meta.pagination) {
+                console.log('Plugin API Response:', { provider: safeProvider, data });
+                
+                // Handle response structure
+                if (data && data.data && Array.isArray(data.data)) {
+                    const plugins = data.data || [];
+                    const pagination = data.meta?.pagination || {};
+                    
                     setPlugins({
-                        items: data.data || [],
+                        items: plugins,
                         pagination: {
-                            total: data.meta.pagination.total || 0,
-                            count: data.meta.pagination.count || 0,
-                            perPage: data.meta.pagination.per_page || 10,
-                            currentPage: data.meta.pagination.current_page || 1,
-                            totalPages: data.meta.pagination.total_pages || 1,
+                            total: pagination.total || plugins.length,
+                            count: pagination.count || plugins.length,
+                            perPage: pagination.per_page || safePageSize,
+                            currentPage: pagination.current_page || page,
+                            totalPages: pagination.total_pages || Math.ceil((pagination.total || plugins.length) / safePageSize),
                         },
                     });
                 } else {
+                    console.warn('Received unexpected data structure from API:', data);
                     setPlugins({
                         items: [],
                         pagination: {
                             total: 0,
                             count: 0,
-                            perPage: 10,
-                            currentPage: 1,
+                            perPage: safePageSize,
+                            currentPage: page,
                             totalPages: 1,
                         },
                     });
-                    console.warn('Received unexpected data structure from API');
                 }
             })
             .catch((error) => {
@@ -592,6 +607,15 @@ export default () => {
                             {items.length > 0 ? (
                                 items.map((plugin: Plugin) => (
                                     <PluginCard key={plugin.id} onClick={() => handleInstall(plugin.id, plugin.name)}>
+                                        <ExternalLinkButton
+                                            href={plugin.url}
+                                            target='_blank'
+                                            rel='noopener noreferrer'
+                                            onClick={(e) => e.stopPropagation()}
+                                            title={`View ${plugin.name} details`}
+                                        >
+                                            <FontAwesomeIcon icon={faExternalLinkAlt} className='w-4 h-4 text-neutral-300 hover:text-white' />
+                                        </ExternalLinkButton>
                                         <PluginHeader>
                                             {plugin.icon_url ? (
                                                 <PluginIcon src={plugin.icon_url} alt={plugin.name} />

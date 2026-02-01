@@ -17,7 +17,7 @@ import Select from '@/components/elements/Select';
 import Input from '@/components/elements/Input';
 import styled from 'styled-components/macro';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faDownload, faClock, faThumbsUp, faBars, faPuzzlePiece, faGamepad, faSort, faExclamationCircle } from '@fortawesome/free-solid-svg-icons';
+import { faDownload, faClock, faThumbsUp, faBars, faPuzzlePiece, faGamepad, faSort, faExclamationCircle, faExternalLinkAlt } from '@fortawesome/free-solid-svg-icons';
 
 const FilterContainer = styled.div`
     ${tw`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4 mb-4`};
@@ -59,6 +59,14 @@ const ModCard = styled.div`
     &::after {
         content: '';
         ${tw`absolute inset-0 bg-white opacity-0 transition-opacity duration-150`};
+    }
+`;
+
+const ExternalLinkButton = styled.a`
+    ${tw`absolute top-3 right-3 w-8 h-8 flex items-center justify-center rounded-lg bg-neutral-800/80 hover:bg-blue-500/80 border border-neutral-600 hover:border-blue-400 transition-all duration-200 z-10`};
+    &:hover {
+        transform: scale(1.1);
+        ${tw`shadow-lg`};
     }
 `;
 
@@ -555,6 +563,17 @@ export default () => {
                         <div css={tw`grid gap-4 md:grid-cols-2 lg:grid-cols-3`}>
                             {items.length > 0 ? items.map((mod: Mod) => (
                                 <ModCard key={mod.id} onClick={() => handleInstall(mod.id, mod.name)}>
+                                    {mod.url && (
+                                        <ExternalLinkButton
+                                            href={mod.url}
+                                            target='_blank'
+                                            rel='noopener noreferrer'
+                                            onClick={(e) => e.stopPropagation()}
+                                            title={`View ${mod.name} details`}
+                                        >
+                                            <FontAwesomeIcon icon={faExternalLinkAlt} className='w-4 h-4 text-neutral-300 hover:text-white' />
+                                        </ExternalLinkButton>
+                                    )}
                                     <ModHeader>
                                         {mod.icon_url ? (
                                             <ModIcon src={mod.icon_url} alt={mod.name} />
