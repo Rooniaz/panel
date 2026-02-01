@@ -185,7 +185,12 @@ export default memo(({ server, backgroundImage }: ServerCardProps) => {
             return 'https://images.unsplash.com/photo-1518709268805-4e9042af2176?w=800&h=600&fit=crop';
         }
         // Database backgrounds
-        if (combinedText.includes('mysql') || combinedText.includes('mongo') || combinedText.includes('database') || combinedText.includes('db')) {
+        if (
+            combinedText.includes('mysql') ||
+            combinedText.includes('mongo') ||
+            combinedText.includes('database') ||
+            combinedText.includes('db')
+        ) {
             return 'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=800&h=600&fit=crop';
         }
         // Discord bot backgrounds

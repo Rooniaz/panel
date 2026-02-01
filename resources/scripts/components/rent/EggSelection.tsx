@@ -1,13 +1,36 @@
 import React, { useState, useEffect } from 'react';
 import tw from 'twin.macro';
-import styled from 'styled-components/macro';
+import styled, { keyframes } from 'styled-components/macro';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faMicrochip, faMemory, faHdd, faArrowLeft, faCheck, faArrowRight } from '@fortawesome/free-solid-svg-icons';
 import { Package, GameType } from './RentServerContainer';
 import { getEggs, Egg } from '@/api/spring/eggs';
 
+const pulse = keyframes`
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.8; transform: scale(1.05); }
+`;
+
+const bounce = keyframes`
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-8px); }
+`;
+
+const gradientShift = keyframes`
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+`;
+
+const progressPulse = keyframes`
+    0%, 100% { opacity: 1; transform: scaleY(1); }
+    50% { opacity: 0.8; transform: scaleY(1.05); }
+`;
+
 const Container = styled.div`
-    ${tw`space-y-6 w-full max-w-4xl mx-auto px-3 sm:px-0 overflow-x-hidden`};
+    ${tw`space-y-4 w-full max-w-4xl mx-auto px-3 sm:px-0 overflow-x-hidden`};
+    margin-bottom: 0 !important;
+    padding-bottom: 0 !important;
 `;
 
 const HeaderSection = styled.div`
@@ -70,14 +93,35 @@ const StepLabel = styled.span<{ $active: boolean }>`
 `;
 
 const ProgressBar = styled.div`
-    ${tw`w-full h-2 rounded-full bg-white/10 overflow-hidden`};
+    ${tw`w-full h-2 rounded-full bg-white/10 overflow-visible relative`};
 `;
 
 const ProgressFill = styled.div`
-    ${tw`h-full transition-all duration-300`};
-    background: linear-gradient(90deg, #38bdf8, #6366f1);
+    ${tw`h-full relative overflow-visible`};
+    background: linear-gradient(90deg, #3b82f6, #6366f1, #8b5cf6);
+    background-size: 200% 100%;
+    animation: ${gradientShift} 3s ease infinite, ${progressPulse} 2s ease-in-out infinite;
     width: 66.66%;
-    box-shadow: 0 0 16px rgba(99, 102, 241, 0.35);
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.6);
+    transition: width 1.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+    position: relative;
+`;
+
+const ProgressIcon = styled.div`
+    ${tw`absolute w-6 h-6 overflow-hidden z-20`};
+    top: 50%;
+    transform: translateY(-50%);
+    left: 66.66%;
+    margin-left: -12px;
+    transition: left 1.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+    animation: ${bounce} 1.5s ease-in-out infinite;
+
+    img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        image-rendering: pixelated;
+    }
 `;
 
 const SectionTitle = styled.div`
@@ -289,6 +333,9 @@ export default ({ selectedPackage, selectedGame, onSelect, onBack }: Props) => {
                 </ProgressSteps>
                 <ProgressBar>
                     <ProgressFill />
+                    <ProgressIcon>
+                        <img src="/Grass-Block.png" alt="Progress" />
+                    </ProgressIcon>
                 </ProgressBar>
             </ProgressSection>
 

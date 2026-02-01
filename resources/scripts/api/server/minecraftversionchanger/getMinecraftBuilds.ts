@@ -7,6 +7,7 @@ export interface MinecraftBuildsResponse {
 }
 
 export default (uuid: string, type: string, version: string): Promise<MinecraftBuildsResponse> => {
-    return http.get(`/api/client/servers/${uuid}/minecraft-version/${type}/${version}`)
-        .then(response => response.data);
+    return http
+        .get(`/api/client/servers/${uuid}/minecraft-version/${type}/${version}`)
+        .then((response) => response.data);
 };

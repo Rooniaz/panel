@@ -153,7 +153,9 @@ export const createPackage = async (
                 throw new Error(errorMessage);
             }
             if (error.request) {
-                throw new Error('ไม่สามารถเชื่อมต่อกับ Spring Boot API ได้. กรุณาตรวจสอบว่า Spring Boot server ทำงานอยู่');
+                throw new Error(
+                    'ไม่สามารถเชื่อมต่อกับ Spring Boot API ได้. กรุณาตรวจสอบว่า Spring Boot server ทำงานอยู่'
+                );
             }
             throw new Error(error.message || 'Network error occurred');
         });
@@ -262,7 +264,9 @@ export const updatePackage = async (
                 throw new Error(errorMessage);
             }
             if (error.request) {
-                throw new Error('ไม่สามารถเชื่อมต่อกับ Spring Boot API ได้. กรุณาตรวจสอบว่า Spring Boot server ทำงานอยู่');
+                throw new Error(
+                    'ไม่สามารถเชื่อมต่อกับ Spring Boot API ได้. กรุณาตรวจสอบว่า Spring Boot server ทำงานอยู่'
+                );
             }
             throw new Error(error.message || 'Network error occurred');
         });
@@ -313,7 +317,9 @@ export const copyPackage = async (
                 throw new Error(errorMessage);
             }
             if (error.request) {
-                throw new Error('ไม่สามารถเชื่อมต่อกับ Spring Boot API ได้. กรุณาตรวจสอบว่า Spring Boot server ทำงานอยู่');
+                throw new Error(
+                    'ไม่สามารถเชื่อมต่อกับ Spring Boot API ได้. กรุณาตรวจสอบว่า Spring Boot server ทำงานอยู่'
+                );
             }
             throw new Error(error.message || 'Network error occurred');
         });
@@ -358,7 +364,9 @@ export const deletePackage = async (hwId: string, categoryId: string, packageNam
                 throw new Error(errorMessage);
             }
             if (error.request) {
-                throw new Error('ไม่สามารถเชื่อมต่อกับ Spring Boot API ได้. กรุณาตรวจสอบว่า Spring Boot server ทำงานอยู่');
+                throw new Error(
+                    'ไม่สามารถเชื่อมต่อกับ Spring Boot API ได้. กรุณาตรวจสอบว่า Spring Boot server ทำงานอยู่'
+                );
             }
             throw new Error(error.message || 'Network error occurred');
         });

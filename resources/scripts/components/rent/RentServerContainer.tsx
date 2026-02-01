@@ -1,6 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import tw from 'twin.macro';
-import styled from 'styled-components/macro';
+import styled, { keyframes } from 'styled-components/macro';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faExclamationTriangle } from '@fortawesome/free-solid-svg-icons';
 import HardwareSelection from './HardwareSelection';
 import PackageSelection from './PackageSelection';
 import GameSelection from './GameSelection';
@@ -13,16 +15,76 @@ import useFlash from '@/plugins/useFlash';
 import { useHistory } from 'react-router-dom';
 import FlashMessageRender from '@/components/FlashMessageRender';
 
+const shimmer = keyframes`
+    0% { background-position: -1000px 0; }
+    100% { background-position: 1000px 0; }
+`;
+
 const Container = styled.div`
-    ${tw`min-h-screen px-4 py-4 sm:px-6 sm:py-6 lg:px-8 lg:py-8 lg:ml-64 overflow-x-hidden`}
+    ${tw`lg:ml-64 pt-4 overflow-x-hidden`}
+    background: linear-gradient(135deg, #0c1226 0%, #1a1f3a 50%, #0c1226 100%);
+    background-size: 200% 200%;
+    animation: ${shimmer} 20s ease infinite;
+    
+    /* แก้ไขจุดนี้ */
+    min-height: 100vh; /* ให้สูงอย่างน้อยเต็มจอ */
+    display: flex;
+    flex-direction: column;
+    padding-bottom: 2rem !important; /* ให้มีช่องว่างนิดหน่อยไม่ให้ติดขอบล่างเกินไป */
+    margin-bottom: 0 !important;
+`;
+
+const ContentWrapper = styled.div`
+    ${tw`w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8`}
+    flex: 1; /* ดันเนื้อหาให้ยืดหยุ่น */
+    padding-bottom: 0 !important;
+    margin-bottom: 0 !important;
 `;
 
 const WarningBanner = styled.div`
-    ${tw`bg-yellow-500/20 border-l-4 border-yellow-500 p-4 mb-6`}
+    ${tw`relative rounded-2xl p-5 mb-4 overflow-hidden border backdrop-blur-sm`}
+    background: linear-gradient(135deg, rgba(234, 179, 8, 0.15) 0%, rgba(217, 119, 6, 0.1) 100%);
+    border-color: rgba(234, 179, 8, 0.4);
+    box-shadow: 0 10px 40px rgba(234, 179, 8, 0.2), 0 0 0 1px rgba(234, 179, 8, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    margin-bottom: 1rem !important;
+
+    &::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(234, 179, 8, 0.1), transparent);
+        animation: ${shimmer} 3s infinite;
+    }
+
+    &::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: linear-gradient(90deg, #fbbf24, #f59e0b, #d97706);
+    }
+`;
+
+const WarningContent = styled.div`
+    ${tw`flex items-start gap-4 relative z-10`}
+`;
+
+const WarningIcon = styled.div`
+    ${tw`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center text-xl`}
+    background: linear-gradient(135deg, rgba(234, 179, 8, 0.3), rgba(217, 119, 6, 0.2));
+    color: #fbbf24;
+    box-shadow: 0 4px 12px rgba(234, 179, 8, 0.3);
 `;
 
 const WarningText = styled.p`
-    ${tw`text-yellow-200 text-sm`}
+    ${tw`text-yellow-100 text-sm leading-relaxed flex-1`}
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 `;
 
 export interface Package {
@@ -268,13 +330,18 @@ export default () => {
 
     return (
         <Container>
-            <div css={tw`w-full max-w-full`}>
+            <ContentWrapper>
                 <FlashMessageRender byKey='server:create' css={tw`mb-4`} />
                 <WarningBanner>
-                    <WarningText>
-                        ⚠️เมื่อเช่าเซิร์ฟเวอร์แล้วระบบจะทำการหักเครดิตในบัญชีแบบรายชั่วโมงโดยอัตโนมัติตามแพ็กเกจที่เลือกไว้
-                        ไม่ว่าจะปิดหรือเปิดเซิร์ฟเวอร์ เนื่องจากเป็นการถือสิทธิ์ในการครอบครองเซิร์ฟเวอร์นั้น
-                    </WarningText>
+                    <WarningContent>
+                        <WarningIcon>
+                            <FontAwesomeIcon icon={faExclamationTriangle} />
+                        </WarningIcon>
+                        <WarningText>
+                            เมื่อเช่าเซิร์ฟเวอร์แล้วระบบจะทำการหักเครดิตในบัญชีแบบรายชั่วโมงโดยอัตโนมัติตามแพ็กเกจที่เลือกไว้
+                            ไม่ว่าจะปิดหรือเปิดเซิร์ฟเวอร์ เนื่องจากเป็นการถือสิทธิ์ในการครอบครองเซิร์ฟเวอร์นั้น
+                        </WarningText>
+                    </WarningContent>
                 </WarningBanner>
 
                 {step === 'hardware' && <HardwareSelection onSelect={handleHardwareSelect} />}
@@ -313,7 +380,7 @@ export default () => {
                         creationProgress={creationProgress}
                     />
                 )}
-            </div>
+            </ContentWrapper>
         </Container>
     );
 };

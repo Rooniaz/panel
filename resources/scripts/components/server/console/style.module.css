@@ -33,9 +33,56 @@
 .terminal {
     @apply flex flex-col w-full gap-2 sm:gap-3;
     background: radial-gradient(120% 120% at 10% 20%, rgba(59, 130, 246, 0.18), transparent 40%),
-        radial-gradient(140% 140% at 90% 10%, rgba(96, 165, 250, 0.14), transparent 35%),
-        #081020;
+        radial-gradient(140% 140% at 90% 10%, rgba(96, 165, 250, 0.14), transparent 35%), #081020;
     @apply rounded-xl sm:rounded-2xl border border-white/5 shadow-[0_20px_60px_rgba(0,0,0,0.45)] p-2 sm:p-3 md:p-4;
+}
+
+.log_header {
+    @apply flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-4 mb-2;
+    @apply pb-2 border-b border-white/10;
+}
+
+.log_tabs {
+    @apply flex flex-wrap gap-1 sm:gap-2;
+}
+
+.log_tab {
+    @apply px-3 py-1.5 text-xs sm:text-sm font-medium rounded-lg transition-all duration-150;
+    @apply text-gray-300 hover:text-white bg-transparent hover:bg-white/5;
+    @apply border border-transparent;
+    cursor: pointer;
+}
+
+.log_tab_active {
+    @apply text-white bg-sky-500/20 border-sky-500/30;
+    @apply shadow-[0_0_10px_rgba(59,130,246,0.3)];
+}
+
+.log_actions {
+    @apply flex items-center gap-2;
+}
+
+.copy_button {
+    @apply relative flex items-center justify-center gap-2 px-3 py-1.5 rounded-lg;
+    @apply text-gray-300 hover:text-white bg-transparent hover:bg-white/5;
+    @apply border border-white/10 hover:border-sky-500/30 transition-all duration-150;
+    @apply disabled:opacity-50 disabled:cursor-not-allowed;
+    cursor: pointer;
+}
+
+.copied_indicator {
+    @apply absolute -top-8 left-1/2 transform -translate-x-1/2;
+    @apply px-2 py-1 text-xs font-medium text-white bg-green-500 rounded;
+    @apply whitespace-nowrap;
+    animation: fadeInOut 2s ease-in-out;
+}
+
+@keyframes fadeInOut {
+    0%, 100% { opacity: 0; transform: translate(-50%, -10px); }
+    10%, 90% { opacity: 1; transform: translate(-50%, 0); }
+}
+
+.terminal {
 
     & .overflows_container {
         @apply w-full overflow-x-auto;
@@ -78,6 +125,7 @@
         @apply shadow-inner shadow-black/60;
         backdrop-filter: blur(8px);
     }
+
 }
 
 .card {

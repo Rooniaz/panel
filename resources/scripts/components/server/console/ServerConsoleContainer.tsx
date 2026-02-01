@@ -173,7 +173,13 @@ const ServerConsoleContainer = () => {
                                 <ServerIcon className={'w-3 h-3 sm:w-4 sm:h-4 text-sky-300 flex-shrink-0'} />
                                 <span className={'truncate'}>Minecraft Server</span>
                             </p>
-                            <h1 className={'font-header text-xl sm:text-2xl text-white leading-tight line-clamp-1 break-words'}>{name}</h1>
+                            <h1
+                                className={
+                                    'font-header text-xl sm:text-2xl text-white leading-tight line-clamp-1 break-words'
+                                }
+                            >
+                                {name}
+                            </h1>
                             <p className={'text-xs sm:text-sm text-white/70 line-clamp-2 mt-1 break-words'}>
                                 {packageName || description || '—'}
                             </p>
@@ -238,9 +244,9 @@ const ServerConsoleContainer = () => {
                                 )}
                             </p>
                         </div>
-                    <Can action={['control.start', 'control.stop', 'control.restart']} matchAny>
+                        <Can action={['control.start', 'control.stop', 'control.restart']} matchAny>
                             <PowerButtons className={'flex flex-wrap sm:justify-end gap-1.5 sm:gap-2'} />
-                    </Can>
+                        </Can>
                     </div>
 
                     <div className={'space-y-3 mt-2'}>

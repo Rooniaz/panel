@@ -19,7 +19,7 @@ import styled from 'styled-components/macro';
 import { useStoreState } from 'easy-peasy';
 
 const MainContent = styled.div`
-    ${tw`w-full transition-all duration-300 `};
+    ${tw`w-full transition-all duration-300`};
 `;
 
 const AccountContentWrapper = styled.div`

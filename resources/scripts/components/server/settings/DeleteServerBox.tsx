@@ -24,10 +24,10 @@ export default () => {
 
         setIsDeleting(true);
         clearFlashes('settings');
-        
+
         // ✅ อ่าน JWT token จาก localStorage
         const token = localStorage.getItem('auth_token');
-        
+
         if (!token) {
             console.error('[DeleteServer] ❌ JWT token not found in localStorage!');
             setIsDeleting(false);
@@ -38,27 +38,27 @@ export default () => {
             });
             return;
         }
-        
+
         console.log('[DeleteServer] Token found:', token.substring(0, 20) + '...');
-        
+
         // ✅ เรียก Spring Boot โดยตรง (เหมือน CREATE server flow)
         http.delete(`/api/servers/${uuid}`, {
             baseURL: 'http://localhost:9000', // Spring Boot API
             withCredentials: true, // ส่ง cookies
             headers: {
-                'Authorization': `Bearer ${token}`, // ✅ ส่ง JWT token ใน Authorization header
+                Authorization: `Bearer ${token}`, // ✅ ส่ง JWT token ใน Authorization header
             },
         })
             .then((response) => {
                 console.log('[DeleteServer] Spring Boot response:', response.data);
                 console.log('[DeleteServer] ✅ Server deleted successfully!');
-                
+
                 addFlash({
                     key: 'settings',
                     type: 'success',
                     message: 'Server has been deleted successfully from both Panel and Spring Boot.',
                 });
-                
+
                 // ✅ Redirect และ refresh dashboard เพื่อไม่ให้แสดง server ที่ถูกลบแล้ว
                 setTimeout(() => {
                     // Redirect to dashboard และ force reload เพื่อ refresh server list
@@ -73,18 +73,17 @@ export default () => {
                     data: error.response?.data,
                     message: error.response?.data?.message || error.message,
                 });
-                
+
                 setIsDeleting(false);
-                
+
                 // Extract error message
-                const errorMessage = error.response?.data?.message 
-                    || error.response?.data?.error
-                    || httpErrorToHuman(error);
-                
-                addFlash({ 
-                    key: 'settings', 
-                    type: 'error', 
-                    message: errorMessage 
+                const errorMessage =
+                    error.response?.data?.message || error.response?.data?.error || httpErrorToHuman(error);
+
+                addFlash({
+                    key: 'settings',
+                    type: 'error',
+                    message: errorMessage,
                 });
             })
             .finally(() => {

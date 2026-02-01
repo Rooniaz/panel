@@ -25,25 +25,23 @@ const StyledInput = styled(Input)`
     color: #ffffff;
     border-radius: 0.75rem;
     padding: 0.875rem 1rem;
-    
+
     &::placeholder {
         color: rgba(255, 255, 255, 0.5);
     }
-    
+
     &:focus {
         background: rgba(15, 23, 42, 0.9);
         border-color: rgba(99, 102, 241, 0.6);
-        box-shadow: 
-            0 0 0 3px rgba(99, 102, 241, 0.15),
-            0 4px 12px rgba(99, 102, 241, 0.1);
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15), 0 4px 12px rgba(99, 102, 241, 0.1);
         outline: none;
     }
-    
+
     &:hover:not(:focus) {
         border-color: rgba(255, 255, 255, 0.25);
         background: rgba(15, 23, 42, 0.75);
     }
-    
+
     &[disabled] {
         opacity: 0.6;
         cursor: not-allowed;
@@ -55,12 +53,10 @@ const StyledButton = styled(Button)`
     background: linear-gradient(135deg, #4f46e5 0%, #6366f1 50%, #818cf8 100%);
     border: none;
     border-radius: 0.75rem;
-    box-shadow: 
-        0 10px 25px rgba(79, 70, 229, 0.4),
-        0 0 0 1px rgba(255, 255, 255, 0.1) inset;
+    box-shadow: 0 10px 25px rgba(79, 70, 229, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.1) inset;
     position: relative;
     overflow: hidden;
-    
+
     &::before {
         content: '';
         position: absolute;
@@ -71,26 +67,22 @@ const StyledButton = styled(Button)`
         background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
         transition: left 0.5s;
     }
-    
+
     &:hover:not(:disabled) {
         background: linear-gradient(135deg, #4338ca 0%, #5b21b6 50%, #6366f1 100%);
-        box-shadow: 
-            0 15px 35px rgba(79, 70, 229, 0.5),
-            0 0 0 1px rgba(255, 255, 255, 0.15) inset;
+        box-shadow: 0 15px 35px rgba(79, 70, 229, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.15) inset;
         transform: translateY(-2px);
-        
+
         &::before {
             left: 100%;
         }
     }
-    
+
     &:active:not(:disabled) {
         transform: translateY(0);
-        box-shadow: 
-            0 8px 20px rgba(79, 70, 229, 0.4),
-            0 0 0 1px rgba(255, 255, 255, 0.1) inset;
+        box-shadow: 0 8px 20px rgba(79, 70, 229, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.1) inset;
     }
-    
+
     &[disabled] {
         opacity: 0.7;
         cursor: not-allowed;
@@ -99,7 +91,7 @@ const StyledButton = styled(Button)`
 
 const ForgotPasswordLink = styled(Link)`
     ${tw`text-neutral-300 no-underline transition-all duration-200`}
-    
+
     &:hover {
         color: #38bdf8;
         text-shadow: 0 0 10px rgba(56, 189, 248, 0.3);
@@ -109,7 +101,7 @@ const ForgotPasswordLink = styled(Link)`
 const RegisterLink = styled(Link)`
     ${tw`transition-all duration-200 font-semibold`}
     color: #60a5fa;
-    
+
     &:hover {
         color: #38bdf8;
         text-shadow: 0 0 10px rgba(56, 189, 248, 0.3);
@@ -260,15 +252,11 @@ const LoginContainer = ({ history }: RouteComponentProps) => {
 
                     <LinksContainer>
                         <div>
-                            <ForgotPasswordLink to={'/auth/password'}>
-                                Forgot your password?
-                            </ForgotPasswordLink>
+                            <ForgotPasswordLink to={'/auth/password'}>Forgot your password?</ForgotPasswordLink>
                         </div>
                         <div>
                             <span css={tw`text-neutral-400`}>ยังไม่มีบัญชี? </span>
-                            <RegisterLink to={'/auth/register'}>
-                                สมัครสมาชิก
-                            </RegisterLink>
+                            <RegisterLink to={'/auth/register'}>สมัครสมาชิก</RegisterLink>
                         </div>
                     </LinksContainer>
                 </LoginFormContainer>

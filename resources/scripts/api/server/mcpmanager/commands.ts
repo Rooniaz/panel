@@ -6,15 +6,19 @@ export const whisperToPlayer = async (serverUuid: string, playerName: string, me
     const command = `tell ${playerName} ${message}`;
     await executeCommand(serverUuid, command);
 };
-export const teleportPlayerToPlayer = async (serverUuid: string, playerName: string, targetPlayer: string): Promise<void> => {
+export const teleportPlayerToPlayer = async (
+    serverUuid: string,
+    playerName: string,
+    targetPlayer: string
+): Promise<void> => {
     const command = `tp ${playerName} ${targetPlayer}`;
     await executeCommand(serverUuid, command);
 };
 export const teleportPlayerToCoords = async (
-    serverUuid: string, 
-    playerName: string, 
-    x: string | number, 
-    y: string | number, 
+    serverUuid: string,
+    playerName: string,
+    x: string | number,
+    y: string | number,
     z: string | number
 ): Promise<void> => {
     const command = `tp ${playerName} ${x} ${y} ${z}`;

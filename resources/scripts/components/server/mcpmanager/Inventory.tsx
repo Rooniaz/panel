@@ -724,7 +724,9 @@ export default function PlayerInventory({
                                     onRefreshPlayerItems();
                                     setTimeout(() => {
                                         if (onRefreshPlayerItems) {
-                                            console.log('[PlayerItems] Second refresh after delay to ensure data is saved');
+                                            console.log(
+                                                '[PlayerItems] Second refresh after delay to ensure data is saved'
+                                            );
                                             onRefreshPlayerItems();
                                         }
                                     }, 1000);
@@ -737,7 +739,9 @@ export default function PlayerInventory({
                             <span css={tw`hidden md:inline`}>Refresh</span>
                         </button>
                         <button
-                            onClick={() => setInventoryType(inventoryType === 'inventory' ? 'ender_chest' : 'inventory')}
+                            onClick={() =>
+                                setInventoryType(inventoryType === 'inventory' ? 'ender_chest' : 'inventory')
+                            }
                             css={[
                                 tw`flex items-center gap-1 md:gap-2 px-3 py-1.5 rounded-lg transition-colors text-xs md:text-sm border shadow-sm`,
                                 inventoryType === 'inventory'
@@ -749,16 +753,18 @@ export default function PlayerInventory({
                                 <img
                                     src='https://mc.nerothe.com/img/1.21.8/minecraft_ender_chest.png'
                                     alt='Ender Chest Icon'
-                                css={tw`w-5 h-5`}
-                            />
-                        ) : (
-                            <img
-                                src='https://mc.nerothe.com/img/1.21.8/minecraft_chest.png'
-                                alt='Inventory Icon'
-                                css={tw`w-5 h-5`}
-                            />
-                        )}
-                        <span css={tw`truncate`}>{inventoryType === 'inventory' ? 'Ender Chest' : 'Inventory'}</span>
+                                    css={tw`w-5 h-5`}
+                                />
+                            ) : (
+                                <img
+                                    src='https://mc.nerothe.com/img/1.21.8/minecraft_chest.png'
+                                    alt='Inventory Icon'
+                                    css={tw`w-5 h-5`}
+                                />
+                            )}
+                            <span css={tw`truncate`}>
+                                {inventoryType === 'inventory' ? 'Ender Chest' : 'Inventory'}
+                            </span>
                         </button>
                     </div>
                 </div>

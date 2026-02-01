@@ -23,6 +23,5 @@ export interface ForkInfo {
 }
 
 export default (uuid: string): Promise<MinecraftForkResponse> => {
-    return http.get(`/api/client/servers/${uuid}/minecraft-version`)
-        .then(response => response.data);
+    return http.get(`/api/client/servers/${uuid}/minecraft-version`).then((response) => response.data);
 };

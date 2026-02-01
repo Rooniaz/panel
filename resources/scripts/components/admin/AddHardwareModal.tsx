@@ -79,7 +79,9 @@ export default ({ visible, onDismissed, onSuccess, hardware }: Props) => {
                     <Form>
                         <div css={tw`mb-6 pb-4 border-b border-white/10`}>
                             <h2 css={tw`text-2xl font-bold text-white flex items-center space-x-3`}>
-                                <span css={tw`w-12 h-12 bg-gradient-to-br from-blue-500 via-blue-600 to-blue-700 rounded-xl flex items-center justify-center text-white shadow-xl`}>
+                                <span
+                                    css={tw`w-12 h-12 bg-gradient-to-br from-blue-500 via-blue-600 to-blue-700 rounded-xl flex items-center justify-center text-white shadow-xl`}
+                                >
                                     <FontAwesomeIcon icon={faServer} css={tw`w-6 h-6`} />
                                 </span>
                                 <span>{isEditMode ? ' แก้ไข Hardware' : ' เพิ่ม Hardware'}</span>
@@ -94,12 +96,14 @@ export default ({ visible, onDismissed, onSuccess, hardware }: Props) => {
                             <FormikField name={'name'}>
                                 {({ field, meta }: any) => (
                                     <>
-                                        <label css={tw`block text-sm font-bold text-neutral-200 mb-2 flex items-center space-x-2`}>
+                                        <label
+                                            css={tw`block text-sm font-bold text-neutral-200 mb-2 flex items-center space-x-2`}
+                                        >
                                             <FontAwesomeIcon icon={faServer} css={tw`w-4 h-4 text-blue-400`} />
                                             <span>ชื่อ Hardware</span>
                                         </label>
-                                        <Input 
-                                            {...field} 
+                                        <Input
+                                            {...field}
                                             hasError={meta.touched && !!meta.error}
                                             placeholder={'เช่น Ryzen 9 7950x @4.5-5.7 GHz'}
                                             css={tw`bg-neutral-800/50 border-neutral-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20`}
@@ -116,11 +120,9 @@ export default ({ visible, onDismissed, onSuccess, hardware }: Props) => {
                             <FormikField name={'description'}>
                                 {({ field, meta }: any) => (
                                     <>
-                                        <label css={tw`block text-sm font-bold text-neutral-200 mb-2`}>
-                                            คำอธิบาย
-                                        </label>
-                                        <Input 
-                                            {...field} 
+                                        <label css={tw`block text-sm font-bold text-neutral-200 mb-2`}>คำอธิบาย</label>
+                                        <Input
+                                            {...field}
                                             hasError={meta.touched && !!meta.error}
                                             placeholder={'เช่น AMD Ryzen 9 7950x'}
                                             css={tw`bg-neutral-800/50 border-neutral-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20`}
@@ -138,13 +140,18 @@ export default ({ visible, onDismissed, onSuccess, hardware }: Props) => {
                                 <FormikField name={'priority'}>
                                     {({ field, meta }: any) => (
                                         <>
-                                            <label css={tw`block text-sm font-bold text-neutral-200 mb-2 flex items-center space-x-2`}>
-                                                <FontAwesomeIcon icon={faSortNumericDown} css={tw`w-4 h-4 text-green-400`} />
+                                            <label
+                                                css={tw`block text-sm font-bold text-neutral-200 mb-2 flex items-center space-x-2`}
+                                            >
+                                                <FontAwesomeIcon
+                                                    icon={faSortNumericDown}
+                                                    css={tw`w-4 h-4 text-green-400`}
+                                                />
                                                 <span>Priority</span>
                                             </label>
-                                            <Input 
-                                                {...field} 
-                                                type={'number'} 
+                                            <Input
+                                                {...field}
+                                                type={'number'}
                                                 hasError={meta.touched && !!meta.error}
                                                 placeholder={'เช่น 0'}
                                                 css={tw`bg-neutral-800/50 border-neutral-700 focus:border-green-500 focus:ring-2 focus:ring-green-500/20`}
@@ -161,12 +168,14 @@ export default ({ visible, onDismissed, onSuccess, hardware }: Props) => {
                                 <FormikField name={'key'}>
                                     {({ field, meta }: any) => (
                                         <>
-                                            <label css={tw`block text-sm font-bold text-neutral-200 mb-2 flex items-center space-x-2`}>
+                                            <label
+                                                css={tw`block text-sm font-bold text-neutral-200 mb-2 flex items-center space-x-2`}
+                                            >
                                                 <FontAwesomeIcon icon={faKey} css={tw`w-4 h-4 text-yellow-400`} />
                                                 <span>Key</span>
                                             </label>
-                                            <Input 
-                                                {...field} 
+                                            <Input
+                                                {...field}
                                                 hasError={meta.touched && !!meta.error}
                                                 placeholder={'เช่น AMD, INTEL'}
                                                 css={tw`bg-neutral-800/50 border-neutral-700 focus:border-yellow-500 focus:ring-2 focus:ring-yellow-500/20`}
@@ -191,9 +200,9 @@ export default ({ visible, onDismissed, onSuccess, hardware }: Props) => {
                             >
                                 ยกเลิก
                             </Button>
-                            <Button 
-                                type={'submit'} 
-                                disabled={isSubmitting} 
+                            <Button
+                                type={'submit'}
+                                disabled={isSubmitting}
                                 css={tw`bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700 hover:from-blue-600 hover:via-blue-700 hover:to-blue-800 text-white font-bold px-8 py-3 rounded-xl shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center space-x-2`}
                             >
                                 {isSubmitting ? (

@@ -2,7 +2,14 @@ module.exports = function (api) {
     let targets = {};
     const plugins = [
         'babel-plugin-macros',
-        'styled-components',
+        [
+            'babel-plugin-styled-components',
+            {
+                displayName: true,
+                fileName: true,
+                pure: true,
+            },
+        ],
         'react-hot-loader/babel',
         '@babel/transform-runtime',
         '@babel/transform-react-jsx',

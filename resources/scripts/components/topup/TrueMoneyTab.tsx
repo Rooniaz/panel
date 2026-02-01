@@ -1,8 +1,16 @@
 import React, { useState, useMemo } from 'react';
-import tw from 'twin.macro';
+import tw, { css } from 'twin.macro';
 import styled from 'styled-components/macro';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faExclamationCircle, faChevronLeft, faChevronRight } from '@fortawesome/free-solid-svg-icons';
+import {
+    faExclamationCircle,
+    faChevronLeft,
+    faChevronRight,
+    faWallet,
+    faLandmark,
+    faClock,
+    faInfoCircle,
+} from '@fortawesome/free-solid-svg-icons';
 import Checkbox from '@/components/elements/inputs/Checkbox';
 import Input from '@/components/elements/Input';
 import Button from '@/components/elements/Button';
@@ -10,8 +18,75 @@ import Toast from './Toast';
 
 const SPRING_BOOT_API_URL = 'http://localhost:9000';
 
-const Card = styled.div`
-    ${tw`mx-auto w-full max-w-md rounded-2xl border border-white/10 bg-gradient-to-br from-neutral-800/95 via-neutral-800/90 to-neutral-900/95 p-6 backdrop-blur-sm`}
+const MainContainer = styled.div`
+    ${tw`w-full space-y-6`}
+`;
+
+const HeaderCard = styled.div`
+    ${tw`rounded-xl sm:rounded-2xl p-4 sm:p-6 md:p-8 border border-white/10 backdrop-blur-sm`}
+    background: linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(15, 23, 42, 0.98) 100%);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.05),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    position: relative;
+    overflow: hidden;
+
+    &::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, #f97316, #ea580c, #dc2626);
+    }
+`;
+
+const HeaderTitle = styled.h2`
+    ${tw`text-xl sm:text-2xl md:text-3xl font-bold text-white mb-2 flex items-center gap-2 sm:gap-3 flex-wrap`}
+    background: linear-gradient(135deg, #ffffff 0%, #a0a0a0 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+`;
+
+const HeaderSubtitle = styled.p`
+    ${tw`text-neutral-400 text-xs sm:text-sm`}
+`;
+
+const NavigationButtons = styled.div`
+    ${tw`flex flex-wrap items-center gap-2 sm:gap-3 mt-3 sm:mt-4`}
+`;
+
+const NavButton = styled.button<{ $active?: boolean }>`
+    ${tw`px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg font-semibold transition-all duration-200 flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm`}
+    ${({ $active }) =>
+        $active
+            ? css`
+                  background: linear-gradient(135deg, #f97316, #ea580c);
+                  color: white;
+                  box-shadow: 0 8px 25px rgba(234, 88, 12, 0.35), 0 0 0 1px rgba(251, 146, 60, 0.2);
+                  transform: translateY(-2px);
+              `
+            : css`
+                  background: linear-gradient(135deg, rgba(30, 41, 59, 0.8) 0%, rgba(15, 23, 42, 0.9) 100%);
+                  border: 1px solid rgba(255, 255, 255, 0.1);
+                  color: #9ca3af;
+                  &:hover {
+                      background: linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(15, 23, 42, 0.95) 100%);
+                      border-color: rgba(251, 146, 60, 0.3);
+                      color: white;
+                      transform: translateY(-1px);
+                  }
+              `}
+`;
+
+const NavButtonIcon = styled(FontAwesomeIcon)`
+    ${tw`w-3 h-3 sm:w-4 sm:h-4`}
+`;
+
+const ContentCard = styled.div`
+    ${tw`rounded-xl sm:rounded-2xl p-4 sm:p-6 border border-white/10 backdrop-blur-sm`}
+    background: linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(15, 23, 42, 0.98) 100%);
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.05),
         inset 0 1px 0 rgba(255, 255, 255, 0.1);
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -24,16 +99,20 @@ const Card = styled.div`
     }
 `;
 
-const SectionTitle = styled.h3`
-    ${tw`text-2xl font-bold text-white mb-4 flex items-center space-x-3`}
-    background: linear-gradient(135deg, #ffffff 0%, #a0a0a0 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+const GuideSection = styled.div`
+    ${tw`mb-6`}
+`;
+
+const CarouselWrapper = styled.div`
+    ${tw`relative mb-4 flex items-center gap-4`}
+
+    @media (max-width: 768px) {
+        ${tw`gap-0 relative`}
+    }
 `;
 
 const GuideImageContainer = styled.div`
-    ${tw`relative mx-auto mb-6 w-full rounded-2xl overflow-hidden`}
+    ${tw`relative mx-auto w-full rounded-2xl overflow-hidden flex-1`}
     border: 1px solid rgba(255, 255, 255, 0.1);
     box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.08);
     display: flex;
@@ -41,15 +120,17 @@ const GuideImageContainer = styled.div`
     justify-content: center;
 `;
 
-const CarouselWrapper = styled.div`
-    ${tw`relative mb-6 flex items-center gap-4`}
+const GuideImage = styled.img`
+    ${tw`w-full h-auto object-contain`}
+    display: block;
+    max-height: 400px;
 
     @media (max-width: 768px) {
-        ${tw`gap-0 relative`}
+        max-height: 300px;
     }
 `;
 
-const NavButton = styled.button`
+const CarouselNavButton = styled.button`
     ${tw`flex-shrink-0 rounded-full border border-white/10 p-3 transition-all duration-300 z-10 backdrop-blur-sm`}
     background: linear-gradient(135deg, rgba(30, 41, 59, 0.8) 0%, rgba(15, 23, 42, 0.9) 100%);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.05),
@@ -59,6 +140,7 @@ const NavButton = styled.button`
     display: flex;
     align-items: center;
     justify-content: center;
+    color: white;
 
     @media (max-width: 768px) {
         position: absolute;
@@ -87,38 +169,67 @@ const NavButton = styled.button`
         @media (max-width: 768px) {
             transform: translateY(-50%) scale(0.95);
         }
-
-        background: linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.95) 100%);
     }
+`;
+
+const CarouselNavButtonLeft = styled(CarouselNavButton)`
+    ${tw`hidden md:flex md:static`}
+`;
+
+const CarouselNavButtonRight = styled(CarouselNavButton)`
+    ${tw`hidden md:flex md:static`}
+`;
+
+const CarouselNavButtonMobile = styled(CarouselNavButton)`
+    ${tw`md:hidden absolute`}
+`;
+
+const CarouselNavButtonMobileLeft = styled(CarouselNavButtonMobile)`
+    left: 0.5rem;
+`;
+
+const CarouselNavButtonMobileRight = styled(CarouselNavButtonMobile)`
+    right: 0.5rem;
 `;
 
 const DotsContainer = styled.div`
-    ${tw`flex justify-center items-center gap-3 mt-4`}
+    ${tw`flex justify-center items-center gap-3`}
 `;
 
-const GuideImage = styled.img`
-    ${tw`w-full h-auto object-contain`}
-    display: block;
-    max-height: 70vh;
-
-    @media (max-width: 768px) {
-        max-height: 60vh;
-    }
+const DotButton = styled.button<{ $active: boolean }>`
+    ${tw`rounded-full transition-all duration-300 cursor-pointer`}
+    ${({ $active }) =>
+        $active
+            ? css`
+                  width: 2rem;
+                  height: 0.75rem;
+                  background: #3b82f6;
+                  box-shadow: 0 0 8px rgba(59, 130, 246, 0.8), 0 2px 4px rgba(0, 0, 0, 0.2);
+              `
+            : css`
+                  width: 0.75rem;
+                  height: 0.75rem;
+                  background: rgba(156, 163, 175, 0.5);
+                  &:hover {
+                      background: rgba(156, 163, 175, 0.8);
+                      transform: scale(1.2);
+                  }
+              `}
 `;
 
-const InputGroup = styled.div`
-    ${tw`space-y-3 mt-6`}
+const FormSection = styled.div`
+    ${tw`space-y-4`}
 `;
 
-const Label = styled.label`
-    ${tw`block text-sm font-semibold text-neutral-200 mb-2 flex items-center space-x-2`}
+const FormLabel = styled.label`
+    ${tw`block text-sm font-semibold text-neutral-300 mb-2 flex items-center gap-2`}
     background: linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
 `;
 
-const StyledInput = styled(Input)`
+const FormInput = styled(Input)`
     ${tw`w-full rounded-xl border transition-all duration-300`}
     background: linear-gradient(135deg, rgba(30, 41, 59, 0.8) 0%, rgba(15, 23, 42, 0.9) 100%);
     border-color: rgba(255, 255, 255, 0.1);
@@ -138,17 +249,16 @@ const StyledInput = styled(Input)`
 `;
 
 const ErrorText = styled.p`
-    ${tw`mt-2 text-xs flex items-center space-x-2 px-3 py-2 rounded-lg`}
+    ${tw`mt-2 text-xs flex items-center gap-2 px-3 py-2 rounded-lg`}
     background: linear-gradient(135deg, rgba(239, 68, 68, 0.15) 0%, rgba(220, 38, 38, 0.1) 100%);
     border: 1px solid rgba(239, 68, 68, 0.3);
     color: #fca5a5;
     box-shadow: 0 2px 8px rgba(239, 68, 68, 0.2);
 `;
 
-const CheckboxContainer = styled.div`
-    ${tw`flex items-center gap-3 mt-6 p-4 rounded-xl`}
+const CheckboxWrapper = styled.div`
+    ${tw`flex items-start gap-3 p-4 rounded-xl border border-white/5`}
     background: linear-gradient(135deg, rgba(30, 41, 59, 0.5) 0%, rgba(15, 23, 42, 0.5) 100%);
-    border: 1px solid rgba(255, 255, 255, 0.05);
     transition: all 0.3s;
 
     &:hover {
@@ -158,7 +268,7 @@ const CheckboxContainer = styled.div`
 `;
 
 const StyledCheckbox = styled(Checkbox)`
-    ${tw`w-5 h-5 rounded border-2 border-blue-500 bg-transparent cursor-pointer appearance-none`}
+    ${tw`w-5 h-5 rounded border-2 border-blue-500 bg-transparent cursor-pointer appearance-none mt-0.5 flex-shrink-0`}
     accent-color: #3b82f6;
     transition: all 0.2s;
 
@@ -186,25 +296,53 @@ const CheckboxLabel = styled.label`
     ${tw`text-sm cursor-pointer text-neutral-300`}
     transition: color 0.2s;
 
-    ${CheckboxContainer}:hover & {
+    ${CheckboxWrapper}:hover & {
         color: #e0e7ff;
     }
 `;
 
 const TermsLink = styled.button`
-    ${tw`text-blue-400 hover:text-blue-300 underline transition-colors`}
+    ${tw`underline text-blue-400 hover:text-blue-300 transition-colors`}
     text-decoration-style: dotted;
     text-underline-offset: 0.25rem;
 `;
 
+const SubmitButtonWrapper = styled.div`
+    ${tw`mt-6 flex justify-center`}
+`;
+
+const SubmitButton = styled(Button)<{ $canSubmit: boolean }>`
+    ${tw`px-12 py-4 text-lg font-bold rounded-xl transition-all duration-300 flex items-center justify-center gap-2 min-w-[200px]`}
+    ${({ $canSubmit }) =>
+        $canSubmit
+            ? css`
+                  background: linear-gradient(135deg, #3b82f6 0%, #6366f1 50%, #8b5cf6 100%);
+                  color: white;
+                  box-shadow: 0 8px 25px rgba(59, 130, 246, 0.4), 0 0 0 1px rgba(59, 130, 246, 0.2);
+                  &:hover {
+                      transform: translateY(-2px);
+                      box-shadow: 0 12px 35px rgba(59, 130, 246, 0.5), 0 0 0 1px rgba(59, 130, 246, 0.3);
+                  }
+              `
+            : css`
+                  background: linear-gradient(135deg, #475569 0%, #334155 100%);
+                  color: #9ca3af;
+                  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+                  cursor: not-allowed;
+              `}
+`;
+
 interface Props {
     onShowTerms: () => void;
+    onNavigateToBank?: () => void;
+    onNavigateToTrueMoney?: () => void;
+    onNavigateToHistory?: () => void;
+    activeTab?: 'bank' | 'truemoney' | 'history';
 }
 
 const translateErrorMessage = (message: string): string => {
     const msg = message.toLowerCase();
 
-    // Check for common error patterns
     if (msg.includes('out of stock') || msg.includes('voucher ticket is out of stock')) {
         return 'ลิงค์นี้ถูกใช้แล้ว';
     }
@@ -224,16 +362,20 @@ const translateErrorMessage = (message: string): string => {
         return 'เกิดข้อผิดพลาดในการเชื่อมต่อ กรุณาลองใหม่อีกครั้ง';
     }
 
-    // If message is already in Thai, return as is
     if (/[\u0E00-\u0E7F]/.test(message)) {
         return message;
     }
 
-    // Default fallback
     return 'เกิดข้อผิดพลาดในการเติมเงิน กรุณาลองใหม่อีกครั้ง';
 };
 
-export default ({ onShowTerms }: Props) => {
+export default ({
+    onShowTerms,
+    onNavigateToBank,
+    onNavigateToTrueMoney,
+    onNavigateToHistory,
+    activeTab = 'truemoney',
+}: Props) => {
     const [giftLink, setGiftLink] = useState('');
     const [acceptedTerms, setAcceptedTerms] = useState(false);
     const [currentGuide, setCurrentGuide] = useState(0);
@@ -266,11 +408,9 @@ export default ({ onShowTerms }: Props) => {
                 return;
             }
 
-            // Get supporterCode from localStorage or URL params if available
             const urlParams = new URLSearchParams(window.location.search);
             const supporterCode = localStorage.getItem('supporterCode') || urlParams.get('supporterCode') || '';
 
-            // Send giftLink as-is without any transformation
             const requestBody: { giftLink: string; supporterCode?: string } = { giftLink: giftLink.trim() };
             if (supporterCode) {
                 requestBody.supporterCode = supporterCode;
@@ -299,7 +439,6 @@ export default ({ onShowTerms }: Props) => {
             setToastOk('ส่งลิงก์ซองสำเร็จ กำลังตรวจสอบ…');
             setTimeout(() => setToastOk(null), 2500);
 
-            // Reset form
             setGiftLink('');
             setAcceptedTerms(false);
         } catch (e: any) {
@@ -310,167 +449,122 @@ export default ({ onShowTerms }: Props) => {
     };
 
     return (
-        <>
-            <Card>
-                <SectionTitle>เติมเงินผ่าน TrueMoney Wallet</SectionTitle>
+        <MainContainer>
+            <HeaderCard>
+                <HeaderTitle>
+                    <FontAwesomeIcon icon={faWallet} />
+                    <span>เติมเงินผ่าน TrueMoney Wallet</span>
+                </HeaderTitle>
+                <HeaderSubtitle>ใช้ลิงก์ซอง TrueMoney เพื่อเติมเครดิตเข้าบัญชีได้ทันที</HeaderSubtitle>
+                <NavigationButtons>
+                    <NavButton $active={activeTab === 'bank'} onClick={onNavigateToBank}>
+                        <NavButtonIcon icon={faLandmark} />
+                        <span>ธนาคาร</span>
+                    </NavButton>
+                    <NavButton $active={activeTab === 'truemoney'} onClick={onNavigateToTrueMoney}>
+                        <NavButtonIcon icon={faWallet} />
+                        <span>เติมเงินผ่าน TrueMoney</span>
+                    </NavButton>
+                    <NavButton $active={activeTab === 'history'} onClick={onNavigateToHistory}>
+                        <NavButtonIcon icon={faClock} />
+                        <span>ประวัติเติมเงิน</span>
+                    </NavButton>
+                </NavigationButtons>
+            </HeaderCard>
 
-                {/* Guide Images */}
+            <ContentCard>
                 {guideImages.length > 1 && (
-                    <>
+                    <GuideSection>
                         <CarouselWrapper>
-                            <NavButton
-                                type='button'
-                                onClick={handlePrev}
-                                aria-label='Previous'
-                                css={tw`hidden md:flex md:static`}
-                            >
-                                <FontAwesomeIcon icon={faChevronLeft} css={tw`text-white text-lg`} />
-                            </NavButton>
-                            <GuideImageContainer css={tw`flex-1 relative`}>
+                            <CarouselNavButtonLeft type='button' onClick={handlePrev} aria-label='Previous'>
+                                <FontAwesomeIcon icon={faChevronLeft} />
+                            </CarouselNavButtonLeft>
+                            <GuideImageContainer>
                                 <GuideImage
                                     src={guideImages[currentGuide]}
                                     alt={`TrueMoney Guide ${currentGuide + 1}`}
                                 />
-                                <NavButton
-                                    type='button'
-                                    onClick={handlePrev}
-                                    aria-label='Previous'
-                                    css={tw`md:hidden absolute left-2`}
-                                >
-                                    <FontAwesomeIcon icon={faChevronLeft} css={tw`text-white text-lg`} />
-                                </NavButton>
-                                <NavButton
-                                    type='button'
-                                    onClick={handleNext}
-                                    aria-label='Next'
-                                    css={tw`md:hidden absolute right-2`}
-                                >
-                                    <FontAwesomeIcon icon={faChevronRight} css={tw`text-white text-lg`} />
-                                </NavButton>
+                                <CarouselNavButtonMobileLeft type='button' onClick={handlePrev} aria-label='Previous'>
+                                    <FontAwesomeIcon icon={faChevronLeft} />
+                                </CarouselNavButtonMobileLeft>
+                                <CarouselNavButtonMobileRight type='button' onClick={handleNext} aria-label='Next'>
+                                    <FontAwesomeIcon icon={faChevronRight} />
+                                </CarouselNavButtonMobileRight>
                             </GuideImageContainer>
-                            <NavButton
-                                type='button'
-                                onClick={handleNext}
-                                aria-label='Next'
-                                css={tw`hidden md:flex md:static`}
-                            >
-                                <FontAwesomeIcon icon={faChevronRight} css={tw`text-white text-lg`} />
-                            </NavButton>
+                            <CarouselNavButtonRight type='button' onClick={handleNext} aria-label='Next'>
+                                <FontAwesomeIcon icon={faChevronRight} />
+                            </CarouselNavButtonRight>
                         </CarouselWrapper>
                         <DotsContainer>
                             {guideImages.map((_, i) => (
-                                <button
+                                <DotButton
                                     key={i}
                                     type='button'
                                     onClick={() => setCurrentGuide(i)}
                                     aria-label={`Go to image ${i + 1}`}
-                                    css={tw`rounded-full transition-all duration-300 cursor-pointer`}
-                                    style={{
-                                        width: i === currentGuide ? '2rem' : '0.75rem',
-                                        height: i === currentGuide ? '0.75rem' : '0.75rem',
-                                        background: i === currentGuide ? '#3b82f6' : 'rgba(156, 163, 175, 0.5)',
-                                        boxShadow:
-                                            i === currentGuide
-                                                ? '0 0 8px rgba(59, 130, 246, 0.8), 0 2px 4px rgba(0, 0, 0, 0.2)'
-                                                : 'none',
-                                    }}
-                                    onMouseEnter={(e) => {
-                                        if (i !== currentGuide) {
-                                            e.currentTarget.style.background = 'rgba(156, 163, 175, 0.8)';
-                                            e.currentTarget.style.transform = 'scale(1.2)';
-                                        }
-                                    }}
-                                    onMouseLeave={(e) => {
-                                        if (i !== currentGuide) {
-                                            e.currentTarget.style.background = 'rgba(156, 163, 175, 0.5)';
-                                            e.currentTarget.style.transform = 'scale(1)';
-                                        }
-                                    }}
+                                    $active={i === currentGuide}
                                 />
                             ))}
                         </DotsContainer>
-                    </>
+                    </GuideSection>
                 )}
                 {guideImages.length === 1 && (
-                    <GuideImageContainer>
-                        <GuideImage src={guideImages[0]} alt='TrueMoney Guide' />
-                    </GuideImageContainer>
+                    <GuideSection>
+                        <GuideImageContainer>
+                            <GuideImage src={guideImages[0]} alt='TrueMoney Guide' />
+                        </GuideImageContainer>
+                    </GuideSection>
                 )}
 
-                <InputGroup>
-                    <Label>
-                        <span>กรอกลิงก์ซองทรูมันนี่</span>
-                    </Label>
-                    <StyledInput
-                        type='text'
-                        placeholder='https://gift.truemoney.com/campaign/?v=xxx'
-                        value={giftLink}
-                        onChange={(e) => setGiftLink(e.target.value)}
-                    />
-                    {!giftLink && (
-                        <ErrorText>
-                            <FontAwesomeIcon icon={faExclamationCircle} className={'w-3 h-3'} />
-                            <span>กรุณาระบุลิงก์ซองทรูมันนี่</span>
-                        </ErrorText>
-                    )}
-                    {giftLink && !/^https?:\/\/gift\.truemoney\.com\/campaign\/.+/i.test(giftLink.trim()) && (
-                        <ErrorText>
-                            <FontAwesomeIcon icon={faExclamationCircle} className={'w-3 h-3'} />
-                            <span>ระบุลิงก์ไม่ถูกต้อง</span>
-                        </ErrorText>
-                    )}
-                </InputGroup>
+                <FormSection>
+                    <div>
+                        <FormLabel>
+                            <FontAwesomeIcon icon={faInfoCircle} />
+                            <span>กรอกลิงก์ซองทรูมันนี่</span>
+                        </FormLabel>
+                        <FormInput
+                            type='text'
+                            placeholder='https://gift.truemoney.com/campaign/?v=xxx'
+                            value={giftLink}
+                            onChange={(e) => setGiftLink(e.target.value)}
+                        />
+                        {!giftLink && (
+                            <ErrorText>
+                                <FontAwesomeIcon icon={faExclamationCircle} className={'w-3 h-3'} />
+                                <span>กรุณาระบุลิงก์ซองทรูมันนี่</span>
+                            </ErrorText>
+                        )}
+                        {giftLink && !/^https?:\/\/gift\.truemoney\.com\/campaign\/.+/i.test(giftLink.trim()) && (
+                            <ErrorText>
+                                <FontAwesomeIcon icon={faExclamationCircle} className={'w-3 h-3'} />
+                                <span>ระบุลิงก์ไม่ถูกต้อง</span>
+                            </ErrorText>
+                        )}
+                    </div>
 
-                <CheckboxContainer>
-                    <StyledCheckbox
-                        id='accept-terms-truemoney'
-                        checked={acceptedTerms}
-                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                            setAcceptedTerms(e.target.checked);
-                        }}
-                    />
-                    <CheckboxLabel htmlFor='accept-terms-truemoney'>
-                        ฉันได้อ่านและยอมรับ{' '}
-                        <TermsLink type='button' onClick={onShowTerms}>
-                            เงื่อนไขหรือข้อตกลง
-                        </TermsLink>
-                    </CheckboxLabel>
-                </CheckboxContainer>
+                    <CheckboxWrapper>
+                        <StyledCheckbox
+                            id='accept-terms-truemoney'
+                            checked={acceptedTerms}
+                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                                setAcceptedTerms(e.target.checked);
+                            }}
+                        />
+                        <CheckboxLabel htmlFor='accept-terms-truemoney'>
+                            ฉันได้อ่านและยอมรับ{' '}
+                            <TermsLink type='button' onClick={onShowTerms}>
+                                เงื่อนไขหรือข้อตกลง
+                            </TermsLink>
+                        </CheckboxLabel>
+                    </CheckboxWrapper>
+                </FormSection>
 
-                <div css={tw`mt-8 flex justify-center`}>
-                    <Button
-                        type='button'
-                        onClick={handleSubmit}
-                        disabled={!canSubmit}
-                        size={'xlarge'}
-                        css={tw`inline-flex items-center justify-center gap-2 rounded-xl px-12 py-5 text-lg font-bold disabled:cursor-not-allowed disabled:opacity-60 transition-all duration-300 w-full max-w-md`}
-                        style={{
-                            background: canSubmit
-                                ? 'linear-gradient(135deg, #3b82f6 0%, #6366f1 50%, #8b5cf6 100%)'
-                                : 'linear-gradient(135deg, #475569 0%, #334155 100%)',
-                            boxShadow: canSubmit
-                                ? '0 8px 25px rgba(59, 130, 246, 0.4), 0 0 0 1px rgba(59, 130, 246, 0.2)'
-                                : '0 4px 12px rgba(0, 0, 0, 0.2)',
-                        }}
-                        onMouseEnter={(e) => {
-                            if (canSubmit) {
-                                e.currentTarget.style.transform = 'translateY(-2px)';
-                                e.currentTarget.style.boxShadow =
-                                    '0 12px 35px rgba(59, 130, 246, 0.5), 0 0 0 1px rgba(59, 130, 246, 0.3)';
-                            }
-                        }}
-                        onMouseLeave={(e) => {
-                            if (canSubmit) {
-                                e.currentTarget.style.transform = 'translateY(0)';
-                                e.currentTarget.style.boxShadow =
-                                    '0 8px 25px rgba(59, 130, 246, 0.4), 0 0 0 1px rgba(59, 130, 246, 0.2)';
-                            }
-                        }}
-                    >
+                <SubmitButtonWrapper>
+                    <SubmitButton type='button' onClick={handleSubmit} disabled={!canSubmit} $canSubmit={canSubmit}>
                         ยืนยัน
-                    </Button>
-                </div>
-            </Card>
+                    </SubmitButton>
+                </SubmitButtonWrapper>
+            </ContentCard>
 
             <Toast show={!!toastOk} type='success' onClose={() => setToastOk(null)}>
                 {toastOk}
@@ -478,6 +572,6 @@ export default ({ onShowTerms }: Props) => {
             <Toast show={!!toastErr} type='error' onClose={() => setToastErr(null)}>
                 {toastErr}
             </Toast>
-        </>
+        </MainContainer>
     );
 };

@@ -18,13 +18,7 @@ import {
     faDatabase,
     faCopy,
 } from '@fortawesome/free-solid-svg-icons';
-import {
-    getHardwareList,
-    Hardware,
-    getHardwareDetail,
-    HardwareDetail,
-    PackageContainer,
-} from '@/api/spring/hardware';
+import { getHardwareList, Hardware, getHardwareDetail, HardwareDetail, PackageContainer } from '@/api/spring/hardware';
 import { deleteHardware, deletePackage, copyPackage } from '@/api/spring/admin';
 import Spinner from '@/components/elements/Spinner';
 import Button from '@/components/elements/Button';
@@ -79,7 +73,7 @@ const SectionTitle = styled.h2`
 const SectionIcon = styled.div`
     ${tw`w-12 h-12 rounded-xl flex items-center justify-center text-white shadow-lg`}
     background: linear-gradient(135deg, #3b82f6 0%, #6366f1 100%);
-    box-shadow: 0 10px 25px rgba(59,130,246,0.3);
+    box-shadow: 0 10px 25px rgba(59, 130, 246, 0.3);
 `;
 
 const Table = styled.table`
@@ -87,7 +81,7 @@ const Table = styled.table`
     border-collapse: separate;
     border-spacing: 0;
     min-width: 800px;
-    
+
     @media (max-width: 768px) {
         display: block;
         overflow-x: auto;
@@ -242,7 +236,10 @@ export default () => {
     const [selectedHwId, setSelectedHwId] = useState<string | null>(null);
     const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
     const [editingHardware, setEditingHardware] = useState<Hardware | null>(null);
-    const [editingPackage, setEditingPackage] = useState<{ pkg: PackageContainer & { categoryId: string }; hwId: string } | null>(null);
+    const [editingPackage, setEditingPackage] = useState<{
+        pkg: PackageContainer & { categoryId: string };
+        hwId: string;
+    } | null>(null);
 
     // Redirect if not admin
     useEffect(() => {
@@ -320,30 +317,37 @@ export default () => {
             }));
         } catch (err: any) {
             // Display error message with better formatting
-            let errorMessage = err?.response?.data?.message || 
-                              err?.response?.data?.error || 
-                              err?.message || 
-                              'Failed to delete package';
-            
+            let errorMessage =
+                err?.response?.data?.message ||
+                err?.response?.data?.error ||
+                err?.message ||
+                'Failed to delete package';
+
             // Check if it's a transaction rollback error
-            if (errorMessage.includes('Transaction silently rolled back') ||
+            if (
+                errorMessage.includes('Transaction silently rolled back') ||
                 errorMessage.includes('rollback-only') ||
-                errorMessage.includes('transaction')) {
+                errorMessage.includes('transaction')
+            ) {
                 errorMessage = `ไม่สามารถลบ Package ได้: Spring Boot API มีปัญหา transaction management\n\nกรุณาแก้ไข Spring Boot API endpoint สำหรับลบ Package:\n- ตรวจสอบ exception handling ใน @Transactional method\n- ตรวจสอบว่าไม่มีการ mark transaction เป็น rollback-only โดยไม่ตั้งใจ\n- ใช้ try-catch เพื่อจัดการ exception ให้ถูกต้อง\n\nรายละเอียด: ${errorMessage}`;
             }
             // Check if it's a "Category not found" error (เพราะ Spring Boot ยังตรวจสอบ categories table ที่ถูกลบไปแล้ว)
-            else if (errorMessage.includes('Category not found') || 
-                     errorMessage.includes('category not found') ||
-                     errorMessage.includes('categories')) {
+            else if (
+                errorMessage.includes('Category not found') ||
+                errorMessage.includes('category not found') ||
+                errorMessage.includes('categories')
+            ) {
                 errorMessage = `ไม่สามารถลบ Package ได้: Spring Boot API ยังตรวจสอบ Category ใน table ที่ถูกลบไปแล้ว\n\nกรุณาแก้ไข Spring Boot API endpoint สำหรับลบ Package:\n- ไม่ต้องตรวจสอบ Category existence\n- ลบ Package โดยใช้ hardwareId, categoryId (UUID), และ packageName\n\nรายละเอียด: ${errorMessage}`;
             }
             // Check if it's a foreign key constraint error
-            else if (errorMessage.includes('foreign key constraint') || 
-                     errorMessage.includes('violates foreign key') ||
-                     errorMessage.includes('hardware_packages')) {
+            else if (
+                errorMessage.includes('foreign key constraint') ||
+                errorMessage.includes('violates foreign key') ||
+                errorMessage.includes('hardware_packages')
+            ) {
                 errorMessage = `ไม่สามารถลบ Package ได้: Package นี้ยังถูกใช้งานอยู่ในระบบ\n\nกรุณาติดต่อผู้ดูแลระบบเพื่อแก้ไขที่ Spring Boot API\n\nรายละเอียด: ${errorMessage}`;
             }
-            
+
             alert(`เกิดข้อผิดพลาดในการลบ Package:\n\n${errorMessage}`);
             console.error('Failed to delete package:', err);
         } finally {
@@ -400,25 +404,27 @@ export default () => {
     const handleCopyPackage = async (sourcePkg: PackageContainer & { categoryId: string }, sourceHwId: string) => {
         // Ask user to select target hardware and category
         const targetHwId = prompt(
-            `ต้องการคัดลอก Package "${sourcePkg.name}" ไปที่ Hardware ไหน?\n\nHardware ID:\n${hardwareList.map((hw, idx) => `${idx + 1}. ${hw.id.substring(0, 8)}... - ${hw.name}`).join('\n')}\n\nกรุณาใส่เลข Hardware (1-${hardwareList.length}):`
+            `ต้องการคัดลอก Package "${sourcePkg.name}" ไปที่ Hardware ไหน?\n\nHardware ID:\n${hardwareList
+                .map((hw, idx) => `${idx + 1}. ${hw.id.substring(0, 8)}... - ${hw.name}`)
+                .join('\n')}\n\nกรุณาใส่เลข Hardware (1-${hardwareList.length}):`
         );
-        
+
         if (!targetHwId) return;
-        
+
         const targetHwIndex = parseInt(targetHwId, 10) - 1;
         if (targetHwIndex < 0 || targetHwIndex >= hardwareList.length) {
             alert('Hardware ID ไม่ถูกต้อง');
             return;
         }
-        
+
         const targetHw = hardwareList[targetHwIndex];
         const targetDetail = hardwareDetails[targetHw.id];
-        
+
         if (!targetDetail) {
             alert('ไม่พบข้อมูล Hardware');
             return;
         }
-        
+
         // Try to fetch latest details if not available
         let categories = Object.keys(targetDetail.categoryContainers || {});
         if (categories.length === 0) {
@@ -443,24 +449,32 @@ export default () => {
             targetCategoryId = categories[0];
         } else {
             const categorySelection = prompt(
-                `เลือก Category สำหรับ Package:\n\n${categories.map((cat, idx) => `${idx + 1}. ${cat.substring(0, 8)}...`).join('\n')}\n\nกรุณาใส่เลข Category (1-${categories.length}):`
+                `เลือก Category สำหรับ Package:\n\n${categories
+                    .map((cat, idx) => `${idx + 1}. ${cat.substring(0, 8)}...`)
+                    .join('\n')}\n\nกรุณาใส่เลข Category (1-${categories.length}):`
             );
-            
+
             if (!categorySelection) return;
-            
+
             const categoryIndex = parseInt(categorySelection, 10) - 1;
             if (categoryIndex < 0 || categoryIndex >= categories.length) {
                 alert('Category ID ไม่ถูกต้อง');
                 return;
             }
-            
+
             targetCategoryId = categories[categoryIndex];
         }
-        
-        if (!confirm(`ต้องการคัดลอก Package "${sourcePkg.name}" ไปที่ Hardware "${targetHw.name}" (Category: ${targetCategoryId.substring(0, 8)}...)?`)) {
+
+        if (
+            !confirm(
+                `ต้องการคัดลอก Package "${sourcePkg.name}" ไปที่ Hardware "${
+                    targetHw.name
+                }" (Category: ${targetCategoryId.substring(0, 8)}...)?`
+            )
+        ) {
             return;
         }
-        
+
         try {
             await copyPackage(sourceHwId, sourcePkg.categoryId, sourcePkg.name, targetHw.id, targetCategoryId);
             // Refresh target hardware details
@@ -556,7 +570,7 @@ export default () => {
                                 </TableHeader>
                                 <TableBody>
                                     {hardwareList.map((hw) => (
-                                        <TableRow 
+                                        <TableRow
                                             key={hw.id}
                                             css={tw`cursor-pointer hover:bg-neutral-700/30 transition-colors`}
                                             onClick={(e) => {
@@ -575,10 +589,10 @@ export default () => {
                                             <TableCell css={tw`font-semibold text-white`}>{hw.name}</TableCell>
                                             <TableCell css={tw`text-neutral-400`}>{hw.description}</TableCell>
                                             <TableCell>
-                                                <Badge $color="blue">{hw.priority}</Badge>
+                                                <Badge $color='blue'>{hw.priority}</Badge>
                                             </TableCell>
                                             <TableCell>
-                                                <Badge $color="neutral" css={tw`font-mono text-xs`}>
+                                                <Badge $color='neutral' css={tw`font-mono text-xs`}>
                                                     {hw.key}
                                                 </Badge>
                                             </TableCell>
@@ -622,7 +636,9 @@ export default () => {
                         } else {
                             // If multiple categories, show selection dialog
                             const categoryName = prompt(
-                                `กรุณาเลือก Category ID:\n${categories.map((cat, idx) => `${idx + 1}. ${cat}`).join('\n')}\n\nใส่เลข Category (1-${categories.length}):`
+                                `กรุณาเลือก Category ID:\n${categories
+                                    .map((cat, idx) => `${idx + 1}. ${cat}`)
+                                    .join('\n')}\n\nใส่เลข Category (1-${categories.length}):`
                             );
                             const categoryIndex = parseInt(categoryName || '', 10) - 1;
                             if (categoryIndex >= 0 && categoryIndex < categories.length) {
@@ -653,10 +669,14 @@ export default () => {
                                 // If no categories, show message
                                 if (categories.length === 0) {
                                     return (
-                                        <div css={tw`text-center py-12 text-neutral-400 flex flex-col items-center space-y-3`}>
+                                        <div
+                                            css={tw`text-center py-12 text-neutral-400 flex flex-col items-center space-y-3`}
+                                        >
                                             <div css={tw`text-6xl opacity-30`}>⚠️</div>
                                             <div css={tw`text-lg font-semibold`}>Hardware นี้ไม่มี Category</div>
-                                            <div css={tw`text-sm text-neutral-500`}>กรุณาเพิ่ม Category ใน Spring Boot API ก่อนเพิ่ม Package</div>
+                                            <div css={tw`text-sm text-neutral-500`}>
+                                                กรุณาเพิ่ม Category ใน Spring Boot API ก่อนเพิ่ม Package
+                                            </div>
                                         </div>
                                     );
                                 }
@@ -672,10 +692,14 @@ export default () => {
 
                                 if (allPackages.length === 0) {
                                     return (
-                                        <div css={tw`text-center py-12 text-neutral-400 flex flex-col items-center space-y-3`}>
+                                        <div
+                                            css={tw`text-center py-12 text-neutral-400 flex flex-col items-center space-y-3`}
+                                        >
                                             <div css={tw`text-6xl opacity-30`}>📦</div>
                                             <div css={tw`text-lg font-semibold`}>ไม่มี Package</div>
-                                            <div css={tw`text-sm text-neutral-500`}>คลิกปุ่ม "เพิ่ม Package" เพื่อเริ่มต้น</div>
+                                            <div css={tw`text-sm text-neutral-500`}>
+                                                คลิกปุ่ม "เพิ่ม Package" เพื่อเริ่มต้น
+                                            </div>
                                         </div>
                                     );
                                 }
@@ -699,7 +723,7 @@ export default () => {
                                             </TableHeader>
                                             <TableBody>
                                                 {allPackages.map((pkg) => (
-                                                    <TableRow 
+                                                    <TableRow
                                                         key={`${pkg.categoryId}-${pkg.name}`}
                                                         css={tw`cursor-pointer hover:bg-neutral-700/30 transition-colors`}
                                                         onClick={(e) => {
@@ -712,84 +736,114 @@ export default () => {
                                                     >
                                                         <TableCell css={tw`font-semibold text-white`}>
                                                             <div css={tw`flex items-center space-x-2`}>
-                                                                <FontAwesomeIcon icon={faBox} css={tw`w-4 h-4 text-blue-400`} />
+                                                                <FontAwesomeIcon
+                                                                    icon={faBox}
+                                                                    css={tw`w-4 h-4 text-blue-400`}
+                                                                />
                                                                 <span>{pkg.name}</span>
                                                             </div>
                                                         </TableCell>
-                                                        <TableCell css={tw`text-neutral-400 max-w-xs truncate`} title={pkg.description}>
+                                                        <TableCell
+                                                            css={tw`text-neutral-400 max-w-xs truncate`}
+                                                            title={pkg.description}
+                                                        >
                                                             {pkg.description}
                                                         </TableCell>
                                                         <TableCell>
-                                                            <Badge $color="neutral" css={tw`font-mono text-xs`}>
-                                                                <FontAwesomeIcon icon={faDatabase} css={tw`w-3 h-3 mr-1`} />
+                                                            <Badge $color='neutral' css={tw`font-mono text-xs`}>
+                                                                <FontAwesomeIcon
+                                                                    icon={faDatabase}
+                                                                    css={tw`w-3 h-3 mr-1`}
+                                                                />
                                                                 {pkg.categoryId.substring(0, 8)}...
                                                             </Badge>
                                                         </TableCell>
                                                         <TableCell>
-                                                            <Badge $color="blue" css={tw`font-mono`}>
-                                                                <FontAwesomeIcon icon={faMicrochip} css={tw`w-3 h-3 mr-1`} />
+                                                            <Badge $color='blue' css={tw`font-mono`}>
+                                                                <FontAwesomeIcon
+                                                                    icon={faMicrochip}
+                                                                    css={tw`w-3 h-3 mr-1`}
+                                                                />
                                                                 {pkg.cpu}
                                                             </Badge>
                                                         </TableCell>
                                                         <TableCell>
-                                                            <Badge $color="green">
-                                                                <FontAwesomeIcon icon={faMemory} css={tw`w-3 h-3 mr-1`} />
+                                                            <Badge $color='green'>
+                                                                <FontAwesomeIcon
+                                                                    icon={faMemory}
+                                                                    css={tw`w-3 h-3 mr-1`}
+                                                                />
                                                                 {pkg.ram}
                                                             </Badge>
                                                         </TableCell>
                                                         <TableCell>
-                                                            <Badge $color="purple">
+                                                            <Badge $color='purple'>
                                                                 <FontAwesomeIcon icon={faHdd} css={tw`w-3 h-3 mr-1`} />
                                                                 {pkg.storage}
                                                             </Badge>
                                                         </TableCell>
                                                         <TableCell>
-                                                            <Badge $color="yellow">
-                                                                <FontAwesomeIcon icon={faClock} css={tw`w-3 h-3 mr-1`} />
+                                                            <Badge $color='yellow'>
+                                                                <FontAwesomeIcon
+                                                                    icon={faClock}
+                                                                    css={tw`w-3 h-3 mr-1`}
+                                                                />
                                                                 {pkg.hourlyRate} เครดิต
                                                             </Badge>
                                                         </TableCell>
                                                         <TableCell>
                                                             {pkg.capacity !== undefined && pkg.capacity !== null ? (
-                                                                <Badge $color="green">
-                                                                    <FontAwesomeIcon icon={faUsers} css={tw`w-3 h-3 mr-1`} />
+                                                                <Badge $color='green'>
+                                                                    <FontAwesomeIcon
+                                                                        icon={faUsers}
+                                                                        css={tw`w-3 h-3 mr-1`}
+                                                                    />
                                                                     {pkg.capacity} อัน
                                                                 </Badge>
                                                             ) : (
-                                                                <Badge $color="neutral">
-                                                                    <FontAwesomeIcon icon={faBox} css={tw`w-3 h-3 mr-1`} />
+                                                                <Badge $color='neutral'>
+                                                                    <FontAwesomeIcon
+                                                                        icon={faBox}
+                                                                        css={tw`w-3 h-3 mr-1`}
+                                                                    />
                                                                     ไม่จำกัด
                                                                 </Badge>
                                                             )}
                                                         </TableCell>
                                                         <TableCell>
-                                                            <Badge $color="blue">{pkg.priority}</Badge>
+                                                            <Badge $color='blue'>{pkg.priority}</Badge>
                                                         </TableCell>
-                                                        <TableCell 
-                                                            css={tw`text-center`} 
+                                                        <TableCell
+                                                            css={tw`text-center`}
                                                             onClick={(e) => e.stopPropagation()}
                                                         >
                                                             <div css={tw`flex items-center justify-center space-x-2`}>
                                                                 <CopyButton
                                                                     onClick={() => handleCopyPackage(pkg, hw.id)}
                                                                     css={tw`px-3 py-1.5 text-xs`}
-                                                                    title="คัดลอกไป Hardware อื่น"
+                                                                    title='คัดลอกไป Hardware อื่น'
                                                                 >
                                                                     <FontAwesomeIcon icon={faCopy} css={tw`w-3 h-3`} />
                                                                     <span css={tw`hidden md:inline`}>คัดลอก</span>
                                                                 </CopyButton>
                                                                 <DeleteButton
                                                                     onClick={() =>
-                                                                        handleDeletePackage(hw.id, pkg.categoryId, pkg.name)
+                                                                        handleDeletePackage(
+                                                                            hw.id,
+                                                                            pkg.categoryId,
+                                                                            pkg.name
+                                                                        )
                                                                     }
                                                                     disabled={
-                                                                        deleting === `${hw.id}-${pkg.categoryId}-${pkg.name}`
+                                                                        deleting ===
+                                                                        `${hw.id}-${pkg.categoryId}-${pkg.name}`
                                                                     }
                                                                     css={tw`px-3 py-1.5 text-xs`}
                                                                 >
                                                                     <FontAwesomeIcon icon={faTrash} css={tw`w-3 h-3`} />
                                                                     <span>
-                                                                        {deleting === `${hw.id}-${pkg.categoryId}-${pkg.name}`
+                                                                        {deleting ===
+                                                                        `${hw.id}-${pkg.categoryId}-${pkg.name}`
                                                                             ? 'กำลังลบ...'
                                                                             : 'ลบ'}
                                                                     </span>

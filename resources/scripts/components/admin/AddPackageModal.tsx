@@ -57,10 +57,21 @@ const schema = object().shape({
 const extractNumericValue = (value: string | undefined): string => {
     if (!value) return '';
     // Remove "GB", spaces, and any non-numeric characters except decimal point
-    return value.replace(/\s*GB\s*/gi, '').replace(/[^\d.]/g, '').trim();
+    return value
+        .replace(/\s*GB\s*/gi, '')
+        .replace(/[^\d.]/g, '')
+        .trim();
 };
 
-export default ({ visible, onDismissed, onSuccess, hwId, categoryId, package: packageData, originalPackageName }: Props) => {
+export default ({
+    visible,
+    onDismissed,
+    onSuccess,
+    hwId,
+    categoryId,
+    package: packageData,
+    originalPackageName,
+}: Props) => {
     const isEditMode = !!packageData;
 
     const handleSubmit = async (
@@ -96,10 +107,11 @@ export default ({ visible, onDismissed, onSuccess, hwId, categoryId, package: pa
             onDismissed();
         } catch (error: any) {
             // Display error message to user
-            const errorMessage = error?.response?.data?.message || 
-                                error?.response?.data?.error || 
-                                error?.message || 
-                                `เกิดข้อผิดพลาดในการ${isEditMode ? 'แก้ไข' : 'สร้าง'} Package`;
+            const errorMessage =
+                error?.response?.data?.message ||
+                error?.response?.data?.error ||
+                error?.message ||
+                `เกิดข้อผิดพลาดในการ${isEditMode ? 'แก้ไข' : 'สร้าง'} Package`;
             setFieldError('name', errorMessage);
             console.error(`Failed to ${isEditMode ? 'update' : 'create'} package:`, error);
         } finally {
@@ -178,7 +190,9 @@ export default ({ visible, onDismissed, onSuccess, hwId, categoryId, package: pa
                                 <FormikField name={'cpu'}>
                                     {({ field, meta }: any) => (
                                         <>
-                                            <label css={tw`block text-sm font-bold text-neutral-200 mb-2 flex items-center space-x-2`}>
+                                            <label
+                                                css={tw`block text-sm font-bold text-neutral-200 mb-2 flex items-center space-x-2`}
+                                            >
                                                 <FontAwesomeIcon icon={faMicrochip} css={tw`w-4 h-4 text-blue-400`} />
                                                 <span>CPU</span>
                                             </label>
@@ -200,7 +214,9 @@ export default ({ visible, onDismissed, onSuccess, hwId, categoryId, package: pa
                                 <FormikField name={'ram'}>
                                     {({ field, meta }: any) => (
                                         <>
-                                            <label css={tw`block text-sm font-bold text-neutral-200 mb-2 flex items-center space-x-2`}>
+                                            <label
+                                                css={tw`block text-sm font-bold text-neutral-200 mb-2 flex items-center space-x-2`}
+                                            >
                                                 <FontAwesomeIcon icon={faMemory} css={tw`w-4 h-4 text-green-400`} />
                                                 <span>RAM</span>
                                             </label>
@@ -222,7 +238,9 @@ export default ({ visible, onDismissed, onSuccess, hwId, categoryId, package: pa
                                 <FormikField name={'storage'}>
                                     {({ field, meta }: any) => (
                                         <>
-                                            <label css={tw`block text-sm font-bold text-neutral-200 mb-2 flex items-center space-x-2`}>
+                                            <label
+                                                css={tw`block text-sm font-bold text-neutral-200 mb-2 flex items-center space-x-2`}
+                                            >
                                                 <FontAwesomeIcon icon={faHdd} css={tw`w-4 h-4 text-purple-400`} />
                                                 <span>Storage</span>
                                             </label>
@@ -246,14 +264,16 @@ export default ({ visible, onDismissed, onSuccess, hwId, categoryId, package: pa
                                 <FormikField name={'hourlyRate'}>
                                     {({ field, meta }: any) => (
                                         <>
-                                            <label css={tw`block text-sm font-bold text-neutral-200 mb-2 flex items-center space-x-2`}>
+                                            <label
+                                                css={tw`block text-sm font-bold text-neutral-200 mb-2 flex items-center space-x-2`}
+                                            >
                                                 <FontAwesomeIcon icon={faClock} css={tw`w-4 h-4 text-yellow-400`} />
                                                 <span>Hourly Rate (เครดิต)</span>
                                             </label>
-                                            <Input 
-                                                {...field} 
-                                                type={'number'} 
-                                                step="0.01"
+                                            <Input
+                                                {...field}
+                                                type={'number'}
+                                                step='0.01'
                                                 hasError={meta.touched && !!meta.error}
                                                 placeholder={'เช่น 0.62'}
                                                 css={tw`bg-neutral-800/50 border-neutral-700 focus:border-yellow-500 focus:ring-2 focus:ring-yellow-500/20`}
@@ -273,9 +293,9 @@ export default ({ visible, onDismissed, onSuccess, hwId, categoryId, package: pa
                                             <label css={tw`block text-sm font-bold text-neutral-200 mb-2`}>
                                                 Priority
                                             </label>
-                                            <Input 
-                                                {...field} 
-                                                type={'number'} 
+                                            <Input
+                                                {...field}
+                                                type={'number'}
                                                 hasError={meta.touched && !!meta.error}
                                                 placeholder={'เช่น 0'}
                                                 css={tw`bg-neutral-800/50 border-neutral-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20`}
@@ -289,11 +309,15 @@ export default ({ visible, onDismissed, onSuccess, hwId, categoryId, package: pa
                             </div>
                         </div>
 
-                        <div css={tw`mb-6 p-4 bg-gradient-to-br from-indigo-500/10 via-purple-500/5 to-transparent rounded-xl border border-indigo-500/20`}>
+                        <div
+                            css={tw`mb-6 p-4 bg-gradient-to-br from-indigo-500/10 via-purple-500/5 to-transparent rounded-xl border border-indigo-500/20`}
+                        >
                             <FormikField name={'capacity'}>
                                 {({ field, meta }: any) => (
                                     <>
-                                        <label css={tw`block text-sm font-bold text-neutral-200 mb-3 flex items-center space-x-2`}>
+                                        <label
+                                            css={tw`block text-sm font-bold text-neutral-200 mb-3 flex items-center space-x-2`}
+                                        >
                                             <FontAwesomeIcon icon={faUsers} css={tw`w-5 h-5 text-indigo-400`} />
                                             <span>Capacity (จำนวนสูงสุดที่เช่าได้)</span>
                                         </label>
@@ -316,17 +340,25 @@ export default ({ visible, onDismissed, onSuccess, hwId, categoryId, package: pa
                                                 }}
                                                 css={tw`bg-neutral-800/70 border-indigo-500/30 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/30 pr-16 text-lg font-semibold`}
                                             />
-                                            <span css={tw`absolute right-4 top-1/2 transform -translate-y-1/2 text-sm font-semibold text-indigo-400 pointer-events-none flex items-center space-x-1`}>
+                                            <span
+                                                css={tw`absolute right-4 top-1/2 transform -translate-y-1/2 text-sm font-semibold text-indigo-400 pointer-events-none flex items-center space-x-1`}
+                                            >
                                                 <FontAwesomeIcon icon={faUsers} css={tw`w-3 h-3`} />
                                                 <span>อัน</span>
                                             </span>
                                         </div>
-                                        <div css={tw`mt-3 p-3 bg-neutral-800/50 rounded-lg border border-indigo-500/10`}>
+                                        <div
+                                            css={tw`mt-3 p-3 bg-neutral-800/50 rounded-lg border border-indigo-500/10`}
+                                        >
                                             <p css={tw`text-xs text-neutral-400 flex items-start space-x-2`}>
-                                                <FontAwesomeIcon icon={faInfoCircle} css={tw`w-3 h-3 text-indigo-400 mt-0.5 flex-shrink-0`} />
+                                                <FontAwesomeIcon
+                                                    icon={faInfoCircle}
+                                                    css={tw`w-3 h-3 text-indigo-400 mt-0.5 flex-shrink-0`}
+                                                />
                                                 <span>
-                                                    <strong css={tw`text-indigo-300`}>หมายเหตุ:</strong> กำหนดจำนวนสูงสุดที่ทุกคนรวมกันเช่าได้ 
-                                                    ถ้าไม่กำหนด (เว้นว่าง) = ไม่จำกัดจำนวน
+                                                    <strong css={tw`text-indigo-300`}>หมายเหตุ:</strong>{' '}
+                                                    กำหนดจำนวนสูงสุดที่ทุกคนรวมกันเช่าได้ ถ้าไม่กำหนด (เว้นว่าง) =
+                                                    ไม่จำกัดจำนวน
                                                 </span>
                                             </p>
                                         </div>
@@ -352,9 +384,9 @@ export default ({ visible, onDismissed, onSuccess, hwId, categoryId, package: pa
                             >
                                 ยกเลิก
                             </Button>
-                            <Button 
-                                type={'submit'} 
-                                disabled={isSubmitting} 
+                            <Button
+                                type={'submit'}
+                                disabled={isSubmitting}
                                 css={tw`bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700 hover:from-blue-600 hover:via-blue-700 hover:to-blue-800 text-white font-bold px-8 py-3 rounded-xl shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center space-x-2`}
                             >
                                 {isSubmitting ? (
@@ -376,4 +408,3 @@ export default ({ visible, onDismissed, onSuccess, hwId, categoryId, package: pa
         </Modal>
     );
 };
-

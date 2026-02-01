@@ -31,7 +31,7 @@ export default () => {
     );
 
     const Container = styled.div`
-        ${tw`min-h-screen py-4 sm:py-6 lg:py-8 lg:ml-64 overflow-x-hidden`}
+        ${tw`min-h-screen sm:py-6 lg:ml-64 overflow-x-hidden`}
     `;
 
     useEffect(() => {

@@ -13,7 +13,7 @@ const Container = styled.div`
     ${tw`w-full flex items-center justify-center min-h-screen px-4 py-8`}
     background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
     position: relative;
-    
+
     &::before {
         content: '';
         position: absolute;
@@ -21,8 +21,7 @@ const Container = styled.div`
         left: 0;
         right: 0;
         bottom: 0;
-        background-image: 
-            radial-gradient(circle at 20% 50%, rgba(56, 189, 248, 0.08) 0%, transparent 50%),
+        background-image: radial-gradient(circle at 20% 50%, rgba(56, 189, 248, 0.08) 0%, transparent 50%),
             radial-gradient(circle at 80% 80%, rgba(99, 102, 241, 0.08) 0%, transparent 50%);
         pointer-events: none;
     }
@@ -33,11 +32,8 @@ const LoginFormBox = styled.div`
     max-width: 450px;
     background: linear-gradient(135deg, rgba(30, 41, 59, 0.9) 0%, rgba(15, 23, 42, 0.95) 100%);
     border: 1px solid rgba(255, 255, 255, 0.15);
-    box-shadow: 
-        0 25px 70px rgba(0, 0, 0, 0.6),
-        0 0 0 1px rgba(255, 255, 255, 0.08),
-        inset 0 1px 0 rgba(255, 255, 255, 0.15),
-        0 0 40px rgba(99, 102, 241, 0.1);
+    box-shadow: 0 25px 70px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.08),
+        inset 0 1px 0 rgba(255, 255, 255, 0.15), 0 0 40px rgba(99, 102, 241, 0.1);
     transition: all 0.3s ease-in-out;
 
     ${breakpoint('sm')`
@@ -58,7 +54,7 @@ const Title = styled.h2`
 const ErrorMessageContainer = styled.div`
     ${tw`mb-6`}
     animation: slideDown 0.3s ease-out;
-    
+
     @keyframes slideDown {
         from {
             opacity: 0;

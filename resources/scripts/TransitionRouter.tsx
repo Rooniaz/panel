@@ -10,6 +10,8 @@ const StyledSwitchTransition = styled(SwitchTransition)`
 
     & section {
         ${tw`absolute w-full top-0 left-0`};
+        padding-top: 0 !important;
+        margin-top: 0 !important;
     }
 `;
 

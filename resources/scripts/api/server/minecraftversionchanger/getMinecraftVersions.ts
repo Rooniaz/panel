@@ -32,6 +32,5 @@ export interface BuildInfo {
 }
 
 export default (uuid: string, type: string): Promise<MinecraftVersionResponse> => {
-    return http.get(`/api/client/servers/${uuid}/minecraft-version/${type}`)
-        .then(response => response.data);
+    return http.get(`/api/client/servers/${uuid}/minecraft-version/${type}`).then((response) => response.data);
 };
