@@ -4,8 +4,6 @@ import DatabasesContainer from '@/components/server/databases/DatabasesContainer
 import ScheduleContainer from '@/components/server/schedules/ScheduleContainer';
 import UsersContainer from '@/components/server/users/UsersContainer';
 import BackupContainer from '@/components/server/backups/BackupContainer';
-import NetworkContainer from '@/components/server/network/NetworkContainer';
-import StartupContainer from '@/components/server/startup/StartupContainer';
 import FileManagerContainer from '@/components/server/files/FileManagerContainer';
 import SettingsContainer from '@/components/server/settings/SettingsContainer';
 import AccountOverviewContainer from '@/components/dashboard/AccountOverviewContainer';
@@ -127,18 +125,6 @@ export default {
             component: BackupContainer,
         },
         {
-            path: '/network',
-            permission: 'allocation.*',
-            name: 'Network',
-            component: NetworkContainer,
-        },
-        {
-            path: '/startup',
-            permission: 'startup.*',
-            name: 'Startup',
-            component: StartupContainer,
-        },
-        {
             path: '/settings',
             permission: ['settings.*', 'file.sftp'],
             name: 'Settings',
@@ -183,7 +169,7 @@ export default {
         {
             path: '/minecraft/player-manager',
             permission: 'file.read',
-            name: 'Minecraft Player Manager',
+            name: 'Player Manager',
             component: MCPManagerContainer,
         },
         {
@@ -201,7 +187,7 @@ export default {
         {
             path: '/minecraft/version',
             permission: 'file.*',
-            name: 'Minecraft Version',
+            name: 'Version',
             component: MinecraftVersionContainer,
         },
         {

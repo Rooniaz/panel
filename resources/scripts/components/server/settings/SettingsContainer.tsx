@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import TitledGreyBox from '@/components/elements/TitledGreyBox';
 import { ServerContext } from '@/state/server';
 import { useStoreState } from 'easy-peasy';
@@ -15,6 +15,22 @@ import isEqual from 'react-fast-compare';
 import CopyOnClick from '@/components/elements/CopyOnClick';
 import { ip } from '@/lib/formatters';
 import { Button } from '@/components/elements/button/index';
+import AllocationRow from '@/components/server/network/AllocationRow';
+import ButtonElement from '@/components/elements/Button';
+import createServerAllocation from '@/api/server/network/createServerAllocation';
+import SpinnerOverlay from '@/components/elements/SpinnerOverlay';
+import Spinner from '@/components/elements/Spinner';
+import getServerAllocations from '@/api/swr/getServerAllocations';
+import { useDeepCompareEffect } from '@/plugins/useDeepCompareEffect';
+import { useFlashKey } from '@/plugins/useFlash';
+import VariableBox from '@/components/server/startup/VariableBox';
+import getServerStartup from '@/api/swr/getServerStartup';
+import Select from '@/components/elements/Select';
+import InputSpinner from '@/components/elements/InputSpinner';
+import setSelectedDockerImage from '@/api/server/setSelectedDockerImage';
+import useFlash from '@/plugins/useFlash';
+import { ServerError } from '@/components/elements/ScreenBlock';
+import { httpErrorToHuman } from '@/api/http';
 
 export default () => {
     const username = useStoreState((state) => state.user.data!.username);
@@ -22,10 +38,98 @@ export default () => {
     const uuid = ServerContext.useStoreState((state) => state.server.data!.uuid);
     const node = ServerContext.useStoreState((state) => state.server.data!.node);
     const sftp = ServerContext.useStoreState((state) => state.server.data!.sftpDetails, isEqual);
+    
+    // Network/Allocation state
+    const [loading, setLoading] = useState(false);
+    const allocationLimit = ServerContext.useStoreState((state) => state.server.data!.featureLimits.allocations);
+    const allocations = ServerContext.useStoreState((state) => state.server.data!.allocations, isEqual);
+    const setServerFromState = ServerContext.useStoreActions((actions) => actions.server.setServerFromState);
+    
+    const { clearFlashes: clearNetworkFlashes, clearAndAddHttpError: clearAndAddNetworkError } = useFlashKey('server:network');
+    const { data: allocationData, error: allocationError, mutate: mutateAllocations } = getServerAllocations();
+    
+    useEffect(() => {
+        mutateAllocations(allocations);
+    }, []);
+    
+    useEffect(() => {
+        clearAndAddNetworkError(allocationError);
+    }, [allocationError]);
+    
+    useDeepCompareEffect(() => {
+        if (!allocationData) return;
+        setServerFromState((state) => ({ ...state, allocations: allocationData }));
+    }, [allocationData]);
+    
+    const onCreateAllocation = () => {
+        clearNetworkFlashes();
+        setLoading(true);
+        createServerAllocation(uuid)
+            .then((allocation) => {
+                setServerFromState((s) => ({ ...s, allocations: s.allocations.concat(allocation) }));
+                return mutateAllocations(allocationData?.concat(allocation), false);
+            })
+            .catch((error) => clearAndAddNetworkError(error))
+            .then(() => setLoading(false));
+    };
+
+    // Startup state
+    const [startupLoading, setStartupLoading] = useState(false);
+    const { clearFlashes: clearStartupFlashes, clearAndAddHttpError: clearAndAddStartupError } = useFlash();
+    const variables = ServerContext.useStoreState(
+        ({ server }) => ({
+            variables: server.data!.variables,
+            invocation: server.data!.invocation,
+            dockerImage: server.data!.dockerImage,
+        }),
+        isEqual
+    );
+
+    const { data: startupData, error: startupError, isValidating: startupValidating, mutate: mutateStartup } = getServerStartup(uuid, {
+        ...variables,
+        dockerImages: { [variables.dockerImage]: variables.dockerImage },
+    });
+
+    const isCustomImage =
+        startupData &&
+        !Object.values(startupData.dockerImages)
+            .map((v) => v.toLowerCase())
+            .includes(variables.dockerImage.toLowerCase());
+
+    useEffect(() => {
+        if (startupData) {
+            mutateStartup();
+        }
+    }, []);
+
+    useDeepCompareEffect(() => {
+        if (!startupData) return;
+        setServerFromState((s) => ({
+            ...s,
+            invocation: startupData.invocation,
+            variables: startupData.variables,
+        }));
+    }, [startupData]);
+
+    const updateSelectedDockerImage = (v: React.ChangeEvent<HTMLSelectElement>) => {
+        setStartupLoading(true);
+        clearStartupFlashes('startup:image');
+
+        const image = v.currentTarget.value;
+        setSelectedDockerImage(uuid, image)
+            .then(() => setServerFromState((s) => ({ ...s, dockerImage: image })))
+            .catch((error) => {
+                console.error(error);
+                clearAndAddStartupError({ key: 'startup:image', error });
+            })
+            .then(() => setStartupLoading(false));
+    };
 
     return (
-        <ServerContentBlock title={'Settings'}>
+        <ServerContentBlock title={'Settings'} showFlashKey={'settings'}>
             <FlashMessageRender byKey={'settings'} css={tw`mb-4`} />
+            <FlashMessageRender byKey={'server:network'} css={tw`mb-4`} />
+            <FlashMessageRender byKey={'startup:image'} css={tw`mb-4`} />
             <div css={tw`md:flex`}>
                 <div css={tw`w-full md:flex-1 md:mr-10`}>
                     <Can action={'file.sftp'}>
@@ -85,6 +189,93 @@ export default () => {
                     </div>
                 </div>
             </div>
+            
+            {/* Network/Allocations Section */}
+            <TitledGreyBox title={'Network Allocations'} css={tw`mt-6 md:mt-10`}>
+                {!allocationData ? (
+                    <Spinner size={'large'} centered />
+                ) : (
+                    <>
+                        {allocationData.map((allocation) => (
+                            <AllocationRow key={`${allocation.ip}:${allocation.port}`} allocation={allocation} />
+                        ))}
+                        {allocationLimit > 0 && (
+                            <Can action={'allocation.create'}>
+                                <SpinnerOverlay visible={loading} />
+                                <div css={tw`mt-6 sm:flex items-center justify-end`}>
+                                    <p css={tw`text-sm text-neutral-300 mb-4 sm:mr-6 sm:mb-0`}>
+                                        You are currently using {allocationData.length} of {allocationLimit} allowed allocations for
+                                        this server.
+                                    </p>
+                                    {allocationLimit > allocationData.length && (
+                                        <ButtonElement css={tw`w-full sm:w-auto`} color={'primary'} onClick={onCreateAllocation}>
+                                            Create Allocation
+                                        </ButtonElement>
+                                    )}
+                                </div>
+                            </Can>
+                        )}
+                    </>
+                )}
+            </TitledGreyBox>
+
+            {/* Startup Section */}
+            {!startupData ? (
+                !startupError || (startupError && startupValidating) ? (
+                    <Spinner centered size={Spinner.Size.LARGE} css={tw`mt-6 md:mt-10`} />
+                ) : (
+                    <ServerError title={'Oops!'} message={httpErrorToHuman(startupError)} onRetry={() => mutateStartup()} />
+                )
+            ) : (
+                <>
+                    <div css={tw`md:flex mt-6 md:mt-10`}>
+                        <TitledGreyBox title={'Startup Command'} css={tw`flex-1`}>
+                            <div css={tw`px-1 py-2`}>
+                                <p css={tw`font-mono bg-neutral-900 rounded py-2 px-4`}>{startupData.invocation}</p>
+                            </div>
+                        </TitledGreyBox>
+                        <TitledGreyBox title={'Docker Image'} css={tw`flex-1 lg:flex-none lg:w-1/3 mt-8 md:mt-0 md:ml-10`}>
+                            {Object.keys(startupData.dockerImages).length > 1 && !isCustomImage ? (
+                                <>
+                                    <InputSpinner visible={startupLoading}>
+                                        <Select
+                                            disabled={Object.keys(startupData.dockerImages).length < 2}
+                                            onChange={updateSelectedDockerImage}
+                                            defaultValue={variables.dockerImage}
+                                        >
+                                            {Object.keys(startupData.dockerImages).map((key) => (
+                                                <option key={startupData.dockerImages[key]} value={startupData.dockerImages[key]}>
+                                                    {key}
+                                                </option>
+                                            ))}
+                                        </Select>
+                                    </InputSpinner>
+                                    <p css={tw`text-xs text-neutral-300 mt-2`}>
+                                        This is an advanced feature allowing you to select a Docker image to use when running
+                                        this server instance.
+                                    </p>
+                                </>
+                            ) : (
+                                <>
+                                    <Input disabled readOnly value={variables.dockerImage} />
+                                    {isCustomImage && (
+                                        <p css={tw`text-xs text-neutral-300 mt-2`}>
+                                            This {"server's"} Docker image has been manually set by an administrator and cannot
+                                            be changed through this UI.
+                                        </p>
+                                    )}
+                                </>
+                            )}
+                        </TitledGreyBox>
+                    </div>
+                    <h3 css={tw`mt-8 mb-2 text-2xl`}>Variables</h3>
+                    <div css={tw`grid gap-8 md:grid-cols-2`}>
+                        {startupData.variables.map((variable) => (
+                            <VariableBox key={variable.envVariable} variable={variable} />
+                        ))}
+                    </div>
+                </>
+            )}
         </ServerContentBlock>
     );
 };
