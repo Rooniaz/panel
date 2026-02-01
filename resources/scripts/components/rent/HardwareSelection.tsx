@@ -29,18 +29,33 @@ const glow = keyframes`
 `;
 
 const Container = styled.div`
-    ${tw`w-full space-y-4`}
+    ${tw`w-full space-y-4 relative`}
     height: auto;
     margin-bottom: 0 !important;
     padding-bottom: 2rem !important;
+    position: relative;
+    z-index: 1;
+    
+    &::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: radial-gradient(circle at center, rgba(56, 189, 248, 0.1) 0%, transparent 70%);
+        pointer-events: none;
+        z-index: 0;
+    }
 `;
 const HeaderCard = styled.div`
-    ${tw`rounded-2xl p-8 border border-white/10 backdrop-blur-sm`}
+    ${tw`rounded-2xl p-8 border border-white/10 backdrop-blur-sm relative`}
     background: linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(15, 23, 42, 0.98) 100%);
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.05),
         inset 0 1px 0 rgba(255, 255, 255, 0.1);
     position: relative;
     overflow: hidden;
+    z-index: 1;
 
     &::before {
         content: '';
@@ -66,11 +81,12 @@ const HeaderSubtitle = styled.p`
 `;
 
 const HardwareTypeCard = styled.div`
-    ${tw`rounded-2xl p-6 border border-white/10 backdrop-blur-sm mb-6`}
+    ${tw`rounded-2xl p-6 border border-white/10 backdrop-blur-sm mb-6 relative`}
     background: linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(15, 23, 42, 0.98) 100%);
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.05),
         inset 0 1px 0 rgba(255, 255, 255, 0.1);
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 1;
 
     &:hover {
         box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(56, 189, 248, 0.3),

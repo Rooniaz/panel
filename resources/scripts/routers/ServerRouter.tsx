@@ -42,7 +42,8 @@ import PermissionRoute from '@/components/elements/PermissionRoute';
 import routes from '@/routers/routes';
 
 const MainContent = styled.div`
-    ${tw`ml-0 lg:ml-64 min-h-screen`}
+    ${tw`ml-0 lg:ml-64 min-h-screen relative`}
+    z-index: 1;
     @media (max-width: 1023px) {
         width: 100%;
         padding-left: 0;

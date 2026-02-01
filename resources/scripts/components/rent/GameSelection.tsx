@@ -41,8 +41,7 @@ const Container = styled.div`
     ${tw`space-y-4 w-full max-w-6xl mx-auto px-3 sm:px-0`};
     position: relative;
     
-    /* แก้ไขจุดนี้: เปลี่ยนจาก 200% เป็นค่าที่พอดีกับ Container */
-    overflow: hidden; /* ตัดส่วนที่ฟุ้งเกินขอบออก */
+    overflow: visible;
     margin-bottom: 0 !important;
     padding-bottom: 2rem !important;
 
@@ -272,10 +271,11 @@ const TitleText = styled.h2`
 const GameGrid = styled.div`
     ${tw`grid grid-cols-1 md:grid-cols-3 gap-6`};
     overflow: visible;
+    padding: 1rem;
 `;
 
 const GameCard = styled.div<{ $selected: boolean; $backgroundImage?: string }>`
-    ${tw`relative rounded-3xl p-6 cursor-pointer transition-all duration-300 border overflow-hidden`};
+    ${tw`relative rounded-3xl p-6 cursor-pointer transition-all duration-300 overflow-hidden`};
     min-height: 200px;
     background-image: ${({ $backgroundImage }) => ($backgroundImage ? `url(${$backgroundImage})` : 'none')};
     background-size: cover;
@@ -287,19 +287,12 @@ const GameCard = styled.div<{ $selected: boolean; $backgroundImage?: string }>`
     ${(props) =>
         props.$selected
             ? css`
-                  border: 2px solid rgba(59, 130, 246, 0.8);
-                  box-shadow: 0 20px 60px rgba(59, 130, 246, 0.4), 0 0 0 1px rgba(59, 130, 246, 0.3),
-                      inset 0 1px 0 rgba(255, 255, 255, 0.1);
                   transform: translateY(-4px) scale(1.02);
                   animation: ${glow} 2s ease-in-out infinite;
               `
             : css`
-                  border: 1px solid rgba(56, 189, 248, 0.2);
-                  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
                   &:hover {
-                      border-color: rgba(59, 130, 246, 0.6);
                       transform: translateY(-6px) scale(1.03);
-                      box-shadow: 0 25px 70px rgba(59, 130, 246, 0.3), 0 0 0 1px rgba(59, 130, 246, 0.2);
                   }
               `};
 

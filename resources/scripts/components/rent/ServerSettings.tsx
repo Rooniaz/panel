@@ -42,17 +42,11 @@ const gradientShift = keyframes`
     100% { background-position: 0% 50%; }
 `;
 
-const float = keyframes`
-    0%, 100% { transform: translateY(0px); }
-    50% { transform: translateY(-10px); }
-`;
-
 const Container = styled.div`
     ${tw`space-y-4 w-full max-w-6xl mx-auto px-3 sm:px-0`};
     position: relative;
-    
-    /* แก้ไขจุดนี้: เปลี่ยนจาก 200% เป็นค่าที่พอดีกับ Container */
-    overflow: hidden; /* ตัดส่วนที่ฟุ้งเกินขอบออก */
+
+    overflow: hidden;
     margin-bottom: 0 !important;
     padding-bottom: 2rem !important;
 
@@ -254,10 +248,8 @@ const ProgressIcon = styled.div<{ $progress: number }>`
 `;
 
 const SettingsCard = styled.div`
-    ${tw`rounded-3xl p-8 space-y-8 border backdrop-blur-xl relative overflow-hidden`};
+    ${tw`rounded-3xl p-8 space-y-8 backdrop-blur-xl relative overflow-hidden`};
     background: linear-gradient(135deg, rgba(15, 23, 42, 0.9), rgba(30, 41, 59, 0.7));
-    border-color: rgba(56, 189, 248, 0.3);
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1);
 
     &::before {
         content: '';
@@ -280,10 +272,8 @@ const SectionTitle = styled.h3`
 `;
 
 const GameSelectionInfo = styled.div`
-    ${tw`flex items-center gap-4 p-5 rounded-3xl border backdrop-blur-xl relative overflow-hidden`};
+    ${tw`flex items-center gap-4 p-5 rounded-3xl backdrop-blur-xl relative overflow-hidden`};
     background: linear-gradient(135deg, rgba(15, 23, 42, 0.8), rgba(30, 41, 59, 0.6));
-    border-color: rgba(56, 189, 248, 0.3);
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1);
 
     &::before {
         content: '';
@@ -663,9 +653,7 @@ export default ({
                     <GameIcon>{selectedGame.icon}</GameIcon>
                     <GameDetails>
                         <GameName>{selectedGame.name}</GameName>
-                        <GameVersion>
-                            {selectedVersion.name}
-                        </GameVersion>
+                        <GameVersion>{selectedVersion.name}</GameVersion>
                     </GameDetails>
                 </GameSelectionInfo>
 

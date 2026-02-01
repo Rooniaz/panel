@@ -27,7 +27,10 @@ import Avatar from '@/components/Avatar';
 import getUserProfile from '@/api/spring/userProfile';
 
 const SidebarContainer = styled.div<{ $open: boolean }>`
-    ${tw`fixed left-0 top-0 h-full bg-neutral-900 w-64 shadow-lg z-50 flex flex-col transition-transform duration-300`};
+    ${tw`fixed left-0 top-0 h-full w-64 shadow-lg z-50 flex flex-col transition-transform duration-300`};
+    background: linear-gradient(180deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.98) 100%);
+    backdrop-filter: blur(10px);
+    border-right: 1px solid rgba(59, 130, 246, 0.1);
     transform: ${({ $open }) => ($open ? 'translateX(0)' : 'translateX(-100%)')};
 
     @media (min-width: 1024px) {
@@ -36,7 +39,7 @@ const SidebarContainer = styled.div<{ $open: boolean }>`
 `;
 
 const HamburgerButton = styled.button`
-    ${tw`fixed top-4 left-4 z-50 lg:hidden w-10 h-10 flex items-center justify-center rounded-lg bg-neutral-900 text-white shadow-lg border border-neutral-800`};
+    ${tw`fixed top-4 right-4 z-50 lg:hidden w-10 h-10 flex items-center justify-center rounded-lg bg-neutral-900 text-white shadow-lg border border-neutral-800`};
     transition: all 0.3s ease;
 
     &:hover {
@@ -55,15 +58,20 @@ const Overlay = styled.div<{ $open: boolean }>`
 `;
 
 const LogoSection = styled.div`
-    ${tw`p-6 border-b border-neutral-800`}
+    ${tw`p-6 border-b border-neutral-800 flex items-center justify-center`}
 `;
 
 const LogoLink = styled(Link)`
-    ${tw`flex items-center space-x-3 no-underline text-blue-400 hover:text-blue-300 transition-colors`}
+    ${tw`flex items-center justify-center no-underline text-blue-400 hover:text-blue-300 transition-colors w-full`}
 `;
 
-const LogoIcon = styled.div`
-    ${tw`w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center text-white text-2xl`}
+const LogoIcon = styled.img`
+    ${tw`w-full h-auto`}
+    max-width: 180px;
+    width: 100%;
+    aspect-ratio: 1;
+    object-fit: contain;
+    display: block;
 `;
 
 const LogoText = styled.span`
@@ -189,10 +197,7 @@ export default () => {
             <SidebarContainer $open={menuOpen}>
                 <LogoSection>
                     <LogoLink to={'/'}>
-                        <LogoIcon>
-                            <FontAwesomeIcon icon={faServer} />
-                        </LogoIcon>
-                        <LogoText>MCHost</LogoText>
+                        <LogoIcon src={'/void-logo.png'} alt={'void CRATE'} />
                     </LogoLink>
                 </LogoSection>
 

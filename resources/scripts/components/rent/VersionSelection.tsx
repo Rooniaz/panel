@@ -270,10 +270,8 @@ const TitleText = styled.h2`
 `;
 
 const GameInfo = styled.div`
-    ${tw`flex items-center gap-4 mb-6 p-5 rounded-3xl border backdrop-blur-xl relative overflow-hidden`};
+    ${tw`flex items-center gap-4 mb-6 p-5 rounded-3xl backdrop-blur-xl relative overflow-hidden`};
     background: linear-gradient(135deg, rgba(15, 23, 42, 0.8), rgba(30, 41, 59, 0.6));
-    border-color: rgba(56, 189, 248, 0.3);
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1);
 
     &::before {
         content: '';
@@ -315,25 +313,18 @@ const VersionGrid = styled.div`
 `;
 
 const VersionButton = styled.button<{ $selected: boolean }>`
-    ${tw`relative flex items-center gap-4 p-5 rounded-3xl border transition-all duration-300 backdrop-blur-xl overflow-hidden`};
+    ${tw`relative flex items-center gap-4 p-5 rounded-3xl transition-all duration-300 backdrop-blur-xl overflow-hidden`};
     background: linear-gradient(135deg, rgba(15, 23, 42, 0.8), rgba(30, 41, 59, 0.6));
     ${(props) => {
         if (props.$selected) {
             return css`
-                border: 2px solid rgba(59, 130, 246, 0.8);
-                box-shadow: 0 20px 60px rgba(59, 130, 246, 0.4), 0 0 0 1px rgba(59, 130, 246, 0.3),
-                    inset 0 1px 0 rgba(255, 255, 255, 0.1);
                 transform: translateY(-4px) scale(1.02);
                 animation: ${glow} 2s ease-in-out infinite;
             `;
         }
         return css`
-            border: 1px solid rgba(56, 189, 248, 0.2);
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
             &:hover {
-                border-color: rgba(59, 130, 246, 0.6);
                 transform: translateY(-6px) scale(1.03);
-                box-shadow: 0 25px 70px rgba(59, 130, 246, 0.3), 0 0 0 1px rgba(59, 130, 246, 0.2);
             }
         `;
     }};

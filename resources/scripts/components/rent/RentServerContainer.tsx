@@ -21,17 +21,29 @@ const shimmer = keyframes`
 `;
 
 const Container = styled.div`
-    ${tw`lg:ml-64 pt-4 overflow-x-hidden`}
-    background: linear-gradient(135deg, #0c1226 0%, #1a1f3a 50%, #0c1226 100%);
-    background-size: 200% 200%;
-    animation: ${shimmer} 20s ease infinite;
-    
-    /* แก้ไขจุดนี้ */
-    min-height: 100vh; /* ให้สูงอย่างน้อยเต็มจอ */
+    ${tw`lg:ml-64 pt-4 overflow-x-hidden relative`}
+    min-height: 100vh;
     display: flex;
     flex-direction: column;
-    padding-bottom: 2rem !important; /* ให้มีช่องว่างนิดหน่อยไม่ให้ติดขอบล่างเกินไป */
+    padding-bottom: 2rem !important;
     margin-bottom: 0 !important;
+    position: relative;
+    z-index: 1;
+    background: transparent;
+    
+    &::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: 
+            radial-gradient(circle at 10% 20%, rgba(59, 130, 246, 0.05) 0%, transparent 50%),
+            radial-gradient(circle at 90% 80%, rgba(99, 102, 241, 0.04) 0%, transparent 50%);
+        pointer-events: none;
+        z-index: 0;
+    }
 `;
 
 const ContentWrapper = styled.div`

@@ -81,27 +81,20 @@ const PackageGrid = styled.div`
 `;
 
 const PackageCard = styled.div<{ $isFull: boolean; $isRecommended?: boolean }>`
-    ${tw`relative rounded-3xl p-6 cursor-pointer transition-all duration-300 border overflow-hidden`};
+    ${tw`relative rounded-3xl p-6 cursor-pointer transition-all duration-300 overflow-hidden`};
     background: linear-gradient(135deg, rgba(15, 23, 42, 0.9), rgba(30, 41, 59, 0.7));
     backdrop-filter: blur(10px);
     ${(props) =>
         props.$isRecommended
             ? css`
-                  border: 2px solid rgba(59, 130, 246, 0.6);
-                  box-shadow: 0 20px 60px rgba(59, 130, 246, 0.3), 0 0 0 1px rgba(59, 130, 246, 0.3),
-                      inset 0 1px 0 rgba(255, 255, 255, 0.1);
                   animation: ${glow} 3s ease-in-out infinite;
               `
             : css`
-                  border: 1px solid rgba(56, 189, 248, 0.2);
-                  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
                   &:hover {
-                      border-color: rgba(59, 130, 246, 0.6);
                       transform: translateY(-6px) scale(1.02);
-                      box-shadow: 0 25px 70px rgba(59, 130, 246, 0.3), 0 0 0 1px rgba(59, 130, 246, 0.2);
                   }
               `};
-    ${(props) => (props.$isFull ? tw`opacity-50 cursor-not-allowed hover:translate-y-0 hover:border-white/5` : '')};
+    ${(props) => (props.$isFull ? tw`opacity-50 cursor-not-allowed hover:translate-y-0` : '')};
 
     &::before {
         content: '';
@@ -144,8 +137,6 @@ const PackageImage = styled.div<{ $backgroundImage?: string }>`
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
-    border: 1px solid rgba(56, 189, 248, 0.2);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1);
 
     &::before {
         content: '';
@@ -160,7 +151,6 @@ const PackageImage = styled.div<{ $backgroundImage?: string }>`
 
     ${PackageCard}:hover & {
         transform: scale(1.05);
-        box-shadow: 0 12px 40px rgba(59, 130, 246, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1);
     }
 `;
 
