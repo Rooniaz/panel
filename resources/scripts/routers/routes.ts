@@ -1,7 +1,5 @@
 import React, { lazy } from 'react';
 import ServerConsole from '@/components/server/console/ServerConsoleContainer';
-import DatabasesContainer from '@/components/server/databases/DatabasesContainer';
-import ScheduleContainer from '@/components/server/schedules/ScheduleContainer';
 import UsersContainer from '@/components/server/users/UsersContainer';
 import BackupContainer from '@/components/server/backups/BackupContainer';
 import FileManagerContainer from '@/components/server/files/FileManagerContainer';
@@ -93,18 +91,6 @@ export default {
             permission: 'file.*',
             name: undefined,
             component: FileEditContainer,
-        },
-        {
-            path: '/databases',
-            permission: 'database.*',
-            name: 'Databases',
-            component: DatabasesContainer,
-        },
-        {
-            path: '/schedules',
-            permission: 'schedule.*',
-            name: 'Schedules',
-            component: ScheduleContainer,
         },
         {
             path: '/schedules/:id',

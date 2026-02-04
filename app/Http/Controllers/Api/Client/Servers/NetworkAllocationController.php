@@ -48,14 +48,25 @@ class NetworkAllocationController extends ClientApiController
      */
     public function update(UpdateAllocationRequest $request, Server $server, Allocation $allocation): array
     {
-        $original = $allocation->notes;
+        $originalNotes = $allocation->notes;
+        $originalAlias = $allocation->ip_alias;
 
-        $allocation->forceFill(['notes' => $request->input('notes')])->save();
+        $allocation->forceFill([
+            'notes' => $request->input('notes'),
+            'ip_alias' => $request->input('ip_alias'),
+        ])->save();
 
-        if ($original !== $allocation->notes) {
+        if ($originalNotes !== $allocation->notes) {
             Activity::event('server:allocation.notes')
                 ->subject($allocation)
-                ->property(['allocation' => $allocation->toString(), 'old' => $original, 'new' => $allocation->notes])
+                ->property(['allocation' => $allocation->toString(), 'old' => $originalNotes, 'new' => $allocation->notes])
+                ->log();
+        }
+
+        if ($originalAlias !== $allocation->ip_alias) {
+            Activity::event('server:allocation.alias')
+                ->subject($allocation)
+                ->property(['allocation' => $allocation->toString(), 'old' => $originalAlias, 'new' => $allocation->ip_alias])
                 ->log();
         }
 

@@ -19,6 +19,7 @@ class UpdateAllocationRequest extends ClientApiRequest
 
         return [
             'notes' => array_merge($rules['notes'], ['present']),
+            'ip_alias' => array_merge($rules['ip_alias'] ?? ['nullable', 'string'], ['present']),
         ];
     }
 }

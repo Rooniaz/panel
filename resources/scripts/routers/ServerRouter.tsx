@@ -21,8 +21,6 @@ import {
     faExternalLinkAlt,
     faTerminal,
     faFolderOpen,
-    faDatabase,
-    faClock,
     faUserFriends,
     faCloudDownloadAlt,
     faNetworkWired,
@@ -68,8 +66,6 @@ export default () => {
     const navIcons: Record<string, any> = {
         Console: faTerminal,
         Files: faFolderOpen,
-        Databases: faDatabase,
-        Schedules: faClock,
         Users: faUserFriends,
         Backups: faCloudDownloadAlt,
         Network: faNetworkWired,
@@ -92,16 +88,42 @@ export default () => {
         'Bedrock Version': faCube,
     };
 
+    const navThaiNames: Record<string, string> = {
+        Console: 'คอนโซล',
+        Files: 'ไฟล์',
+        Users: 'ผู้ใช้',
+        Backups: 'แบ็คอัพ',
+        Network: 'เครือข่าย',
+        Startup: 'เริ่มต้น',
+        Settings: 'ตั้งค่า',
+        Activity: 'ประวัติ',
+        Mods: 'Mods',
+        Plugins: 'Plugins',
+        'Minecraft Player Manager': 'จัดการผู้เล่น Minecraft',
+        'Player Manager': 'จัดการผู้เล่น',
+        'Minecraft Version': 'เวอร์ชัน Minecraft',
+        Version: 'เวอร์ชัน',
+        'Server Properties': 'คุณสมบัติเซิร์ฟเวอร์',
+        Modpacks: 'Modpacks',
+        Worlds: 'Worlds',
+        Configs: 'Configs',
+        Versions: 'Versions',
+        'Bedrock Addons': 'Bedrock Addons',
+        'Bedrock Config': 'Bedrock Config',
+        'Bedrock Version': 'Bedrock Version',
+    };
+
     const renderNavLabel = (name?: string) => {
         if (!name) return null;
         const icon = navIcons[name];
+        const thaiName = navThaiNames[name] || name;
         return icon ? (
             <span className={'flex items-center gap-2'}>
                 <FontAwesomeIcon icon={icon} />
-                <span>{name}</span>
+                <span>{thaiName}</span>
             </span>
         ) : (
-            name
+            thaiName
         );
     };
 

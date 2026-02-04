@@ -3,10 +3,12 @@
 namespace Pterodactyl\Services\Deployment;
 
 use Pterodactyl\Models\Allocation;
+use Pterodactyl\Models\Node;
 use Pterodactyl\Exceptions\DisplayException;
 use Pterodactyl\Services\Allocations\AssignmentService;
 use Pterodactyl\Contracts\Repository\AllocationRepositoryInterface;
 use Pterodactyl\Exceptions\Service\Deployment\NoViableAllocationException;
+use Pterodactyl\Exceptions\Service\Allocation\NoAutoAllocationSpaceAvailableException;
 
 class AllocationSelectionService
 {
@@ -81,15 +83,103 @@ class AllocationSelectionService
      * Return a single allocation that should be used as the default allocation for a server.
      *
      * @throws \Pterodactyl\Exceptions\Service\Deployment\NoViableAllocationException
+     * @throws \Pterodactyl\Exceptions\Service\Allocation\NoAutoAllocationSpaceAvailableException
      */
     public function handle(): Allocation
     {
         $allocation = $this->repository->getRandomAllocation($this->nodes, $this->ports, $this->dedicated);
 
+        // If no unassigned allocation exists, create a new one with a random port
         if (is_null($allocation)) {
-            throw new NoViableAllocationException(trans('exceptions.deployment.no_viable_allocations'));
+            $allocation = $this->createNewAllocation();
+            
+            if (is_null($allocation)) {
+                throw new NoViableAllocationException(trans('exceptions.deployment.no_viable_allocations'));
+            }
         }
 
         return $allocation;
+    }
+
+    /**
+     * Create a new allocation with a random port that doesn't conflict with existing servers.
+     *
+     * @throws \Pterodactyl\Exceptions\Service\Allocation\NoAutoAllocationSpaceAvailableException
+     */
+    protected function createNewAllocation(): ?Allocation
+    {
+        $start = config('pterodactyl.client_features.allocations.range_start', null);
+        $end = config('pterodactyl.client_features.allocations.range_end', null);
+
+        if (!$start || !$end) {
+            return null;
+        }
+
+        // Get nodes to work with
+        $nodes = !empty($this->nodes) 
+            ? Node::whereIn('id', $this->nodes)->get() 
+            : Node::all();
+
+        if ($nodes->isEmpty()) {
+            return null;
+        }
+
+        // Try each node until we find one where we can create an allocation
+        foreach ($nodes as $node) {
+            // Get all ports used by this node
+            $nodePorts = $node->allocations()
+                ->whereBetween('port', [$start, $end])
+                ->pluck('port')
+                ->toArray();
+
+            // Get all ports used by all servers on this node (to avoid duplicates across servers)
+            $allServerPorts = Allocation::query()
+                ->where('node_id', $node->id)
+                ->whereBetween('port', [$start, $end])
+                ->whereNotNull('server_id')
+                ->pluck('port')
+                ->toArray();
+
+            // Combine and get available ports
+            $usedPorts = array_unique(array_merge($nodePorts, $allServerPorts));
+            $available = array_diff(range($start, $end), $usedPorts);
+
+            if (empty($available)) {
+                continue; // Try next node
+            }
+
+            // Pick a random port
+            $port = $available[array_rand($available)];
+
+            // Get the IP from an existing allocation on this node, or use the node's FQDN
+            $existingAllocation = $node->allocations()->first();
+            $ip = $existingAllocation?->ip ?? $node->fqdn;
+            
+            if (!$ip) {
+                continue; // Skip this node if we can't determine an IP
+            }
+
+            // Create the allocation
+            try {
+                $assignmentService = app(AssignmentService::class);
+                $assignmentService->handle($node, [
+                    'allocation_ip' => $ip,
+                    'allocation_ports' => [(string) $port],
+                ]);
+
+                // Find and return the newly created allocation
+                $allocation = $node->allocations()
+                    ->where('ip', $ip)
+                    ->where('port', $port)
+                    ->first();
+
+                return $allocation;
+            } catch (\Exception $e) {
+                // If creation fails, try next node
+                continue;
+            }
+        }
+
+        return null;
     }
 }

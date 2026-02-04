@@ -24,6 +24,61 @@ const CONSTANT_VALUES: Record<string, string[]> = {
     difficulty: ['peaceful', 'easy', 'normal', 'hard'],
 };
 
+// Thai translations for property keys
+const PROPERTY_THAI_NAMES: Record<string, string> = {
+    'accepts-transfers': 'ยอมรับการโอนย้าย',
+    'broadcast-rcon-to-ops': 'ส่ง RCON ไปยัง Ops',
+    'enable-code-of-conduct': 'เปิดใช้งานกฎเกณฑ์',
+    'enable-rcon': 'เปิดใช้งาน RCON',
+    'enforce-whitelist': 'บังคับใช้ Whitelist',
+    'function-permission-level': 'ระดับสิทธิ์ Function',
+    'allow-flight': 'อนุญาตให้บิน',
+    'bug-report-link': 'ลิงก์รายงานข้อผิดพลาด',
+    'enable-jmx-monitoring': 'เปิดใช้งาน JMX Monitoring',
+    'enable-status': 'เปิดใช้งานสถานะ',
+    'entity-broadcast-range-percentage': 'เปอร์เซ็นต์ระยะการส่ง Entity',
+    'gamemode': 'โหมดเกม',
+    'broadcast-console-to-ops': 'ส่ง Console ไปยัง Ops',
+    'difficulty': 'ระดับความยาก',
+    'enable-query': 'เปิดใช้งาน Query',
+    'enforce-secure-profile': 'บังคับใช้ Secure Profile',
+    'force-gamemode': 'บังคับโหมดเกม',
+    'generate-structures': 'สร้างโครงสร้าง',
+    'hardcore': 'โหมดฮาร์ดคอร์',
+    'max-chained-neighbor-updates': 'อัปเดตเพื่อนบ้านสูงสุด',
+    'max-players': 'ผู้เล่นสูงสุด',
+    'max-tick-time': 'เวลา Tick สูงสุด',
+    'max-world-size': 'ขนาดโลกสูงสุด',
+    'motd': 'ข้อความวันนี้',
+    'network-compression-threshold': 'เกณฑ์การบีบอัดเครือข่าย',
+    'online-mode': 'โหมดออนไลน์',
+    'op-permission-level': 'ระดับสิทธิ์ OP',
+    'player-idle-timeout': 'หมดเวลาผู้เล่นไม่ใช้งาน',
+    'prevent-proxy-connections': 'ป้องกันการเชื่อมต่อ Proxy',
+    'pvp': 'PvP',
+    'query.port': 'พอร์ต Query',
+    'rate-limit': 'จำกัดอัตรา',
+    'rcon.password': 'รหัสผ่าน RCON',
+    'rcon.port': 'พอร์ต RCON',
+    'require-resource-pack': 'ต้องการ Resource Pack',
+    'resource-pack': 'Resource Pack',
+    'resource-pack-prompt': 'ข้อความ Resource Pack',
+    'resource-pack-sha1': 'SHA1 Resource Pack',
+    'server-ip': 'IP เซิร์ฟเวอร์',
+    'server-port': 'พอร์ตเซิร์ฟเวอร์',
+    'simulation-distance': 'ระยะการจำลอง',
+    'spawn-animals': 'เกิดสัตว์',
+    'spawn-monsters': 'เกิดมอนสเตอร์',
+    'spawn-npcs': 'เกิด NPC',
+    'spawn-protection': 'การป้องกันการเกิด',
+    'sync-chunk-writes': 'ซิงค์การเขียน Chunk',
+    'text-filtering-config': 'การตั้งค่าการกรองข้อความ',
+    'use-native-transport': 'ใช้ Native Transport',
+    'view-distance': 'ระยะการมองเห็น',
+    'white-list': 'Whitelist',
+    'enforce-whitelist': 'บังคับใช้ Whitelist',
+};
+
 interface PropertyType {
     key: string;
     value: string | boolean | number;
@@ -68,18 +123,29 @@ const NoResults = styled.div`
 `;
 
 const PropertyBox = ({ property, values }: { property: PropertyType; values: any }) => {
+    const thaiName = PROPERTY_THAI_NAMES[property.key] || property.key;
+    const englishName = property.key.toUpperCase().replace(/-/g, '-');
+
     return (
-        <TitledGreyBox title={property.key}>
+        <TitledGreyBox
+            title={
+                <div css={tw`flex items-center justify-between w-full`}>
+                    <span css={tw`text-base font-semibold uppercase`}>{thaiName}</span>
+                    <span css={tw`text-xs text-neutral-400 font-mono`}>{englishName}</span>
+                </div>
+            }
+        >
             <div css={tw`px-1 py-2`}>
                 {property.type === 'boolean' && (
                     <FormikSwitch
                         name={property.key}
-                        label={property.key}
+                        label={thaiName}
                         description={`Current value: ${values[property.key]}`}
                     />
                 )}
                 {property.type === 'constant' && (
                     <div>
+                        <Label>{thaiName}</Label>
                         <Field as={Select} name={property.key}>
                             {property.options?.map((option) => (
                                 <option key={option} value={option}>
@@ -91,6 +157,7 @@ const PropertyBox = ({ property, values }: { property: PropertyType; values: any
                 )}
                 {property.type === 'string' && (
                     <div>
+                        <Label>{thaiName}</Label>
                         <Field as={Input} name={property.key} />
                     </div>
                 )}

@@ -76,15 +76,25 @@ class FindAssignableAllocationService
 
         // Get all of the currently allocated ports for the node so that we can figure out
         // which port might be available.
-        $ports = $server->node->allocations()
+        $nodePorts = $server->node->allocations()
             ->where('ip', $server->allocation->ip)
             ->whereBetween('port', [$start, $end])
-            ->pluck('port');
+            ->pluck('port')
+            ->toArray();
+
+        // Get all ports currently used by this specific server to avoid duplicates
+        $serverPorts = $server->allocations()
+            ->whereBetween('port', [$start, $end])
+            ->pluck('port')
+            ->toArray();
+
+        // Combine both arrays and remove duplicates
+        $usedPorts = array_unique(array_merge($nodePorts, $serverPorts));
 
         // Compute the difference of the range and the currently created ports, finding
-        // any port that does not already exist in the database. We will then use this
-        // array of ports to create a new allocation to assign to the server.
-        $available = array_diff(range($start, $end), $ports->toArray());
+        // any port that does not already exist in the database or used by this server.
+        // We will then use this array of ports to create a new allocation to assign to the server.
+        $available = array_diff(range($start, $end), $usedPorts);
 
         // If we've already allocated all of the ports, just abort.
         if (empty($available)) {

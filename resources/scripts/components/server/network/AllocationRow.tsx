@@ -65,20 +65,6 @@ const AllocationRow = ({ allocation }: Props) => {
                 <div className={'pl-4 pr-6 text-neutral-400'}>
                     <FontAwesomeIcon icon={faNetworkWired} />
                 </div>
-                <div className={'mr-4 flex-1 md:w-40'}>
-                    {allocation.alias ? (
-                        <CopyOnClick text={allocation.alias}>
-                            <Code dark className={'w-40 truncate'}>
-                                {allocation.alias}
-                            </Code>
-                        </CopyOnClick>
-                    ) : (
-                        <CopyOnClick text={ip(allocation.ip)}>
-                            <Code dark>{ip(allocation.ip)}</Code>
-                        </CopyOnClick>
-                    )}
-                    <Label>{allocation.alias ? 'Hostname' : 'IP Address'}</Label>
-                </div>
                 <div className={'w-16 md:w-24 overflow-hidden'}>
                     <Code dark>{allocation.port}</Code>
                     <Label>Port</Label>

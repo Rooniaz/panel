@@ -20,7 +20,10 @@ const TitledGreyBox = ({ icon, title, children, className }: Props) => (
                     {title}
                 </p>
             ) : (
-                title
+                <div css={tw`flex items-center`}>
+                    {icon && <FontAwesomeIcon icon={icon} css={tw`mr-2 text-neutral-300`} />}
+                    {title}
+                </div>
             )}
         </div>
         <div css={tw`p-3`}>{children}</div>
