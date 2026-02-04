@@ -226,3 +226,16 @@ Route::group(['prefix' => 'nests'], function () {
     Route::delete('/egg/{egg:id}', [Admin\Nests\EggController::class, 'destroy']);
     Route::delete('/egg/{egg:id}/variables/{variable:id}', [Admin\Nests\EggVariableController::class, 'destroy']);
 });
+
+/*
+|--------------------------------------------------------------------------
+| Backup Schedule Controller Routes
+|--------------------------------------------------------------------------
+|
+| Endpoint: /admin/backup-schedule
+|
+*/
+Route::group(['prefix' => 'backup-schedule'], function () {
+    Route::get('/time', [Admin\BackupScheduleController::class, 'getCurrentTime'])->name('admin.backup-schedule.time');
+    Route::post('/time', [Admin\BackupScheduleController::class, 'updateTime'])->name('admin.backup-schedule.update');
+});

@@ -12,6 +12,8 @@ import {
     faCalendarWeek,
     faCalendarAlt,
     faSpinner,
+    faClock,
+    faSave,
 } from '@fortawesome/free-solid-svg-icons';
 import { Line } from 'react-chartjs-2';
 import {
@@ -29,6 +31,7 @@ import Spinner from '@/components/elements/Spinner';
 import UsersTable from './UsersTable';
 import { theme } from 'twin.macro';
 import { hexToRgba } from '@/lib/helpers';
+import http from '@/api/http';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, ChartTitlePlugin, Tooltip, Legend, Filler);
 
@@ -112,6 +115,74 @@ const PlaceholderText = styled.p`
     ${tw`text-neutral-500 text-sm`}
 `;
 
+const BackupScheduleCard = styled.div`
+    ${tw`bg-gradient-to-br from-neutral-800/95 via-neutral-800/90 to-neutral-900/95 rounded-2xl p-6 border border-white/10 backdrop-blur-sm mb-8`}
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.05),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+`;
+
+const BackupScheduleTitle = styled.h2`
+    ${tw`text-xl font-bold text-white mb-2 flex items-center gap-3`}
+`;
+
+const BackupScheduleDescription = styled.p`
+    ${tw`text-neutral-400 text-sm mb-6`}
+`;
+
+const BackupScheduleForm = styled.div`
+    ${tw`flex flex-col md:flex-row gap-6 items-center`}
+`;
+
+const TimeInputGroup = styled.div`
+    ${tw`flex flex-col gap-3`}
+`;
+
+const TimeInputLabel = styled.label`
+    ${tw`text-neutral-300 text-sm font-medium`}
+`;
+
+const TimeInputWrapper = styled.div`
+    ${tw`flex items-center gap-3 bg-neutral-900/50 rounded-xl p-4 border border-white/10`}
+`;
+
+const TimeInput = styled.input`
+    ${tw`bg-neutral-800 border border-white/10 rounded-lg px-4 py-3 text-white text-2xl font-bold w-24 text-center focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all`}
+    
+    &::-webkit-inner-spin-button,
+    &::-webkit-outer-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+    
+    &[type='number'] {
+        -moz-appearance: textfield;
+    }
+`;
+
+const TimeSeparator = styled.span`
+    ${tw`text-white text-2xl font-bold`}
+`;
+
+const TimePreview = styled.div`
+    ${tw`text-neutral-300 text-sm mt-2`}
+`;
+
+const SaveButton = styled.button`
+    ${tw`bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold px-8 py-3 rounded-lg transition-all duration-200 flex items-center gap-2 shadow-lg hover:shadow-xl hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100`}
+`;
+
+const SuccessMessage = styled.div`
+    ${tw`mt-4 p-3 bg-green-500/20 border border-green-500/50 rounded-lg text-green-400 text-sm`}
+`;
+
+const ErrorMessage = styled.div`
+    ${tw`mt-4 p-3 bg-red-500/20 border border-red-500/50 rounded-lg text-red-400 text-sm`}
+`;
+
+const WarningMessage = styled.div`
+    ${tw`mt-4 p-3 bg-yellow-500/20 border border-yellow-500/50 rounded-lg text-yellow-400 text-sm`}
+`;
+
 const SPRING_BOOT_API_URL = 'http://localhost:9000';
 
 interface DashboardStats {
@@ -155,12 +226,41 @@ export default () => {
     const [chartsLoading, setChartsLoading] = useState(true);
     const [chartsError, setChartsError] = useState<string | null>(null);
 
+    // Backup schedule time state
+    const [backupHour, setBackupHour] = useState<number>(21);
+    const [backupMinute, setBackupMinute] = useState<number>(20);
+    const [backupLoading, setBackupLoading] = useState(false);
+    const [backupMessage, setBackupMessage] = useState<{ type: 'success' | 'error' | 'warning'; text: string } | null>(null);
+
     // Redirect if not admin
     useEffect(() => {
         if (rootAdmin === false) {
             history.push('/');
         }
     }, [rootAdmin, history]);
+
+    // Fetch current backup schedule time
+    const fetchBackupTime = async () => {
+        try {
+            const response = await http.get('/admin/backup-schedule/time');
+            if (response.data) {
+                setBackupHour(response.data.hour || 21);
+                setBackupMinute(response.data.minute || 20);
+                
+                // แสดง warning ถ้ามี message (เช่น ยังไม่พบ schedule)
+                if (response.data.message && response.data.success) {
+                    setBackupMessage({
+                        type: 'warning',
+                        text: response.data.message,
+                    });
+                    // Clear message after 8 seconds
+                    setTimeout(() => setBackupMessage(null), 8000);
+                }
+            }
+        } catch (err) {
+            console.error('Failed to fetch backup time:', err);
+        }
+    };
 
     const fetchCharts = async () => {
         if (!rootAdmin) {
@@ -293,7 +393,51 @@ export default () => {
 
         fetchStats();
         fetchCharts();
+        fetchBackupTime();
     }, [rootAdmin]);
+
+    // Update backup schedule time
+    const handleUpdateBackupTime = async () => {
+        setBackupLoading(true);
+        setBackupMessage(null);
+
+        try {
+            const response = await http.post('/admin/backup-schedule/time', {
+                hour: backupHour,
+                minute: backupMinute,
+            });
+
+            const data = response.data;
+
+            if (data.success) {
+                setBackupMessage({
+                    type: 'success',
+                    text:
+                        data.message ||
+                        `อัพเดทเวลา backup เป็น ${backupHour}:${String(backupMinute).padStart(2, '0')} สำเร็จ`,
+                });
+                // Clear message after 5 seconds
+                setTimeout(() => setBackupMessage(null), 5000);
+            } else {
+                setBackupMessage({
+                    type: 'error',
+                    text: data.message || 'เกิดข้อผิดพลาดในการอัพเดท',
+                });
+            }
+        } catch (err: any) {
+            const errorMessage =
+                err?.response?.data?.errors?.[0]?.detail ||
+                err?.response?.data?.message ||
+                err?.message ||
+                'เกิดข้อผิดพลาดในการเชื่อมต่อ';
+            setBackupMessage({
+                type: 'error',
+                text: errorMessage,
+            });
+        } finally {
+            setBackupLoading(false);
+        }
+    };
 
     if (rootAdmin === false) {
         return null;
@@ -559,6 +703,71 @@ export default () => {
                         )}
                     </ChartCard>
                 </ChartsSection>
+
+                <BackupScheduleCard>
+                    <BackupScheduleTitle>
+                        <FontAwesomeIcon icon={faClock} css={tw`text-blue-400`} />
+                        ตั้งค่าเวลา Backup อัตโนมัติ
+                    </BackupScheduleTitle>
+                    <BackupScheduleDescription>
+                        ตั้งเวลาให้ระบบทำการ backup อัตโนมัติทุกวันสำหรับทุก server (เวลาที่ตั้งจะถูกใช้กับทุก server)
+                    </BackupScheduleDescription>
+                    <BackupScheduleForm>
+                        <TimeInputGroup>
+                            <TimeInputLabel>เวลา Backup (24 ชั่วโมง)</TimeInputLabel>
+                            <TimeInputWrapper>
+                                <TimeInput
+                                    type='number'
+                                    min='0'
+                                    max='23'
+                                    value={backupHour}
+                                    onChange={(e) =>
+                                        setBackupHour(Math.max(0, Math.min(23, parseInt(e.target.value) || 0)))
+                                    }
+                                    placeholder='00'
+                                />
+                                <TimeSeparator>:</TimeSeparator>
+                                <TimeInput
+                                    type='number'
+                                    min='0'
+                                    max='59'
+                                    value={backupMinute}
+                                    onChange={(e) =>
+                                        setBackupMinute(Math.max(0, Math.min(59, parseInt(e.target.value) || 0)))
+                                    }
+                                    placeholder='00'
+                                />
+                            </TimeInputWrapper>
+                            <TimePreview>
+                                เวลาที่ตั้ง: {String(backupHour).padStart(2, '0')}:{String(backupMinute).padStart(2, '0')} น.
+                            </TimePreview>
+                        </TimeInputGroup>
+                        <SaveButton onClick={handleUpdateBackupTime} disabled={backupLoading}>
+                            {backupLoading ? (
+                                <>
+                                    <FontAwesomeIcon icon={faSpinner} spin />
+                                    กำลังบันทึก...
+                                </>
+                            ) : (
+                                <>
+                                    <FontAwesomeIcon icon={faSave} />
+                                    บันทึกการตั้งค่า
+                                </>
+                            )}
+                        </SaveButton>
+                    </BackupScheduleForm>
+                    {backupMessage && (
+                        <>
+                            {backupMessage.type === 'success' ? (
+                                <SuccessMessage>{backupMessage.text}</SuccessMessage>
+                            ) : backupMessage.type === 'warning' ? (
+                                <WarningMessage>{backupMessage.text}</WarningMessage>
+                            ) : (
+                                <ErrorMessage>{backupMessage.text}</ErrorMessage>
+                            )}
+                        </>
+                    )}
+                </BackupScheduleCard>
 
                 <UsersTableSection css={tw`mt-8`}>
                     <UsersTable />

@@ -73,11 +73,11 @@ class InitiateBackupService
      * @throws \Pterodactyl\Exceptions\Service\Backup\TooManyBackupsException
      * @throws \Symfony\Component\HttpKernel\Exception\TooManyRequestsHttpException
      */
-    public function handle(Server $server, string $name = null, bool $override = false): Backup
+    public function handle(Server $server, string $name = null, bool $override = false, bool $bypassThrottle = false): Backup
     {
         $limit = config('backups.throttles.limit');
         $period = config('backups.throttles.period');
-        if ($period > 0) {
+        if ($period > 0 && !$bypassThrottle) {
             $previous = $this->repository->getBackupsGeneratedDuringTimespan($server->id, $period);
             if ($previous->count() >= $limit) {
                 $message = sprintf('Only %d backups may be generated within a %d second span of time.', $limit, $period);

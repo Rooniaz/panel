@@ -16,6 +16,17 @@ http.interceptors.request.use((req) => {
         store.getActions().progress.startContinuous();
     }
 
+    // Add CSRF token for POST/PUT/PATCH/DELETE requests
+    if (['post', 'put', 'patch', 'delete'].includes(req.method?.toLowerCase() || '')) {
+        // Try to get CSRF token from meta tag
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') ||
+                         document.querySelector('meta[name="_token"]')?.getAttribute('content');
+        
+        if (csrfToken) {
+            req.headers['X-CSRF-TOKEN'] = csrfToken;
+        }
+    }
+
     return req;
 });
 
