@@ -7,6 +7,7 @@ use Illuminate\Http\Response;
 use Illuminate\Auth\AuthManager;
 use Illuminate\Http\JsonResponse;
 use Pterodactyl\Facades\Activity;
+use Pterodactyl\Models\UserMenuOrder;
 use Pterodactyl\Services\Users\UserUpdateService;
 use Pterodactyl\Transformers\Api\Client\AccountTransformer;
 use Pterodactyl\Http\Requests\Api\Client\Account\UpdateEmailRequest;
@@ -71,5 +72,46 @@ class AccountController extends ClientApiController
         Activity::event('user:account.password-changed')->log();
 
         return new JsonResponse([], Response::HTTP_NO_CONTENT);
+    }
+
+    /**
+     * Get menu order for the authenticated user.
+     */
+    public function getMenuOrder(Request $request): JsonResponse
+    {
+        $orders = UserMenuOrder::where('user_id', $request->user()->id)
+            ->orderBy('order')
+            ->pluck('menu_path')
+            ->toArray();
+
+        return new JsonResponse(['orders' => $orders]);
+    }
+
+    /**
+     * Update menu order for the authenticated user.
+     */
+    public function updateMenuOrder(Request $request): JsonResponse
+    {
+        $request->validate([
+            'orders' => 'required|array',
+            'orders.*' => 'required|string',
+        ]);
+
+        $userId = $request->user()->id;
+        $orders = $request->input('orders');
+
+        // Delete existing orders
+        UserMenuOrder::where('user_id', $userId)->delete();
+
+        // Insert new orders
+        foreach ($orders as $index => $menuPath) {
+            UserMenuOrder::create([
+                'user_id' => $userId,
+                'menu_path' => $menuPath,
+                'order' => $index,
+            ]);
+        }
+
+        return new JsonResponse(['success' => true]);
     }
 }

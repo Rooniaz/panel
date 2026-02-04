@@ -38,6 +38,8 @@ import { useLocation } from 'react-router';
 import ConflictStateRenderer from '@/components/server/ConflictStateRenderer';
 import PermissionRoute from '@/components/elements/PermissionRoute';
 import routes from '@/routers/routes';
+import getMenuOrder from '@/api/account/getMenuOrder';
+import updateMenuOrder from '@/api/account/updateMenuOrder';
 
 const MainContent = styled.div`
     ${tw`ml-0 lg:ml-64 min-h-screen relative`}
@@ -54,6 +56,9 @@ export default () => {
 
     const rootAdmin = useStoreState((state) => state.user.data!.rootAdmin);
     const [error, setError] = useState('');
+    const [menuOrders, setMenuOrders] = useState<Record<string, number>>({});
+    const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+    const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
 
     const id = ServerContext.useStoreState((state) => state.server.data?.id);
     const uuid = ServerContext.useStoreState((state) => state.server.data?.uuid);
@@ -168,6 +173,20 @@ export default () => {
             setError(httpErrorToHuman(error));
         });
 
+        // Load menu order
+        getMenuOrder()
+            .then((response) => {
+                // Convert array to object for easier lookup
+                const ordersObj = response.orders.reduce((acc, path, index) => {
+                    acc[path] = index;
+                    return acc;
+                }, {} as Record<string, number>);
+                setMenuOrders(ordersObj);
+            })
+            .catch(() => {
+                // Ignore error, use default order
+            });
+
         return () => {
             clearServerState();
         };
@@ -188,8 +207,8 @@ export default () => {
                         <CSSTransition timeout={150} classNames={'fade'} appear in>
                             <SubNavigation>
                                 <div>
-                                    {routes.server
-                                        .filter((route) => {
+                                    {(() => {
+                                        const filteredRoutes = routes.server.filter((route) => {
                                             // Hide Bedrock routes if server is not Bedrock
                                             if (!route.name) return false;
                                             if (route.path.startsWith('/bedrock/')) {
@@ -208,20 +227,93 @@ export default () => {
                                                 return !javaEditionRoutes.includes(route.path);
                                             }
                                             return true;
-                                        })
-                                        .map((route) =>
-                                            route.permission ? (
-                                                <Can key={route.path} action={route.permission} matchAny>
-                                                    <NavLink to={to(route.path, true)} exact={route.exact}>
-                                                        {renderNavLabel(route.name)}
-                                                    </NavLink>
-                                                </Can>
-                                            ) : (
-                                                <NavLink key={route.path} to={to(route.path, true)} exact={route.exact}>
+                                        });
+
+                                        // Sort routes by menu order
+                                        const sortedRoutes = [...filteredRoutes].sort((a, b) => {
+                                            const orderA = menuOrders[a.path] ?? 999;
+                                            const orderB = menuOrders[b.path] ?? 999;
+                                            return orderA - orderB;
+                                        });
+
+                                        const handleDragStart = (e: React.DragEvent, index: number) => {
+                                            setDraggedIndex(index);
+                                            e.dataTransfer.effectAllowed = 'move';
+                                            e.dataTransfer.setData('text/html', '');
+                                        };
+
+                                        const handleDragOver = (e: React.DragEvent, index: number) => {
+                                            e.preventDefault();
+                                            e.dataTransfer.dropEffect = 'move';
+                                            setDragOverIndex(index);
+                                        };
+
+                                        const handleDragLeave = () => {
+                                            setDragOverIndex(null);
+                                        };
+
+                                        const handleDrop = async (e: React.DragEvent, dropIndex: number) => {
+                                            e.preventDefault();
+                                            setDragOverIndex(null);
+
+                                            if (draggedIndex === null || draggedIndex === dropIndex) {
+                                                setDraggedIndex(null);
+                                                return;
+                                            }
+
+                                            const newRoutes = [...sortedRoutes];
+                                            const [removed] = newRoutes.splice(draggedIndex, 1);
+                                            newRoutes.splice(dropIndex, 0, removed);
+
+                                            // Update menu order
+                                            const newOrders: string[] = newRoutes.map((r) => r.path);
+                                            try {
+                                                await updateMenuOrder(newOrders);
+                                                setMenuOrders(
+                                                    newOrders.reduce((acc, path, index) => {
+                                                        acc[path] = index;
+                                                        return acc;
+                                                    }, {} as Record<string, number>)
+                                                );
+                                            } catch (error) {
+                                                console.error('Failed to update menu order:', error);
+                                            }
+
+                                            setDraggedIndex(null);
+                                        };
+
+                                        return sortedRoutes.map((route, index) => {
+                                            const isDragging = draggedIndex === index;
+                                            const isDragOver = dragOverIndex === index;
+
+                                            const navLinkContent = (
+                                                <NavLink
+                                                    to={to(route.path, true)}
+                                                    exact={route.exact}
+                                                    draggable
+                                                    onDragStart={(e) => handleDragStart(e, index)}
+                                                    onDragOver={(e) => handleDragOver(e, index)}
+                                                    onDragLeave={handleDragLeave}
+                                                    onDrop={(e) => handleDrop(e, index)}
+                                                    style={{
+                                                        opacity: isDragging ? 0.5 : 1,
+                                                        transform: isDragOver ? 'translateX(10px)' : 'translateX(0)',
+                                                        cursor: 'grab',
+                                                    }}
+                                                >
                                                     {renderNavLabel(route.name)}
                                                 </NavLink>
-                                            )
-                                        )}
+                                            );
+
+                                            return route.permission ? (
+                                                <Can key={route.path} action={route.permission} matchAny>
+                                                    {navLinkContent}
+                                                </Can>
+                                            ) : (
+                                                <React.Fragment key={route.path}>{navLinkContent}</React.Fragment>
+                                            );
+                                        });
+                                    })()}
                                     {rootAdmin && (
                                         // eslint-disable-next-line react/jsx-no-target-blank
                                         <a href={`/admin/servers/view/${serverId}`} target={'_blank'}>
