@@ -18,6 +18,34 @@ import asModal from '@/hoc/asModal';
 import PermissionRow from '@/components/server/users/PermissionRow';
 import ModalContext from '@/context/ModalContext';
 
+// Thai translations for permission categories
+const PERMISSION_CATEGORY_NAMES: Record<string, string> = {
+    control: 'การควบคุม',
+    user: 'ผู้ใช้',
+    file: 'ไฟล์',
+    backup: 'แบ็คอัพ',
+    database: 'ฐานข้อมูล',
+    schedule: 'ตารางเวลา',
+    allocation: 'การจัดสรร',
+    startup: 'เริ่มต้น',
+    activity: 'ประวัติ',
+    websocket: 'Websocket',
+};
+
+// Thai translations for permission descriptions
+const PERMISSION_DESCRIPTIONS: Record<string, string> = {
+    control: 'สิทธิ์ที่ควบคุมความสามารถของผู้ใช้ในการควบคุมสถานะพลังงานของเซิร์ฟเวอร์ หรือส่งคำสั่ง',
+    user: 'สิทธิ์ที่อนุญาตให้ผู้ใช้จัดการผู้ใช้ย่อยอื่นๆ บนเซิร์ฟเวอร์ พวกเขาจะไม่สามารถแก้ไขบัญชีของตัวเอง หรือกำหนดสิทธิ์ที่พวกเขาไม่มี',
+    file: 'สิทธิ์ที่ควบคุมการเข้าถึงระบบไฟล์ของเซิร์ฟเวอร์',
+    backup: 'สิทธิ์ที่ควบคุมการเข้าถึงการสำรองข้อมูลของเซิร์ฟเวอร์',
+    database: 'สิทธิ์ที่ควบคุมการเข้าถึงฐานข้อมูลของเซิร์ฟเวอร์',
+    schedule: 'สิทธิ์ที่ควบคุมการเข้าถึงตารางเวลาของเซิร์ฟเวอร์',
+    allocation: 'สิทธิ์ที่ควบคุมการเข้าถึงการจัดสรรเครือข่ายของเซิร์ฟเวอร์',
+    startup: 'สิทธิ์ที่ควบคุมการเข้าถึงการตั้งค่าเริ่มต้นของเซิร์ฟเวอร์',
+    activity: 'สิทธิ์ที่ควบคุมการเข้าถึงประวัติการใช้งานของเซิร์ฟเวอร์',
+    websocket: 'อนุญาตให้ผู้ใช้เชื่อมต่อกับ websocket ของเซิร์ฟเวอร์ เพื่อดูผลลัพธ์คอนโซลและสถิติเซิร์ฟเวอร์แบบเรียลไทม์',
+};
+
 type Props = {
     subuser?: Subuser;
 };
@@ -96,9 +124,9 @@ const EditSubuserModal = ({ subuser }: Props) => {
             }
             validationSchema={object().shape({
                 email: string()
-                    .max(191, 'Email addresses must not exceed 191 characters.')
-                    .email('A valid email address must be provided.')
-                    .required('A valid email address must be provided.'),
+                    .max(191, 'อีเมลต้องไม่เกิน 191 ตัวอักษร')
+                    .email('ต้องระบุอีเมลที่ถูกต้อง')
+                    .required('ต้องระบุอีเมลที่ถูกต้อง'),
                 permissions: array().of(string()),
             })}
         >
@@ -106,12 +134,12 @@ const EditSubuserModal = ({ subuser }: Props) => {
                 <div css={tw`flex justify-between`}>
                     <h2 css={tw`text-2xl`} ref={ref}>
                         {subuser
-                            ? `${canEditUser ? 'Modify' : 'View'} permissions for ${subuser.email}`
-                            : 'Create new subuser'}
+                            ? `${canEditUser ? 'แก้ไข' : 'ดู'} สิทธิ์สำหรับ ${subuser.email}`
+                            : 'สร้างผู้ใช้ย่อยใหม่'}
                     </h2>
                     <div>
                         <Button type={'submit'} css={tw`w-full sm:w-auto`}>
-                            {subuser ? 'Save' : 'Invite User'}
+                            {subuser ? 'บันทึก' : 'เชิญผู้ใช้'}
                         </Button>
                     </div>
                 </div>
@@ -119,8 +147,7 @@ const EditSubuserModal = ({ subuser }: Props) => {
                 {!isRootAdmin && loggedInPermissions[0] !== '*' && (
                     <div css={tw`mt-4 pl-4 py-2 border-l-4 border-cyan-400`}>
                         <p css={tw`text-sm text-neutral-300`}>
-                            Only permissions which your account is currently assigned may be selected when creating or
-                            modifying other users.
+                            คุณสามารถเลือกได้เฉพาะสิทธิ์ที่บัญชีของคุณได้รับมอบหมายเท่านั้นเมื่อสร้างหรือแก้ไขผู้ใช้อื่น
                         </p>
                     </div>
                 )}
@@ -128,10 +155,8 @@ const EditSubuserModal = ({ subuser }: Props) => {
                     <div css={tw`mt-6`}>
                         <Field
                             name={'email'}
-                            label={'User Email'}
-                            description={
-                                'Enter the email address of the user you wish to invite as a subuser for this server.'
-                            }
+                            label={'อีเมลผู้ใช้'}
+                            description={'กรอกอีเมลของผู้ใช้ที่คุณต้องการเชิญเป็นผู้ใช้ย่อยสำหรับเซิร์ฟเวอร์นี้'}
                         />
                     </div>
                 )}
@@ -141,12 +166,14 @@ const EditSubuserModal = ({ subuser }: Props) => {
                         .map((key, index) => (
                             <PermissionTitleBox
                                 key={`permission_${key}`}
-                                title={key}
+                                title={PERMISSION_CATEGORY_NAMES[key] || key}
                                 isEditable={canEditUser}
                                 permissions={Object.keys(permissions[key].keys).map((pkey) => `${key}.${pkey}`)}
                                 css={index > 0 ? tw`mt-4` : undefined}
                             >
-                                <p css={tw`text-sm text-neutral-400 mb-4`}>{permissions[key].description}</p>
+                                <p css={tw`text-sm text-neutral-400 mb-4`}>
+                                    {PERMISSION_DESCRIPTIONS[key] || permissions[key].description}
+                                </p>
                                 {Object.keys(permissions[key].keys).map((pkey) => (
                                     <PermissionRow
                                         key={`permission_${key}.${pkey}`}
@@ -160,7 +187,7 @@ const EditSubuserModal = ({ subuser }: Props) => {
                 <Can action={subuser ? 'user.update' : 'user.create'}>
                     <div css={tw`pb-6 flex justify-end`}>
                         <Button type={'submit'} css={tw`w-full sm:w-auto`}>
-                            {subuser ? 'Save' : 'Invite User'}
+                            {subuser ? 'บันทึก' : 'เชิญผู้ใช้'}
                         </Button>
                     </div>
                 </Can>

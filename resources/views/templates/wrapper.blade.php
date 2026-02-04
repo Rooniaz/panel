@@ -32,8 +32,21 @@
             @endif
         @show
         <style>
-            @import url('//fonts.googleapis.com/css?family=Rubik:300,400,500&display=swap');
-            @import url('//fonts.googleapis.com/css?family=IBM+Plex+Mono|IBM+Plex+Sans:500&display=swap');
+            @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Noto+Sans+Thai:wght@300;400;500;600;700;800;900&display=swap');
+            @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+            
+            /* Font optimization */
+            body, * {
+                font-family: 'Inter', 'Noto Sans Thai', system-ui, -apple-system, sans-serif;
+                -webkit-font-smoothing: antialiased;
+                -moz-osx-font-smoothing: grayscale;
+                text-rendering: optimizeLegibility;
+                font-feature-settings: 'kern' 1, 'liga' 1, 'calt' 1;
+            }
+            
+            code, pre, .font-mono {
+                font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+            }
         </style>
 
         @yield('assets')

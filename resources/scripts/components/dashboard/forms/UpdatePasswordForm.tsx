@@ -17,15 +17,11 @@ interface Values {
 }
 
 const schema = Yup.object().shape({
-    current: Yup.string().min(1).required('You must provide your current password.'),
-    password: Yup.string().min(8).required(),
-    confirmPassword: Yup.string().test(
-        'password',
-        'Password confirmation does not match the password you entered.',
-        function (value) {
-            return value === this.parent.password;
-        }
-    ),
+    current: Yup.string().min(1).required('คุณต้องระบุรหัสผ่านปัจจุบันของคุณ'),
+    password: Yup.string().min(8, 'รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร').required('คุณต้องระบุรหัสผ่านใหม่'),
+    confirmPassword: Yup.string().test('password', 'รหัสผ่านยืนยันไม่ตรงกับรหัสผ่านที่คุณระบุ', function (value) {
+        return value === this.parent.password;
+    }),
 });
 
 export default () => {
@@ -47,7 +43,7 @@ export default () => {
                 addFlash({
                     key: 'account:password',
                     type: 'error',
-                    title: 'Error',
+                    title: 'เกิดข้อผิดพลาด',
                     message: httpErrorToHuman(error),
                 })
             )
@@ -69,16 +65,16 @@ export default () => {
                                 id={'current_password'}
                                 type={'password'}
                                 name={'current'}
-                                label={'Current Password'}
+                                label={'รหัสผ่านปัจจุบัน'}
                             />
                             <div css={tw`mt-6`}>
                                 <Field
                                     id={'new_password'}
                                     type={'password'}
                                     name={'password'}
-                                    label={'New Password'}
+                                    label={'รหัสผ่านใหม่'}
                                     description={
-                                        'Your new password should be at least 8 characters in length and unique to this website.'
+                                        'รหัสผ่านใหม่ของคุณควรมีความยาวอย่างน้อย 8 ตัวอักษรและไม่ซ้ำกับเว็บไซต์อื่น'
                                     }
                                 />
                             </div>
@@ -87,11 +83,11 @@ export default () => {
                                     id={'confirm_new_password'}
                                     type={'password'}
                                     name={'confirmPassword'}
-                                    label={'Confirm New Password'}
+                                    label={'ยืนยันรหัสผ่านใหม่'}
                                 />
                             </div>
                             <div css={tw`mt-6`}>
-                                <Button disabled={isSubmitting || !isValid}>Update Password</Button>
+                                <Button disabled={isSubmitting || !isValid}>เปลี่ยนรหัสผ่าน</Button>
                             </div>
                         </Form>
                     </React.Fragment>

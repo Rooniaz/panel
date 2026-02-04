@@ -9,18 +9,33 @@ import TrueMoneyTab from './TrueMoneyTab';
 import HistoryTab from './HistoryTab';
 
 const Container = styled.div`
-    ${tw`min-h-screen py-4 sm:py-6 lg:py-8 lg:ml-64`}
-    background-color: #0c1226;
+    ${tw`min-h-screen py-4 sm:py-6 lg:py-8 lg:ml-64 flex items-center justify-center relative`}
+    background: transparent;
+    position: relative;
+    z-index: 1;
+
+    &::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: radial-gradient(circle at 10% 20%, rgba(59, 130, 246, 0.05) 0%, transparent 50%),
+            radial-gradient(circle at 90% 80%, rgba(99, 102, 241, 0.04) 0%, transparent 50%);
+        pointer-events: none;
+        z-index: 0;
+    }
 `;
 Container.displayName = 'TopupContainer.Container';
 
 const InnerContainer = styled.div`
-    ${tw`max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8`}
+    ${tw`max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 w-full`}
 `;
 InnerContainer.displayName = 'TopupContainer.InnerContainer';
 
 const SelectionCard = styled.div<{ $selected: boolean }>`
-    ${tw`relative rounded-xl sm:rounded-2xl p-4 sm:p-6 md:p-8 border-2 transition-all duration-300 cursor-pointer`}
+    ${tw`relative rounded-xl sm:rounded-2xl p-4 sm:p-6 md:p-8 border-2 transition-all duration-300 cursor-pointer flex flex-col h-full w-full`}
     background: linear-gradient(135deg, rgba(30, 41, 59, 0.9) 0%, rgba(15, 23, 42, 0.95) 100%);
     border: 2px solid rgba(255, 255, 255, 0.1);
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.05),
@@ -62,12 +77,15 @@ const CardTitle = styled.h2`
 CardTitle.displayName = 'TopupContainer.CardTitle';
 
 const CardDescription = styled.p`
-    ${tw`text-neutral-400 text-center text-xs sm:text-sm leading-relaxed`}
+    ${tw`text-neutral-400 text-center text-xs sm:text-sm leading-relaxed flex-grow`}
 `;
 CardDescription.displayName = 'TopupContainer.CardDescription';
 
 const OptionsGrid = styled.div`
-    ${tw`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8`}
+    ${tw`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8 items-stretch`}
+    max-width: 1200px;
+    margin-left: auto;
+    margin-right: auto;
 `;
 OptionsGrid.displayName = 'TopupContainer.OptionsGrid';
 

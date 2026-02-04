@@ -2,9 +2,16 @@ import tw from 'twin.macro';
 import { createGlobalStyle } from 'styled-components/macro';
 
 export default createGlobalStyle`
+    * {
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        text-rendering: optimizeLegibility;
+    }
+
     body {
         ${tw`font-sans text-neutral-200`};
         letter-spacing: 0.015em;
+        font-feature-settings: 'kern' 1, 'liga' 1, 'calt' 1;
         background: 
             radial-gradient(circle at 20% 50%, rgba(59, 130, 246, 0.15) 0%, transparent 50%),
             radial-gradient(circle at 80% 80%, rgba(99, 102, 241, 0.12) 0%, transparent 50%),

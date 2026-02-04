@@ -99,7 +99,7 @@ export interface SubscriptionPlan {
 const plans: SubscriptionPlan[] = [
     {
         id: 'plus',
-        name: 'MineLan Plus',
+        name: 'Plus',
         description: 'แพ็กเกจระดับเริ่มต้นพร้อมสิทธิพิเศษ',
         price: 59,
         icon: faStar,
@@ -111,7 +111,7 @@ const plans: SubscriptionPlan[] = [
     },
     {
         id: 'pro',
-        name: 'MineLan Pro',
+        name: 'Pro',
         description: 'แพ็กเกจระดับกลางพร้อมสิทธิพิเศษเพิ่มเติม',
         price: 79,
         icon: faCrown,
@@ -125,7 +125,7 @@ const plans: SubscriptionPlan[] = [
     },
     {
         id: 'ultra',
-        name: 'MineLan Ultra',
+        name: 'Ultra',
         description: 'แพ็กเกจระดับสูงสุดพร้อมสิทธิเหนือระดับ',
         price: 159,
         icon: faAward,
