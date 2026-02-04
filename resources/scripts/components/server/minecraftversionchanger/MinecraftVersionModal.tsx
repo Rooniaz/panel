@@ -260,7 +260,7 @@ export default ({ visible, forkType, forkInfo, onDismissed, onVersionChanged }: 
             }
         });
         if (!selectedBuildObject) {
-            addError({ key: 'minecraft:version:modal', message: 'Selected build not found' });
+            addError({ key: 'minecraft:version:modal', message: 'ไม่พบ build ที่เลือก' });
             return;
         }
 
@@ -286,7 +286,7 @@ export default ({ visible, forkType, forkInfo, onDismissed, onVersionChanged }: 
     };
 
     return (
-        <Dialog title={`Change Minecraft Version for ${forkInfo.name}`} open={showModal} onClose={handleClose}>
+        <Dialog title={`เปลี่ยนเวอร์ชัน Minecraft สำหรับ ${forkInfo.name}`} open={showModal} onClose={handleClose}>
             <FlashMessageRender byKey='minecraft:version:modal' css={tw`mb-4`} />
 
             <div className='flex flex-col'>
@@ -298,7 +298,7 @@ export default ({ visible, forkType, forkInfo, onDismissed, onVersionChanged }: 
                     <>
                         <div className='mb-6'>
                             <label htmlFor='version' className='block text-sm font-medium text-gray-400 mb-1'>
-                                Minecraft Version
+                                เวอร์ชัน Minecraft
                             </label>
                             <Select
                                 id='version'
@@ -354,8 +354,8 @@ export default ({ visible, forkType, forkInfo, onDismissed, onVersionChanged }: 
                             <div className='bg-neutral-700 border border-neutral-800 shadow-inner p-4 rounded'>
                                 <Switch
                                     name='delete_server_files'
-                                    label='Delete Server Files'
-                                    description='This will Wipe all files on your server before changing version.'
+                                    label='ลบไฟล์เซิร์ฟเวอร์'
+                                    description='การกระทำนี้จะลบไฟล์ทั้งหมดในเซิร์ฟเวอร์ของคุณก่อนเปลี่ยนเวอร์ชัน'
                                     defaultChecked={deleteServerFiles}
                                     onChange={(e) => setDeleteServerFiles(e.target.checked)}
                                     readOnly={loading}
@@ -365,8 +365,8 @@ export default ({ visible, forkType, forkInfo, onDismissed, onVersionChanged }: 
                             <div className='bg-neutral-700 border border-neutral-800 shadow-inner p-4 rounded mt-4'>
                                 <Switch
                                     name='accept_eula'
-                                    label='Accept EULA'
-                                    description='By enabling this option you confirm that you have read and accept the Minecraft EULA. (https://minecraft.net/eula)'
+                                    label='ยอมรับ EULA'
+                                    description='การเปิดใช้งานตัวเลือกนี้คุณยืนยันว่าคุณได้อ่านและยอมรับ Minecraft EULA แล้ว (https://minecraft.net/eula)'
                                     defaultChecked={acceptEula}
                                     onChange={(e) => setAcceptEula(e.target.checked)}
                                     readOnly={loading}
@@ -379,14 +379,14 @@ export default ({ visible, forkType, forkInfo, onDismissed, onVersionChanged }: 
 
             <Dialog.Footer>
                 <Button.Text onClick={handleClose} className='w-full sm:w-auto'>
-                    Cancel
+                    ยกเลิก
                 </Button.Text>
                 <Button
                     onClick={submit}
                     disabled={loading || !selectedVersion || !selectedBuild}
                     className='w-full sm:w-auto'
                 >
-                    Change Version
+                    เปลี่ยนเวอร์ชัน
                 </Button>
             </Dialog.Footer>
         </Dialog>

@@ -218,9 +218,9 @@ export default memo(({ server, backgroundImage }: ServerCardProps) => {
         alarms.disk = server.limits.disk === 0 ? false : isAlarmState(stats.diskUsageInBytes, server.limits.disk);
     }
 
-    const diskLimit = server.limits.disk !== 0 ? bytesToString(mbToBytes(server.limits.disk)) : 'Unlimited';
-    const memoryLimit = server.limits.memory !== 0 ? bytesToString(mbToBytes(server.limits.memory)) : 'Unlimited';
-    const cpuLimit = server.limits.cpu !== 0 ? server.limits.cpu + ' %' : 'Unlimited';
+    const diskLimit = server.limits.disk !== 0 ? bytesToString(mbToBytes(server.limits.disk)) : 'ไม่จำกัด';
+    const memoryLimit = server.limits.memory !== 0 ? bytesToString(mbToBytes(server.limits.memory)) : 'ไม่จำกัด';
+    const cpuLimit = server.limits.cpu !== 0 ? server.limits.cpu + ' %' : 'ไม่จำกัด';
 
     // Determine game type for subtitle display
     const getGameType = (eggName?: string, description?: string, serverName?: string): string => {
@@ -275,18 +275,18 @@ export default memo(({ server, backgroundImage }: ServerCardProps) => {
                 {!stats || isSuspended ? (
                     <div css={tw`mt-auto`}>
                         {isSuspended ? (
-                            <StatusBadge $status={stats?.status}>
-                                {server.status === 'suspended' ? 'Suspended' : 'Connection Error'}
-                            </StatusBadge>
+                        <StatusBadge $status={stats?.status}>
+                            {server.status === 'suspended' ? 'ระงับ' : 'ข้อผิดพลาดการเชื่อมต่อ'}
+                        </StatusBadge>
                         ) : server.isTransferring || server.status ? (
                             <StatusBadge $status={stats?.status}>
                                 {server.isTransferring
-                                    ? 'Transferring'
+                                    ? 'กำลังโอนย้าย'
                                     : server.status === 'installing'
-                                    ? 'Installing'
+                                    ? 'กำลังติดตั้ง'
                                     : server.status === 'restoring_backup'
-                                    ? 'Restoring Backup'
-                                    : 'Unavailable'}
+                                    ? 'กำลังกู้คืนสำรอง'
+                                    : 'ไม่พร้อมใช้งาน'}
                             </StatusBadge>
                         ) : (
                             <div css={tw`flex justify-center items-center py-8`}>
@@ -298,10 +298,10 @@ export default memo(({ server, backgroundImage }: ServerCardProps) => {
                     <>
                         <StatusBadge $status={stats.status}>
                             {stats.status === 'running'
-                                ? 'Online'
+                                ? 'ออนไลน์'
                                 : stats.status === 'offline'
-                                ? 'Offline'
-                                : 'Starting'}
+                                ? 'ออฟไลน์'
+                                : 'กำลังเริ่ม'}
                         </StatusBadge>
                         <StatsContainer>
                             <StatRow $alarm={alarms.cpu}>
@@ -309,7 +309,7 @@ export default memo(({ server, backgroundImage }: ServerCardProps) => {
                                     <StatIcon icon={faMicrochip} $alarm={alarms.cpu} />
                                     <StatInfo>
                                         <StatValue>
-                                            {stats.cpuUsagePercent.toFixed(2)} % of {cpuLimit}
+                                            {stats.cpuUsagePercent.toFixed(2)}% จาก {cpuLimit}
                                         </StatValue>
                                     </StatInfo>
                                 </div>
@@ -319,7 +319,7 @@ export default memo(({ server, backgroundImage }: ServerCardProps) => {
                                     <StatIcon icon={faMemory} $alarm={alarms.memory} />
                                     <StatInfo>
                                         <StatValue>
-                                            {bytesToString(stats.memoryUsageInBytes)} of {memoryLimit}
+                                            {bytesToString(stats.memoryUsageInBytes)} จาก {memoryLimit}
                                         </StatValue>
                                     </StatInfo>
                                 </div>
@@ -329,7 +329,7 @@ export default memo(({ server, backgroundImage }: ServerCardProps) => {
                                     <StatIcon icon={faHdd} $alarm={alarms.disk} />
                                     <StatInfo>
                                         <StatValue>
-                                            {bytesToString(stats.diskUsageInBytes)} of {diskLimit}
+                                            {bytesToString(stats.diskUsageInBytes)} จาก {diskLimit}
                                         </StatValue>
                                     </StatInfo>
                                 </div>

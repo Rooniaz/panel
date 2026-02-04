@@ -73,6 +73,7 @@ class ServerTransformer extends BaseClientTransformer
             // This field is deprecated, please use "status".
             'is_installing' => !$server->isInstalled(),
             'is_transferring' => !is_null($server->transfer),
+            'created_at' => $server->created_at->toAtomString(),
         ];
     }
 

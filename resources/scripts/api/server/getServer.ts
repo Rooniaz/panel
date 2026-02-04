@@ -49,6 +49,7 @@ export interface Server {
         name: string;
         nest_id: number;
     };
+    createdAt: Date;
 }
 
 export const rawDataToServerObject = ({ attributes: data }: FractalResponseData): Server => ({
@@ -85,6 +86,7 @@ export const rawDataToServerObject = ({ attributes: data }: FractalResponseData)
                   nest_id: (data.relationships.egg as FractalResponseData).attributes.nest_id,
               }
             : undefined,
+    createdAt: new Date(data.created_at),
 });
 
 export default (uuid: string): Promise<[Server, string[]]> => {

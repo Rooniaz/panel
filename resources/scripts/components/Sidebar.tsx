@@ -240,12 +240,14 @@ export default () => {
                         </MenuIcon>
                         <MenuText>สถานะเซิร์ฟเวอร์</MenuText>
                     </AdminMenuItem>
-                    <MenuItem to={'/subscription'}>
-                        <MenuIcon>
-                            <FontAwesomeIcon icon={faCrown} />
-                        </MenuIcon>
-                        <MenuText>สถานะสมาชิก</MenuText>
-                    </MenuItem>
+                    {rootAdmin && (
+                        <MenuItem to={'/subscription'}>
+                            <MenuIcon>
+                                <FontAwesomeIcon icon={faCrown} />
+                            </MenuIcon>
+                            <MenuText>สถานะสมาชิก</MenuText>
+                        </MenuItem>
+                    )}
                     <MenuItem to={'/topup'}>
                         <MenuIcon>
                             <FontAwesomeIcon icon={faCreditCard} />

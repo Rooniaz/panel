@@ -45,7 +45,7 @@ export default ({ provider, modpack, className }: Props) => {
                 addFlash({
                     key: 'modpacks',
                     type: 'success',
-                    message: 'Your server has begun the modpack installation process.',
+                    message: 'เซิร์ฟเวอร์ของคุณได้เริ่มกระบวนการติดตั้ง modpack แล้ว',
                 });
             })
             .catch((error) => {
@@ -77,18 +77,18 @@ export default ({ provider, modpack, className }: Props) => {
     return (
         <>
             <Dialog.Confirm
-                title={'Install modpack'}
-                confirm={'Install modpack'}
+                title={'ติดตั้ง Modpack'}
+                confirm={'ติดตั้ง Modpack'}
                 open={installDialogVisible}
                 onClose={() => setInstallDialogVisible(false)}
                 onConfirmed={installModpack}
             >
                 <p>
-                    You requested the installation of the modpack &quot;{modpack.name}&quot; from the {provider}{' '}
-                    provider. Please select the desired modpack version below.
+                    คุณได้ร้องขอการติดตั้ง modpack &quot;{modpack.name}&quot; จากผู้ให้บริการ {provider}{' '}
+                    กรุณาเลือกเวอร์ชัน modpack ที่ต้องการด้านล่าง
                 </p>
                 <Label className={'mt-3'} htmlFor='modpack_version_id'>
-                    Modpack version
+                    เวอร์ชัน Modpack
                 </Label>
                 <Select
                     name='modpack_version_id'
@@ -103,8 +103,7 @@ export default ({ provider, modpack, className }: Props) => {
                     ))}
                 </Select>
                 <p css={tw`mt-3`}>
-                    Please note that modpack updates can cause world corruption. You are strongly advised to make a
-                    backup before updating a modpack.
+                    โปรดทราบว่าการอัปเดต modpack อาจทำให้โลกเสียหายได้ คุณควรสำรองข้อมูลก่อนอัปเดต modpack
                 </p>
                 <div css={tw`mt-6 bg-neutral-700 p-4 rounded`}>
                     <Switch
@@ -113,8 +112,8 @@ export default ({ provider, modpack, className }: Props) => {
                             setDeleteServerFiles((s) => !s);
                         }}
                         name='delete_files'
-                        label='Delete files'
-                        description='Delete all your server files before installing the modpack. This is irreversible!'
+                        label='ลบไฟล์'
+                        description='ลบไฟล์ทั้งหมดในเซิร์ฟเวอร์ของคุณก่อนติดตั้ง modpack การกระทำนี้ไม่สามารถย้อนกลับได้!'
                     />
                 </div>
             </Dialog.Confirm>

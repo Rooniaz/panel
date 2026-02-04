@@ -5,30 +5,88 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faHeadset } from '@fortawesome/free-solid-svg-icons';
 
 const Container = styled.div`
-    ${tw`flex items-center justify-center relative lg:ml-64 lg:pt-32`}
+    ${tw`flex items-center justify-center relative lg:ml-64 lg:pt-32 min-h-screen`}
+    background: radial-gradient(circle at 20% 30%, rgba(59, 130, 246, 0.15) 0%, transparent 50%),
+        radial-gradient(circle at 80% 70%, rgba(139, 92, 246, 0.15) 0%, transparent 50%);
 `;
 
 const ContactCard = styled.div`
-    ${tw`bg-neutral-800 rounded-xl p-8 max-w-md w-full relative z-10`}
-    border: 2px solid rgba(34, 211, 238, 0.4);
-    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(34, 211, 238, 0.1);
+    ${tw`rounded-2xl p-10 max-w-lg w-full relative z-10`}
+    background: linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(15, 23, 42, 0.98) 100%);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.6),
+        0 0 0 1px rgba(255, 255, 255, 0.05),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    position: relative;
+    overflow: hidden;
+
+    &::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: linear-gradient(90deg, 
+            transparent 0%,
+            rgba(59, 130, 246, 0.5) 25%,
+            rgba(139, 92, 246, 0.5) 75%,
+            transparent 100%
+        );
+        animation: shimmer 3s ease-in-out infinite;
+    }
+
+    @keyframes shimmer {
+        0%, 100% { opacity: 0.5; }
+        50% { opacity: 1; }
+    }
 `;
 
 const HeaderIcon = styled.div`
-    ${tw`w-20 h-20 bg-gradient-to-br from-blue-400 to-cyan-400 rounded-full flex items-center justify-center text-white text-3xl mx-auto mb-6`}
-    box-shadow: 0 10px 30px rgba(34, 211, 238, 0.5);
+    ${tw`w-24 h-24 rounded-2xl flex items-center justify-center text-white text-4xl mx-auto mb-6 relative`}
+    background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 50%, #06b6d4 100%);
+    box-shadow: 0 15px 40px rgba(59, 130, 246, 0.4),
+        0 0 0 1px rgba(255, 255, 255, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    transform: perspective(1000px) rotateY(0deg);
+    transition: transform 0.3s ease;
+
+    &:hover {
+        transform: perspective(1000px) rotateY(5deg) scale(1.05);
+    }
+
+    &::after {
+        content: '';
+        position: absolute;
+        inset: -2px;
+        border-radius: inherit;
+        padding: 2px;
+        background: linear-gradient(135deg, #3b82f6, #8b5cf6, #06b6d4);
+        -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+        -webkit-mask-composite: xor;
+        mask-composite: exclude;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    &:hover::after {
+        opacity: 0.5;
+    }
 `;
 
 const Title = styled.h1`
-    ${tw`text-3xl font-bold text-white text-center mb-4`}
+    ${tw`text-4xl font-bold text-center mb-3 bg-gradient-to-r from-blue-400 via-purple-400 to-cyan-400 bg-clip-text text-transparent`}
+    letter-spacing: -0.02em;
+    text-shadow: 0 0 30px rgba(59, 130, 246, 0.3);
 `;
 
 const Description = styled.p`
-    ${tw`text-neutral-300 text-center mb-2`}
+    ${tw`text-neutral-300 text-center mb-2 text-base leading-relaxed`}
 `;
 
 const Note = styled.p`
-    ${tw`text-neutral-400 text-sm text-center mb-8`}
+    ${tw`text-neutral-400 text-sm text-center mb-8 italic`}
 `;
 
 const ButtonsContainer = styled.div`
@@ -36,25 +94,51 @@ const ButtonsContainer = styled.div`
 `;
 
 const ContactButton = styled.a<{ $variant: 'facebook' | 'discord' }>`
-    ${tw`flex items-center justify-center space-x-3 px-6 py-4 rounded-lg font-semibold transition-all duration-300 flex-1`}
+    ${tw`flex items-center justify-center space-x-3 px-6 py-4 rounded-xl font-semibold transition-all duration-300 flex-1 relative overflow-hidden`}
     ${(props) =>
         props.$variant === 'facebook'
-            ? tw`bg-blue-600 hover:bg-blue-700 text-white`
-            : tw`bg-indigo-600 hover:bg-indigo-700 text-white`}
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            ? tw`bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white`
+            : tw`bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-700 hover:from-indigo-500 hover:via-purple-500 hover:to-indigo-600 text-white`}
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3),
+        0 0 0 1px rgba(255, 255, 255, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+
+    &::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+        transition: left 0.5s ease;
+    }
 
     &:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        transform: translateY(-3px) scale(1.02);
+        box-shadow: 0 12px 35px rgba(0, 0, 0, 0.4),
+            0 0 0 1px rgba(255, 255, 255, 0.2),
+            inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    }
+
+    &:hover::before {
+        left: 100%;
+    }
+
+    &:active {
+        transform: translateY(-1px) scale(0.98);
     }
 `;
 
 const ButtonIcon = styled.div`
-    ${tw`text-2xl`}
+    ${tw`text-2xl relative z-10`}
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
 `;
 
 const ButtonText = styled.span`
-    ${tw`text-lg`}
+    ${tw`text-lg relative z-10`}
+    font-weight: 600;
+    letter-spacing: 0.02em;
 `;
 
 export default () => {
@@ -68,13 +152,13 @@ export default () => {
                 <Description>สามารถติดต่อเราได้ที่ช่องทางต่อไปนี้หากพบปัญหาต่าง ๆ</Description>
                 <Note>(ขอความกรุณารอสักครู่ก่อนที่จะได้รับการตอบกลับ)</Note>
                 <ButtonsContainer>
-                    <ContactButton $variant='facebook' href='https://facebook.com' target='_blank' rel='noreferrer'>
+                    <ContactButton $variant='facebook' href='https://facebook.com' target='_blank' rel='noreferrer' className='group'>
                         <ButtonIcon>
                             <span className={'text-2xl font-bold'}>f</span>
                         </ButtonIcon>
                         <ButtonText>Facebook</ButtonText>
                     </ContactButton>
-                    <ContactButton $variant='discord' href='https://discord.gg/zajKr6bgS4' target='_blank' rel='noreferrer'>
+                    <ContactButton $variant='discord' href='https://discord.gg/zajKr6bgS4' target='_blank' rel='noreferrer' className='group'>
                         <ButtonIcon>
                             <svg
                                 width='24'

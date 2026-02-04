@@ -121,7 +121,7 @@ export default () => {
                 addFlash({
                     key: 'minecraft-maps',
                     message:
-                        "Map successfully scheduled for installation. It may never install if the downloaded archive can't be extracted",
+                        'แผนที่ถูกจัดตารางการติดตั้งเรียบร้อยแล้ว อาจไม่สามารถติดตั้งได้หากไฟล์ที่ดาวน์โหลดไม่สามารถแตกไฟล์ได้',
                     type: 'success',
                 });
                 mutateWorlds();
@@ -147,7 +147,7 @@ export default () => {
                         ))
                     ) : (
                         <p css={tw`text-center text-sm text-neutral-300`}>
-                            No &quot;Minecraft: Java Edition&quot; worlds have been detected.
+                            ไม่พบโลกของ &quot;Minecraft: Java Edition&quot;
                         </p>
                     )
                 ) : (
@@ -157,7 +157,7 @@ export default () => {
                 <FlashMessageRender byKey={'minecraft-maps'} css={tw`mb-4`} />
                 <div css={tw`flex flex-wrap gap-4`}>
                     <div css={tw`min-w-[112px]`}>
-                        <Label htmlFor='map_provider'>Provider</Label>
+                        <Label htmlFor='map_provider'>ผู้ให้บริการ</Label>
                         <Select
                             name='map_provider'
                             value={minecraftMapProvider}
@@ -171,7 +171,7 @@ export default () => {
                         </Select>
                     </div>
                     <div>
-                        <Label htmlFor={'page_size'}>Page size</Label>
+                        <Label htmlFor={'page_size'}>จำนวนต่อหน้า</Label>
                         <Select
                             name='page_size'
                             value={pageSize}
@@ -185,7 +185,7 @@ export default () => {
                         </Select>
                     </div>
                     <div css={tw`w-full md:w-auto md:flex-1`}>
-                        <Label htmlFor='search_query'>Search query</Label>
+                        <Label htmlFor='search_query'>ค้นหา</Label>
                         <Input
                             type='text'
                             name='search_query'
@@ -212,7 +212,7 @@ export default () => {
                                                     {map.name}
                                                 </a>
                                                 <button
-                                                    title='Install'
+                                                    title='ติดตั้ง'
                                                     css={tw`ml-auto text-neutral-400 hover:text-green-400 transition-colors duration-150`}
                                                     onClick={() => installMap(map.id)}
                                                 >
@@ -223,7 +223,7 @@ export default () => {
                                     </div>
                                 ) : (
                                     <p css={tw`text-center text-sm text-neutral-300`}>
-                                        No &quot;Minecraft: Java Edition&quot; maps have been found for your query.
+                                        ไม่พบแผนที่ของ &quot;Minecraft: Java Edition&quot; ตามคำค้นหาของคุณ
                                     </p>
                                 )
                             }

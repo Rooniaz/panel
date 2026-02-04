@@ -29,6 +29,44 @@ export type PowerAction = 'start' | 'stop' | 'restart' | 'kill';
 
 type Stats = Record<'memory' | 'cpu' | 'disk' | 'uptime', number>;
 
+const getStatusText = (status: string | null): string => {
+    if (!status) return 'ไม่ทราบสถานะ';
+    const statusMap: Record<string, string> = {
+        running: 'กำลังทำงาน',
+        offline: 'ออฟไลน์',
+        starting: 'กำลังเริ่ม',
+        stopping: 'กำลังหยุด',
+        suspended: 'ระงับ',
+        installing: 'กำลังติดตั้ง',
+        restoring_backup: 'กำลังกู้คืนสำรอง',
+        transferring: 'กำลังโอนย้าย',
+    };
+    return statusMap[status] || status;
+};
+
+const formatThaiDate = (date: Date | undefined | null): string => {
+    if (!date) return '—';
+    const thaiMonths = [
+        'มกราคม',
+        'กุมภาพันธ์',
+        'มีนาคม',
+        'เมษายน',
+        'พฤษภาคม',
+        'มิถุนายน',
+        'กรกฎาคม',
+        'สิงหาคม',
+        'กันยายน',
+        'ตุลาคม',
+        'พฤศจิกายน',
+        'ธันวาคม',
+    ];
+    const d = new Date(date);
+    const day = d.getDate();
+    const month = thaiMonths[d.getMonth()];
+    const year = d.getFullYear();
+    return `${day} ${month} ${year}`;
+};
+
 const formatLimit = (value?: number | null) => {
     if (!value) return null;
     return bytesToString(mbToBytes(value));
@@ -74,6 +112,7 @@ const ServerConsoleContainer = () => {
     const pteroInternalId = ServerContext.useStoreState((state) => state.server.data?.internalId);
     const pteroIdentifier = ServerContext.useStoreState((state) => state.server.data?.id);
     const pteroUuid = ServerContext.useStoreState((state) => state.server.data?.uuid);
+    const serverData = ServerContext.useStoreState((state) => state.server.data);
 
     const [stats, setStats] = useState<Stats>({ memory: 0, cpu: 0, disk: 0, uptime: 0 });
     const [billing, setBilling] = useState<ServerBilling | null>(null);
@@ -171,7 +210,7 @@ const ServerConsoleContainer = () => {
                         <div className={'min-w-0 flex-1'}>
                             <p className={'text-xs uppercase text-white/60 mb-1 flex items-center gap-1.5 sm:gap-2'}>
                                 <ServerIcon className={'w-3 h-3 sm:w-4 sm:h-4 text-sky-300 flex-shrink-0'} />
-                                <span className={'truncate'}>Minecraft Server</span>
+                                <span className={'truncate'}>เซิร์ฟเวอร์ Minecraft</span>
                             </p>
                             <h1
                                 className={
@@ -184,12 +223,22 @@ const ServerConsoleContainer = () => {
                                 {packageName || description || '—'}
                             </p>
                         </div>
-                        <span className={styles.badge}>{status ? status.toUpperCase() : 'UNKNOWN'}</span>
+                        <span
+                            className={`${styles.badge} ${
+                                !status || status === 'offline'
+                                    ? 'bg-red-500/20 text-red-100 border-red-300/30'
+                                    : status === 'running'
+                                    ? 'bg-green-500/20 text-green-100 border-green-300/30'
+                                    : 'bg-yellow-500/20 text-yellow-100 border-yellow-300/30'
+                            }`}
+                        >
+                            {getStatusText(status)}
+                        </span>
                     </div>
                     <div className={styles.pill_row}>
-                        <span className={styles.badge}>Console</span>
-                        <span className={styles.badge}>Bedrock</span>
-                        <span className={styles.badge}>Logs</span>
+                        <span className={styles.badge}>คอนโซล</span>
+                        <span className={styles.badge}>เบดร็อก</span>
+                        <span className={styles.badge}>บันทึก</span>
                     </div>
                     <div className={'space-y-2 mt-3'}>
                         <div className={styles.stat_row}>
@@ -233,15 +282,7 @@ const ServerConsoleContainer = () => {
                         <div className={'min-w-0 flex-1'}>
                             <p className={'text-xs uppercase text-white/60 mb-1 flex items-center gap-1.5 sm:gap-2'}>
                                 <LightningBoltIcon className={'w-3 h-3 sm:w-4 sm:h-4 text-sky-300 flex-shrink-0'} />
-                                <span className={'truncate'}>Control</span>
-                            </p>
-                            <p className={'text-xs sm:text-sm text-white/70 truncate'}>
-                                Uptime:{' '}
-                                {stats.uptime > 0 ? (
-                                    <UptimeDuration uptime={stats.uptime / 1000} />
-                                ) : (
-                                    <span className={'text-white/50'}>{status ? status : '—'}</span>
-                                )}
+                                <span className={'truncate'}>การควบคุม</span>
                             </p>
                         </div>
                         <Can action={['control.start', 'control.stop', 'control.restart']} matchAny>
@@ -251,19 +292,19 @@ const ServerConsoleContainer = () => {
 
                     <div className={'space-y-3 mt-2'}>
                         <ProgressRow
-                            label={'CPU'}
+                            label={'ซีพียู'}
                             value={`${stats.cpu.toFixed(1)}%`}
                             maxText={cpuLimit}
                             percent={cpuPercent}
                         />
                         <ProgressRow
-                            label={'Memory'}
+                            label={'หน่วยความจำ'}
                             value={bytesToString(stats.memory)}
                             maxText={memLimit}
                             percent={memPercent}
                         />
                         <ProgressRow
-                            label={'Disk'}
+                            label={'ดิสก์'}
                             value={bytesToString(stats.disk)}
                             maxText={diskLimit}
                             percent={diskPercent}
@@ -276,10 +317,10 @@ const ServerConsoleContainer = () => {
                         <div>
                             <p className={'text-xs uppercase text-white/60 mb-1 flex items-center gap-2'}>
                                 <ColorSwatchIcon className={'w-4 h-4 text-sky-300'} />
-                                Server Information
+                                ข้อมูลเซิร์ฟเวอร์
                             </p>
                             <p className={'text-sm text-white/80 flex items-center gap-2'}>
-                                Address
+                                ที่อยู่
                                 <ClockIcon className={'w-4 h-4 text-white/60'} />
                             </p>
                             <button
@@ -296,7 +337,7 @@ const ServerConsoleContainer = () => {
                                         console.error('Failed to copy:', err);
                                     }
                                 }}
-                                title={'Copy address'}
+                                title={'คัดลอกที่อยู่'}
                             >
                                 {allocation}
                                 <ClipboardCopyIcon className={'w-4 h-4 text-sky-300'} />
@@ -305,17 +346,33 @@ const ServerConsoleContainer = () => {
                     </div>
                     <div className={'space-y-2 mt-2'}>
                         <div className={styles.stat_row}>
-                            <span className={'text-white/70'}>Status</span>
-                            <span className={'text-white font-semibold'}>{status || '—'}</span>
+                            <span className={'text-white/70'}>สถานะ</span>
+                            <span
+                                className={`font-semibold ${
+                                    !status || status === 'offline'
+                                        ? 'text-red-400'
+                                        : status === 'running'
+                                        ? 'text-green-400'
+                                        : 'text-yellow-400'
+                                }`}
+                            >
+                                {status || '—'}
+                            </span>
                         </div>
                         <div className={styles.stat_row}>
-                            <span className={'text-white/70'}>Uptime</span>
+                            <span className={'text-white/70'}>เวลาทำงาน</span>
                             <span className={'text-white font-semibold'}>
                                 {stats.uptime > 0 ? <UptimeDuration uptime={stats.uptime / 1000} /> : '—'}
                             </span>
                         </div>
                         <div className={styles.stat_row}>
-                            <span className={'text-white/70'}>Primary Port</span>
+                            <span className={'text-white/70'}>วันที่สร้าง</span>
+                            <span className={'text-white font-semibold'}>
+                                {formatThaiDate(serverData?.createdAt)}
+                            </span>
+                        </div>
+                        <div className={styles.stat_row}>
+                            <span className={'text-white/70'}>พอร์ตหลัก</span>
                             <span className={'text-white font-semibold'}>{allocation}</span>
                         </div>
                     </div>

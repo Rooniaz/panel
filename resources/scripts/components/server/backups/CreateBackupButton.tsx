@@ -109,7 +109,7 @@ export default () => {
                 </Formik>
             )}
             <Button css={tw`w-full sm:w-auto`} onClick={() => setVisible(true)}>
-                Create backup
+                สร้างแบ็คอัพ
             </Button>
         </>
     );

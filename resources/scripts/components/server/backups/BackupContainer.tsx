@@ -43,8 +43,8 @@ const BackupContainer = () => {
                         !backupLimit ? null : (
                             <p css={tw`text-center text-sm text-neutral-300`}>
                                 {page > 1
-                                    ? "Looks like we've run out of backups to show you, try going back a page."
-                                    : 'It looks like there are no backups currently stored for this server.'}
+                                    ? 'ดูเหมือนว่าเราแสดงแบ็คอัพหมดแล้ว ลองกลับไปหน้าที่แล้ว'
+                                    : 'ดูเหมือนว่ายังไม่มีแบ็คอัพที่เก็บไว้สำหรับเซิร์ฟเวอร์นี้'}
                             </p>
                         )
                     ) : (
@@ -56,14 +56,14 @@ const BackupContainer = () => {
             </Pagination>
             {backupLimit === 0 && (
                 <p css={tw`text-center text-sm text-neutral-300`}>
-                    Backups cannot be created for this server because the backup limit is set to 0.
+                    ไม่สามารถสร้างแบ็คอัพสำหรับเซิร์ฟเวอร์นี้ได้ เนื่องจากขีดจำกัดแบ็คอัพถูกตั้งเป็น 0
                 </p>
             )}
             <Can action={'backup.create'}>
                 <div css={tw`mt-6 sm:flex items-center justify-end`}>
                     {backupLimit > 0 && backups.backupCount > 0 && (
                         <p css={tw`text-sm text-neutral-300 mb-4 sm:mr-6 sm:mb-0`}>
-                            {backups.backupCount} of {backupLimit} backups have been created for this server.
+                            สร้างแบ็คอัพ {backups.backupCount} จาก {backupLimit} รายการสำหรับเซิร์ฟเวอร์นี้แล้ว
                         </p>
                     )}
                     {backupLimit > 0 && backupLimit > backups.backupCount && (

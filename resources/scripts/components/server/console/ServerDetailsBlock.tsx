@@ -19,6 +19,21 @@ import { capitalize } from '@/lib/strings';
 
 type Stats = Record<'memory' | 'cpu' | 'disk' | 'uptime' | 'rx' | 'tx', number>;
 
+const getStatusText = (status: string | null): string => {
+    if (!status) return 'ออฟไลน์';
+    const statusMap: Record<string, string> = {
+        running: 'กำลังทำงาน',
+        offline: 'ออฟไลน์',
+        starting: 'กำลังเริ่ม',
+        stopping: 'กำลังหยุด',
+        suspended: 'ระงับ',
+        installing: 'กำลังติดตั้ง',
+        restoring_backup: 'กำลังกู้คืนสำรอง',
+        transferring: 'กำลังโอนย้าย',
+    };
+    return statusMap[status] || capitalize(status);
+};
+
 const getBackgroundColor = (value: number, max: number | null): string | undefined => {
     const delta = !max ? 0 : value / max;
 
@@ -30,6 +45,17 @@ const getBackgroundColor = (value: number, max: number | null): string | undefin
     }
 
     return undefined;
+};
+
+const getStatusColor = (status: string | null): string => {
+    if (!status || status === 'offline') {
+        return 'bg-red-500';
+    }
+    if (status === 'running') {
+        return 'bg-green-500';
+    }
+    // starting, stopping, etc.
+    return 'bg-yellow-500';
 };
 
 const Limit = ({ limit, children }: { limit: string | null; children: React.ReactNode }) => (
@@ -92,48 +118,48 @@ const ServerDetailsBlock = ({ className }: { className?: string }) => {
 
     return (
         <div className={classNames('grid grid-cols-6 gap-3 md:gap-4', className)}>
-            <StatBlock icon={faWifi} title={'Address'} copyOnClick={allocation}>
+            <StatBlock icon={faWifi} title={'ที่อยู่'} copyOnClick={allocation}>
                 {allocation}
             </StatBlock>
             <StatBlock
                 icon={faClock}
-                title={'Uptime'}
-                color={getBackgroundColor(status === 'running' ? 0 : status !== 'offline' ? 9 : 10, 10)}
+                title={'เวลาทำงาน'}
+                color={getStatusColor(status)}
             >
                 {status === null ? (
-                    'Offline'
+                    'ออฟไลน์'
                 ) : stats.uptime > 0 ? (
                     <UptimeDuration uptime={stats.uptime / 1000} />
                 ) : (
-                    capitalize(status)
+                    getStatusText(status)
                 )}
             </StatBlock>
-            <StatBlock icon={faMicrochip} title={'CPU'} color={getBackgroundColor(stats.cpu, limits.cpu)}>
+            <StatBlock icon={faMicrochip} title={'ซีพียู'} color={getBackgroundColor(stats.cpu, limits.cpu)}>
                 {status === 'offline' ? (
-                    <span className={'text-gray-400'}>Offline</span>
+                    <span className={'text-gray-400'}>ออฟไลน์</span>
                 ) : (
                     <Limit limit={textLimits.cpu}>{stats.cpu.toFixed(2)}%</Limit>
                 )}
             </StatBlock>
             <StatBlock
                 icon={faMemory}
-                title={'Memory'}
+                title={'หน่วยความจำ'}
                 color={getBackgroundColor(stats.memory / 1024, limits.memory * 1024)}
             >
                 {status === 'offline' ? (
-                    <span className={'text-gray-400'}>Offline</span>
+                    <span className={'text-gray-400'}>ออฟไลน์</span>
                 ) : (
                     <Limit limit={textLimits.memory}>{bytesToString(stats.memory)}</Limit>
                 )}
             </StatBlock>
-            <StatBlock icon={faHdd} title={'Disk'} color={getBackgroundColor(stats.disk / 1024, limits.disk * 1024)}>
+            <StatBlock icon={faHdd} title={'ดิสก์'} color={getBackgroundColor(stats.disk / 1024, limits.disk * 1024)}>
                 <Limit limit={textLimits.disk}>{bytesToString(stats.disk)}</Limit>
             </StatBlock>
-            <StatBlock icon={faCloudDownloadAlt} title={'Network In'}>
-                {status === 'offline' ? <span className={'text-gray-400'}>Offline</span> : bytesToString(stats.rx)}
+            <StatBlock icon={faCloudDownloadAlt} title={'เครือข่ายเข้า'}>
+                {status === 'offline' ? <span className={'text-gray-400'}>ออฟไลน์</span> : bytesToString(stats.rx)}
             </StatBlock>
-            <StatBlock icon={faCloudUploadAlt} title={'Network Out'}>
-                {status === 'offline' ? <span className={'text-gray-400'}>Offline</span> : bytesToString(stats.tx)}
+            <StatBlock icon={faCloudUploadAlt} title={'เครือข่ายออก'}>
+                {status === 'offline' ? <span className={'text-gray-400'}>ออฟไลน์</span> : bytesToString(stats.tx)}
             </StatBlock>
         </div>
     );
