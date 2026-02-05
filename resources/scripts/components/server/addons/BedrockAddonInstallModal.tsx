@@ -141,9 +141,9 @@ export default ({ addon, open, onClose, onInstalled }: Props) => {
                 setSubmitting(false);
                 addFlash({
                     key: 'bedrock_addon_install_success',
-                    message: 'The addon installation has been queued and will begin shortly in the background.',
+                    message: 'การติดตั้ง addon ถูกจัดคิวแล้ว และจะเริ่มในไม่ช้า',
                     type: 'success',
-                    title: 'Installation Queued',
+                    title: 'จัดคิวการติดตั้งแล้ว',
                 });
                 onInstalled(detectedType);
             })
@@ -161,7 +161,7 @@ export default ({ addon, open, onClose, onInstalled }: Props) => {
             enableReinitialize
         >
             {({ isSubmitting, values, submitForm, setFieldValue }) => (
-                <Dialog open={open} onClose={onClose} title='Install Bedrock Addon'>
+                <Dialog open={open} onClose={onClose} title='ติดตั้ง Bedrock Addon'>
                     <FlashMessageRender byKey={'bedrock_addon_install'} css={tw`mb-6`} />
                     <Form>
                         <AddonCard>
@@ -184,16 +184,16 @@ export default ({ addon, open, onClose, onInstalled }: Props) => {
                                 )}
                                 <AddonDetails>
                                     <AddonTitle>{addon.name}</AddonTitle>
-                                    <p css={tw`text-sm text-neutral-300`}>By {addon.author}</p>
+                                    <p css={tw`text-sm text-neutral-300`}>โดย {addon.author}</p>
                                     <AddonMeta>
                                         <AddonMetaItem>
                                             <FontAwesomeIcon icon={faDownload} css={tw`text-neutral-400`} />
-                                            <span>{addon.downloadCount.toLocaleString()} downloads</span>
+                                            <span>{addon.downloadCount.toLocaleString()} ดาวน์โหลด</span>
                                         </AddonMetaItem>
                                         <AddonMetaItem>
                                             <FontAwesomeIcon icon={faCalendarAlt} css={tw`text-neutral-400`} />
                                             <span>
-                                                Updated{' '}
+                                                อัปเดต{' '}
                                                 {formatDistanceToNow(
                                                     new Date(addon.dateModified || addon.dateCreated || new Date()),
                                                     { addSuffix: true }
@@ -258,18 +258,18 @@ export default ({ addon, open, onClose, onInstalled }: Props) => {
                                 <p
                                     css={tw`text-center text-sm text-neutral-300 py-4 bg-neutral-800 rounded border border-neutral-700`}
                                 >
-                                    No versions available for this addon.
+                                    ไม่มีเวอร์ชันสำหรับ addon นี้
                                 </p>
                             )}
                         </div>
                         <Dialog.Footer>
-                            <Button.Text onClick={onClose}>Cancel</Button.Text>
+                            <Button.Text onClick={onClose}>ยกเลิก</Button.Text>
                             <Button
                                 onClick={submitForm}
                                 disabled={loading || !values.fileId || isSubmitting}
                                 css={tw`ml-3`}
                             >
-                                {isSubmitting ? 'Installing...' : 'Install Addon'}
+                                {isSubmitting ? 'กำลังติดตั้ง...' : 'ติดตั้ง Addon'}
                             </Button>
                         </Dialog.Footer>
                     </Form>

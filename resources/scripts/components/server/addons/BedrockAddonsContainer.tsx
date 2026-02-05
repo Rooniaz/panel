@@ -134,7 +134,7 @@ const PAGE_SIZES = [
     { value: 48, label: '48 per page' },
 ];
 const SORT_OPTIONS = [
-    { value: 'relevancy', label: 'Relevancy' },
+    { value: 'relevancy', label: 'ความเกี่ยวข้อง' },
     { value: 'popularity', label: 'Popularity' },
     { value: 'totalDownloads', label: 'Downloads' },
     { value: 'lastUpdated', label: 'Last Update' },
@@ -245,14 +245,14 @@ export default () => {
                         value,
                         label: label as string,
                     }));
-                    setTypeOptions([{ value: '', label: 'All Types' }, ...types]);
+                    setTypeOptions([{ value: '', label: 'ทุกประเภท' }, ...types]);
                 }
                 if (data.versions) {
                     const versions = data.versions.map((item: string) => ({
                         value: item,
                         label: item,
                     }));
-                    setVersionOptions([{ value: '', label: 'All Versions' }, ...versions]);
+                    setVersionOptions([{ value: '', label: 'ทุกเวอร์ชัน' }, ...versions]);
                 }
                 setLoadingFilters(false);
             })
@@ -296,12 +296,12 @@ export default () => {
     return (
         <ServerContentBlock showFlashKey={'bedrock_addons'} title={'Bedrock Addons'}>
             {successMessage && (
-                <MessageBox type='success' title='Success' css={tw`mb-4`}>
+                <MessageBox type='success' title='สำเร็จ' css={tw`mb-4`}>
                     {successMessage}
                 </MessageBox>
             )}
             {errorMessage && (
-                <MessageBox type='error' title='Error' css={tw`mb-4`}>
+                <MessageBox type='error' title='เกิดข้อผิดพลาด' css={tw`mb-4`}>
                     {errorMessage}
                 </MessageBox>
             )}
@@ -373,11 +373,11 @@ export default () => {
                     </StyledSelect>
                 </FilterGroup>
                 <FilterGroup>
-                    <StyledInput placeholder='Search addons...' value={searchTerm} onChange={handleSearch} />
+                    <StyledInput placeholder='ค้นหา addons...' value={searchTerm} onChange={handleSearch} />
                 </FilterGroup>
                 <FilterGroup>
                     <StyledButton type='button' onClick={() => setShowManageModal(true)}>
-                        Manage Addons
+                        จัดการ Addons
                     </StyledButton>
                 </FilterGroup>
             </FilterContainer>
@@ -437,7 +437,7 @@ export default () => {
                                 ))
                             ) : (
                                 <p css={tw`text-center text-sm text-neutral-300 col-span-3`}>
-                                    No addons found matching your search criteria.
+                                    ไม่พบ addons ตามเงื่อนไขการค้นหาของคุณ
                                 </p>
                             )}
                         </AddonGrid>
@@ -455,7 +455,7 @@ export default () => {
                     onInstalled={(addonType) => {
                         const typeName = getAddonTypeLabel(addonType);
                         setSuccessMessage(
-                            `Addon ${selectedAddon.name} has successfully installed as ${typeName}. Restart your server to apply ${typeName}`
+                            `ติดตั้ง Addon ${selectedAddon.name} เป็น ${typeName} สำเร็จแล้ว รีสตาร์ทเซิร์ฟเวอร์ของคุณเพื่อใช้ ${typeName}`
                         );
                         setShowAddonModal(false);
                         setSelectedAddon(null);

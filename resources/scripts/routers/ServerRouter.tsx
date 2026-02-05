@@ -113,9 +113,9 @@ export default () => {
         Worlds: 'Worlds',
         Configs: 'Configs',
         Versions: 'Versions',
-        'Bedrock Addons': 'Bedrock Addons',
-        'Bedrock Config': 'Bedrock Config',
-        'Bedrock Version': 'Bedrock Version',
+        'Bedrock Addons': 'Addons Bedrock',
+        'Bedrock Config': 'ตั้งค่า Bedrock',
+        'Bedrock Version': 'เวอร์ชัน Bedrock',
     };
 
     const renderNavLabel = (name?: string) => {

@@ -35,7 +35,7 @@ interface InstallStatus {
 }
 
 const InstallVersionDialog = asDialog({
-    title: 'Select Minecraft Bedrock Version',
+    title: 'เลือกเวอร์ชัน Minecraft Bedrock',
 })(({ version, onClose }: { version: string; onClose: () => void }) => {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [versionDetails, setVersionDetails] = useState<VersionDetails | null>(null);
@@ -156,14 +156,14 @@ const InstallVersionDialog = asDialog({
                         setIsSubmitting(true);
                         setShowWarning(false);
                         clearFlashes();
-                        setInstallStatus({ type: 'info', message: 'Installing version, please wait...' });
+                        setInstallStatus({ type: 'info', message: 'กำลังติดตั้งเวอร์ชัน กรุณารอสักครู่...' });
 
                         http.post(`/api/client/servers/${uuid}/mcbe/install`, {
                             version: selectedVersion,
                             deleteFiles: values.deleteFiles,
                         })
                             .then(() => {
-                                setInstallStatus({ type: 'success', message: 'Version installed successfully!' });
+                                setInstallStatus({ type: 'success', message: 'ติดตั้งเวอร์ชันสำเร็จแล้ว!' });
                                 setTimeout(() => {
                                     window.location.reload();
                                 }, 1500);
@@ -182,7 +182,7 @@ const InstallVersionDialog = asDialog({
                             {showWarning && (
                                 <Alert type='warning' className='mb-2'>
                                     <div className='flex items-center'>
-                                        <p>Version changes can affect world data compatibility.</p>
+                                        <p>การเปลี่ยนเวอร์ชันอาจส่งผลต่อความเข้ากันได้ของข้อมูลโลก</p>
                                     </div>
                                 </Alert>
                             )}
@@ -196,7 +196,7 @@ const InstallVersionDialog = asDialog({
                                 {isLoadingVersions ? (
                                     <div className='flex items-center justify-center p-3'>
                                         <Spinner size='small' />
-                                        <p className='ml-2 text-sm text-neutral-300'>Loading versions...</p>
+                                        <p className='ml-2 text-sm text-neutral-300'>กำลังโหลดเวอร์ชัน...</p>
                                     </div>
                                 ) : availableVersions.length > 0 ? (
                                     <Select
@@ -211,35 +211,35 @@ const InstallVersionDialog = asDialog({
                                             >
                                                 {v.version_number}
                                                 {v.update_title ? ` - ${v.update_title}` : ''}
-                                                {!isVersionSupported(v) ? ' (Not yet released)' : ''}
+                                                {!isVersionSupported(v) ? ' (ยังไม่เปิดตัว)' : ''}
                                             </option>
                                         ))}
                                     </Select>
                                 ) : (
-                                    <p className='text-sm text-neutral-300 text-center'>No versions available</p>
+                                    <p className='text-sm text-neutral-300 text-center'>ไม่มีเวอร์ชันพร้อมใช้งาน</p>
                                 )}
                             </div>
                             {versionDetails && (
                                 <div>
                                     <div className='text-sm text-neutral-300'>
-                                        <p className='mb-2'>Detail Version</p>
+                                        <p className='mb-2'>รายละเอียดเวอร์ชัน</p>
                                         <div css={tw`bg-neutral-800 rounded p-4`}>
                                             <h3 className='text-md font-bold text-neutral-100'>
                                                 {versionDetails.update_title || versionDetails.version_number}
                                             </h3>
                                             <p className='mb-2'>
-                                                Server Version:{' '}
+                                                เวอร์ชันเซิร์ฟเวอร์:{' '}
                                                 <u>
                                                     {versionDetails.server_version === 'N/A'
-                                                        ? 'Not yet released '
+                                                        ? 'ยังไม่เปิดตัว '
                                                         : versionDetails.server_version}
                                                 </u>
                                                 <Tooltip
                                                     placement='top'
                                                     content={
                                                         versionDetails.server_version === 'N/A'
-                                                            ? 'Server is not available yet for this version'
-                                                            : 'Server is available for this version'
+                                                            ? 'เซิร์ฟเวอร์ยังไม่พร้อมสำหรับเวอร์ชันนี้'
+                                                            : 'เซิร์ฟเวอร์พร้อมสำหรับเวอร์ชันนี้'
                                                     }
                                                 >
                                                     <span>
@@ -265,8 +265,8 @@ const InstallVersionDialog = asDialog({
                             <div css={tw`mt-6 bg-neutral-700 border border-neutral-800 shadow-inner p-4 rounded`}>
                                 <FormikSwitch
                                     name='deleteFiles'
-                                    label='Delete existing files'
-                                    description='Delete all existing files before installing the new version.'
+                                    label='ลบไฟล์ที่มีอยู่'
+                                    description='ลบไฟล์ทั้งหมดที่มีอยู่ก่อนติดตั้งเวอร์ชันใหม่'
                                 />
                             </div>
                             <Dialog.Footer>
@@ -280,7 +280,7 @@ const InstallVersionDialog = asDialog({
                                         window.dispatchEvent(new CustomEvent('mcbe:version:close'));
                                     }}
                                 >
-                                    Cancel
+                                    ยกเลิก
                                 </Button.Text>
                                 <Button
                                     type='button'
@@ -295,7 +295,7 @@ const InstallVersionDialog = asDialog({
                                         spin={isSubmitting}
                                         css={tw`mr-1`}
                                     />
-                                    Install
+                                    ติดตั้ง
                                 </Button>
                             </Dialog.Footer>
                         </div>

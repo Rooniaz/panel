@@ -45,6 +45,8 @@ import Switch from '@/components/elements/Switch';
 import createOrUpdateSchedule from '@/api/server/schedules/createOrUpdateSchedule';
 import { Dialog } from '@/components/elements/dialog';
 import setServerAllocationAlias from '@/api/server/network/setServerAllocationAlias';
+import { Form, Formik } from 'formik';
+import Field from '@/components/elements/Field';
 
 // Hostname Section Component
 const HostnameSection = ({
@@ -331,38 +333,69 @@ export default () => {
     // Reinstall Server Button Component
     const ReinstallServerButton = () => {
         const [modalVisible, setModalVisible] = useState(false);
+        const [isSubmitting, setIsSubmitting] = useState(false);
         const { addFlash, clearFlashes } = useFlash();
 
-        const reinstall = () => {
+        const reinstall = (password: string) => {
+            setIsSubmitting(true);
             clearFlashes('settings');
-            reinstallServer(uuid)
+            reinstallServer(uuid, password)
                 .then(() => {
                     addFlash({
                         key: 'settings',
                         type: 'success',
                         message: 'Your server has begun the reinstallation process.',
                     });
+                    setModalVisible(false);
                 })
                 .catch((error) => {
                     console.error(error);
                     addFlash({ key: 'settings', type: 'error', message: httpErrorToHuman(error) });
                 })
-                .then(() => setModalVisible(false));
+                .finally(() => setIsSubmitting(false));
         };
 
         return (
             <>
-                <Dialog.Confirm
-                    open={modalVisible}
-                    title={'Confirm server reinstallation'}
-                    confirm={'Yes, reinstall server'}
-                    onClose={() => setModalVisible(false)}
-                    onConfirmed={reinstall}
+                <Dialog open={modalVisible} onClose={() => setModalVisible(false)} title='ยืนยันการติดตั้งใหม่'>
+                    <Formik
+                        initialValues={{ password: '' }}
+                        onSubmit={(values) => {
+                            reinstall(values.password);
+                        }}
+                    >
+                        {({ submitForm }) => (
+                            <Form>
+                                <p css={tw`mb-4 text-sm text-neutral-300`}>
+                                    เซิร์ฟเวอร์ของคุณจะถูกหยุดและไฟล์บางไฟล์อาจถูกลบหรือแก้ไขในระหว่างกระบวนการนี้
+                                    คุณแน่ใจหรือไม่ว่าต้องการดำเนินการต่อ?
+                                </p>
+                                <div css={tw`mb-4`}>
+                                    <Label>รหัสผ่าน</Label>
+                                    <Field
+                                        id='reinstall_password'
+                                        name='password'
+                                        type='password'
+                                        placeholder='กรอกรหัสผ่านของคุณเพื่อยืนยัน'
+                                    />
+                                </div>
+                                <Dialog.Footer>
+                                    <Button.Text onClick={() => setModalVisible(false)} disabled={isSubmitting}>
+                                        ยกเลิก
+                                    </Button.Text>
+                                    <Button.Danger onClick={submitForm} disabled={isSubmitting}>
+                                        {isSubmitting ? 'กำลังติดตั้ง...' : 'ยืนยันการติดตั้งใหม่'}
+                                    </Button.Danger>
+                                </Dialog.Footer>
+                            </Form>
+                        )}
+                    </Formik>
+                </Dialog>
+                <Button.Danger
+                    variant={Button.Variants.Secondary}
+                    onClick={() => setModalVisible(true)}
+                    css={tw`bg-red-600 hover:bg-red-600 active:bg-red-700`}
                 >
-                    Your server will be stopped and some files may be deleted or modified during this process, are you sure
-                    you wish to continue?
-                </Dialog.Confirm>
-                <Button.Danger variant={Button.Variants.Secondary} onClick={() => setModalVisible(true)}>
                     ติดตั้งใหม่
                 </Button.Danger>
             </>
@@ -375,7 +408,7 @@ export default () => {
         const [isDeleting, setIsDeleting] = useState(false);
         const { addFlash, clearFlashes } = useFlash();
 
-        const handleDelete = () => {
+        const handleDelete = (password: string) => {
             setIsDeleting(true);
             clearFlashes('settings');
 
@@ -397,6 +430,7 @@ export default () => {
                 headers: {
                     Authorization: `Bearer ${token}`,
                 },
+                data: { password },
             })
                 .then(() => {
                     addFlash({
@@ -425,26 +459,47 @@ export default () => {
 
         return (
             <>
-                <Dialog.Confirm
-                    open={modalVisible}
-                    title={'Confirm server deletion'}
-                    confirm={'Yes, delete server'}
-                    onClose={() => setModalVisible(false)}
-                    onConfirmed={handleDelete}
-                >
-                    <p css={tw`mb-4`}>
-                        Your server will be permanently deleted from both the panel and Spring Boot system. This action
-                        cannot be undone.
-                    </p>
-                    <p css={tw`text-red-400 font-medium`}>
-                        <strong>Warning:</strong> All server data, files, databases, and backups will be permanently
-                        removed.
-                    </p>
-                </Dialog.Confirm>
+                <Dialog open={modalVisible} onClose={() => setModalVisible(false)} title='ยืนยันการลบเซิร์ฟเวอร์'>
+                    <Formik
+                        initialValues={{ password: '' }}
+                        onSubmit={(values) => {
+                            handleDelete(values.password);
+                        }}
+                    >
+                        {({ submitForm }) => (
+                            <Form>
+                                <p css={tw`mb-4 text-sm text-neutral-300`}>
+                                    เซิร์ฟเวอร์ของคุณจะถูกลบถาวรจากทั้ง Panel และ Spring Boot system การกระทำนี้ไม่สามารถย้อนกลับได้
+                                </p>
+                                <p css={tw`mb-4 text-sm text-red-400 font-medium`}>
+                                    <strong>คำเตือน:</strong> ข้อมูลเซิร์ฟเวอร์ ไฟล์ ฐานข้อมูล และแบ็คอัพทั้งหมดจะถูกลบถาวร
+                                </p>
+                                <div css={tw`mb-4`}>
+                                    <Label>รหัสผ่าน</Label>
+                                    <Field
+                                        id='delete_password'
+                                        name='password'
+                                        type='password'
+                                        placeholder='กรอกรหัสผ่านของคุณเพื่อยืนยัน'
+                                    />
+                                </div>
+                                <Dialog.Footer>
+                                    <Button.Text onClick={() => setModalVisible(false)} disabled={isDeleting}>
+                                        ยกเลิก
+                                    </Button.Text>
+                                    <Button.Danger onClick={submitForm} disabled={isDeleting}>
+                                        {isDeleting ? 'กำลังลบ...' : 'ยืนยันการลบ'}
+                                    </Button.Danger>
+                                </Dialog.Footer>
+                            </Form>
+                        )}
+                    </Formik>
+                </Dialog>
                 <Button.Danger
                     variant={Button.Variants.Secondary}
                     onClick={() => setModalVisible(true)}
                     disabled={isDeleting}
+                    css={tw`bg-red-600 hover:bg-red-600 active:bg-red-700`}
                 >
                     {isDeleting ? 'กำลังลบ...' : 'ลบเซิร์ฟเวอร์'}
                 </Button.Danger>
@@ -459,65 +514,43 @@ export default () => {
             <FlashMessageRender byKey={'startup:image'} css={tw`mb-4`} />
             <FlashMessageRender byKey={'schedules'} css={tw`mb-4`} />
 
-            {/* Startup Parameters Section */}
-            {!startupData ? (
-                !startupError || (startupError && startupValidating) ? (
-                    <Spinner centered size={Spinner.Size.LARGE} css={tw`mt-6 md:mt-10`} />
-                ) : (
-                    <ServerError title={'Oops!'} message={httpErrorToHuman(startupError)} onRetry={() => mutateStartup()} />
-                )
-            ) : (
-                <TitledGreyBox title={'Startup Parameters'} css={tw`mb-6 md:mb-10`}>
-                    <div css={tw`mb-6`}>
-                        <Label>Startup Command</Label>
-                        <div css={tw`px-1 py-2`}>
-                            <p css={tw`font-mono bg-neutral-900 rounded py-2 px-4`}>{startupData.invocation}</p>
-                        </div>
-                    </div>
-                    <div css={tw`mb-6`}>
-                        <Label>Docker Image</Label>
-                        {Object.keys(startupData.dockerImages).length > 1 && !isCustomImage ? (
-                            <>
-                                <InputSpinner visible={startupLoading}>
-                                    <Select
-                                        disabled={Object.keys(startupData.dockerImages).length < 2}
-                                        onChange={updateSelectedDockerImage}
-                                        defaultValue={variables.dockerImage}
-                                    >
-                                        {Object.keys(startupData.dockerImages).map((key) => (
-                                            <option key={startupData.dockerImages[key]} value={startupData.dockerImages[key]}>
-                                                {key}
-                                            </option>
-                                        ))}
-                                    </Select>
-                                </InputSpinner>
-                                <p css={tw`text-xs text-neutral-300 mt-2`}>
-                                    This is an advanced feature allowing you to select a Docker image to use when running
-                                    this server instance.
-                                </p>
-                            </>
-                        ) : (
-                            <>
-                                <Input disabled readOnly value={variables.dockerImage} />
-                                {isCustomImage && (
-                                    <p css={tw`text-xs text-neutral-300 mt-2`}>
-                                        This {"server's"} Docker image has been manually set by an administrator and cannot
-                                        be changed through this UI.
-                                    </p>
-                                )}
-                            </>
-                        )}
-                    </div>
-                    <div css={tw`mb-6`}>
-                        <Label>Variables</Label>
-                        <div css={tw`grid gap-4 md:grid-cols-2 mt-2`}>
-                            {startupData.variables.map((variable) => (
-                                <VariableBox key={variable.envVariable} variable={variable} />
-                            ))}
-                        </div>
-                    </div>
+            {/* Change Server Details Section */}
+            <Can action={'settings.rename'}>
+                <TitledGreyBox title={'เปลี่ยนรายละเอียดเซิร์ฟเวอร์'} css={tw`mb-6 md:mb-10`}>
+                    <RenameServerBox />
                 </TitledGreyBox>
-            )}
+            </Can>
+
+            {/* Hostname Section */}
+            <HostnameSection allocationData={allocationData} uuid={uuid} mutateAllocations={mutateAllocations} />
+
+            {/* Network/Allocations Section */}
+            <TitledGreyBox title={'Network Allocations'} css={tw`mb-6 md:mb-10`}>
+                {!allocationData ? (
+                    <Spinner size={'large'} centered />
+                ) : (
+                    <>
+                        {allocationData.map((allocation) => (
+                            <AllocationRow key={`${allocation.ip}:${allocation.port}`} allocation={allocation} />
+                        ))}
+                        {allocationLimit > 0 && (
+                            <Can action={'allocation.create'}>
+                                <SpinnerOverlay visible={loading} />
+                                <div css={tw`mt-6 sm:flex items-center justify-end`}>
+                                    <p css={tw`text-sm text-neutral-300 mb-4 sm:mr-6 sm:mb-0`}>
+                                        คุณกำลังใช้ {allocationData.length} จาก {Math.max(allocationLimit, allocationData.length)} การจัดสรรที่อนุญาตสำหรับเซิร์ฟเวอร์นี้
+                                    </p>
+                                    {allocationLimit > allocationData.length && (
+                                        <ButtonElement css={tw`w-full sm:w-auto`} color={'primary'} onClick={onCreateAllocation}>
+                                            สร้างการจัดสรร
+                                        </ButtonElement>
+                                    )}
+                                </div>
+                            </Can>
+                        )}
+                    </>
+                )}
+            </TitledGreyBox>
 
             {/* Schedules Section */}
             <TitledGreyBox title={'ตารางเวลาอัตโนมัติ'} css={tw`mb-6 md:mb-10`}>
@@ -610,39 +643,18 @@ export default () => {
                 )}
             </TitledGreyBox>
 
-            {/* Danger Zone Section */}
-            <TitledGreyBox 
-                title={'โซนอันตราย'} 
-                css={tw`mb-6 md:mb-10 border-red-500 border-2`}
-            >
-                <Can action={'settings.reinstall'}>
-                    <div css={tw`mb-6 pb-6 border-b border-neutral-700`}>
-                        <div css={tw`flex items-start justify-between`}>
-                            <div css={tw`flex-1`}>
-                                <h4 css={tw`text-lg font-semibold mb-2`}>ติดตั้งใหม่</h4>
-                                <p css={tw`text-sm text-neutral-300`}>
-                                    ติดตั้งเซิร์ฟเวอร์ใหม่ ข้อมูลทั้งหมดจะถูกลบ
-                                </p>
-                            </div>
-                            <div>
-                                <ReinstallServerButton />
-                            </div>
-                        </div>
-                    </div>
-                </Can>
-                <div>
-                    <div css={tw`flex items-start justify-between`}>
-                        <div css={tw`flex-1`}>
-                            <h4 css={tw`text-lg font-semibold mb-2`}>ลบเซิร์ฟเวอร์</h4>
-                            <p css={tw`text-sm text-neutral-300`}>
-                                ลบเซิร์ฟเวอร์ถาวร ไม่สามารถย้อนกลับได้
-                            </p>
-                        </div>
-                        <div>
-                            <DeleteServerButton />
-                        </div>
-                    </div>
+            {/* Debug Information Section */}
+            <TitledGreyBox title={'Debug Information'} css={tw`mb-6 md:mb-10`}>
+                <div css={tw`flex items-center justify-between text-sm`}>
+                    <p>Node</p>
+                    <code css={tw`font-mono bg-neutral-900 rounded py-1 px-2`}>{node}</code>
                 </div>
+                <CopyOnClick text={uuid}>
+                    <div css={tw`flex items-center justify-between mt-2 text-sm`}>
+                        <p>Server ID</p>
+                        <code css={tw`font-mono bg-neutral-900 rounded py-1 px-2`}>{uuid}</code>
+                    </div>
+                </CopyOnClick>
             </TitledGreyBox>
 
             {/* SFTP Details Section */}
@@ -677,57 +689,99 @@ export default () => {
                 </TitledGreyBox>
             </Can>
 
-            {/* Network/Allocations Section */}
-            <TitledGreyBox title={'Network Allocations'} css={tw`mb-6 md:mb-10`}>
-                {!allocationData ? (
-                    <Spinner size={'large'} centered />
+            {/* Startup Parameters Section */}
+            {!startupData ? (
+                !startupError || (startupError && startupValidating) ? (
+                    <Spinner centered size={Spinner.Size.LARGE} css={tw`mt-6 md:mt-10`} />
                 ) : (
-                    <>
-                        {allocationData.map((allocation) => (
-                            <AllocationRow key={`${allocation.ip}:${allocation.port}`} allocation={allocation} />
-                        ))}
-                        {allocationLimit > 0 && (
-                            <Can action={'allocation.create'}>
-                                <SpinnerOverlay visible={loading} />
-                                <div css={tw`mt-6 sm:flex items-center justify-end`}>
-                                    <p css={tw`text-sm text-neutral-300 mb-4 sm:mr-6 sm:mb-0`}>
-                                        You are currently using {allocationData.length} of {allocationLimit} allowed allocations for
-                                        this server.
-                                    </p>
-                                    {allocationLimit > allocationData.length && (
-                                        <ButtonElement css={tw`w-full sm:w-auto`} color={'primary'} onClick={onCreateAllocation}>
-                                            Create Allocation
-                                        </ButtonElement>
-                                    )}
-                                </div>
-                            </Can>
-                        )}
-                    </>
-                )}
-            </TitledGreyBox>
-
-            {/* Change Server Details Section */}
-            <Can action={'settings.rename'}>
-                <TitledGreyBox title={'เปลี่ยนรายละเอียดเซิร์ฟเวอร์'} css={tw`mb-6 md:mb-10`}>
-                    <RenameServerBox />
-                </TitledGreyBox>
-            </Can>
-
-            {/* Hostname Section */}
-            <HostnameSection allocationData={allocationData} uuid={uuid} mutateAllocations={mutateAllocations} />
-
-            {/* Debug Information Section */}
-            <TitledGreyBox title={'Debug Information'} css={tw`mb-6 md:mb-10`}>
-                <div css={tw`flex items-center justify-between text-sm`}>
-                    <p>Node</p>
-                    <code css={tw`font-mono bg-neutral-900 rounded py-1 px-2`}>{node}</code>
-                </div>
-                <CopyOnClick text={uuid}>
-                    <div css={tw`flex items-center justify-between mt-2 text-sm`}>
-                        <p>Server ID</p>
-                        <code css={tw`font-mono bg-neutral-900 rounded py-1 px-2`}>{uuid}</code>
+                    <ServerError title={'Oops!'} message={httpErrorToHuman(startupError)} onRetry={() => mutateStartup()} />
+                )
+            ) : (
+                <TitledGreyBox title={'Startup Parameters'} css={tw`mb-6 md:mb-10`}>
+                    <div css={tw`mb-6`}>
+                        <Label>Startup Command</Label>
+                        <div css={tw`px-1 py-2`}>
+                            <p css={tw`font-mono bg-neutral-900 rounded py-2 px-4`}>{startupData.invocation}</p>
+                        </div>
                     </div>
-                </CopyOnClick>
+                    <div css={tw`mb-6`}>
+                        <Label>Docker Image</Label>
+                        {Object.keys(startupData.dockerImages).length > 1 && !isCustomImage ? (
+                            <>
+                                <InputSpinner visible={startupLoading}>
+                                    <Select
+                                        disabled={Object.keys(startupData.dockerImages).length < 2}
+                                        onChange={updateSelectedDockerImage}
+                                        defaultValue={variables.dockerImage}
+                                    >
+                                        {Object.keys(startupData.dockerImages).map((key) => (
+                                            <option key={startupData.dockerImages[key]} value={startupData.dockerImages[key]}>
+                                                {key}
+                                            </option>
+                                        ))}
+                                    </Select>
+                                </InputSpinner>
+                                <p css={tw`text-xs text-neutral-300 mt-2`}>
+                                    This is an advanced feature allowing you to select a Docker image to use when running
+                                    this server instance.
+                                </p>
+                            </>
+                        ) : (
+                            <>
+                                <Input disabled readOnly value={variables.dockerImage} />
+                                {isCustomImage && (
+                                    <p css={tw`text-xs text-neutral-300 mt-2`}>
+                                        This {"server's"} Docker image has been manually set by an administrator and cannot
+                                        be changed through this UI.
+                                    </p>
+                                )}
+                            </>
+                        )}
+                    </div>
+                    <div css={tw`mb-6`}>
+                        <Label>Variables</Label>
+                        <div css={tw`grid gap-4 md:grid-cols-2 mt-2`}>
+                            {startupData.variables.map((variable) => (
+                                <VariableBox key={variable.envVariable} variable={variable} />
+                            ))}
+                        </div>
+                    </div>
+                </TitledGreyBox>
+            )}
+
+            {/* Danger Zone Section */}
+            <TitledGreyBox 
+                title={'โซนอันตราย'} 
+                css={tw`mb-6 md:mb-10`}
+            >
+                <Can action={'settings.reinstall'}>
+                    <div css={tw`mb-6 pb-6 border-b border-neutral-700`}>
+                        <div css={tw`flex items-start justify-between`}>
+                            <div css={tw`flex-1`}>
+                                <h4 css={tw`text-lg font-semibold mb-2`}>ติดตั้งใหม่</h4>
+                                <p css={tw`text-sm text-neutral-300`}>
+                                    ติดตั้งเซิร์ฟเวอร์ใหม่ ข้อมูลทั้งหมดจะถูกลบ
+                                </p>
+                            </div>
+                            <div>
+                                <ReinstallServerButton />
+                            </div>
+                        </div>
+                    </div>
+                </Can>
+                <div>
+                    <div css={tw`flex items-start justify-between`}>
+                        <div css={tw`flex-1`}>
+                            <h4 css={tw`text-lg font-semibold mb-2`}>ลบเซิร์ฟเวอร์</h4>
+                            <p css={tw`text-sm text-neutral-300`}>
+                                ลบเซิร์ฟเวอร์ถาวร ไม่สามารถย้อนกลับได้
+                            </p>
+                        </div>
+                        <div>
+                            <DeleteServerButton />
+                        </div>
+                    </div>
+                </div>
             </TitledGreyBox>
         </ServerContentBlock>
     );

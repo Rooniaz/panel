@@ -233,7 +233,7 @@ export default () => {
                                     <Alert type="warning" className="mb-0">
                                         <div className="flex items-center">
                                             <span className="font-medium mr-2">Unsaved Changes:</span>
-                                            There are changes that have not been saved
+                                            มีการเปลี่ยนแปลงที่ยังไม่ได้บันทึก
                                         </div>
                                     </Alert>
                                 </UnsavedChangesAlert>

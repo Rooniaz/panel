@@ -99,8 +99,7 @@ export default () => {
                 <Alert type='info'>
                     <div className='flex items-center'>
                         <p>
-                            Make sure to backup your data before changing versions. Some versions might not be
-                            compatible with your current world data.
+                            ควรสำรองข้อมูลของคุณก่อนเปลี่ยนเวอร์ชัน บางเวอร์ชันอาจไม่เข้ากันได้กับข้อมูลโลกปัจจุบันของคุณ
                         </p>
                     </div>
                 </Alert>
@@ -110,9 +109,12 @@ export default () => {
                 {majorVersions.map((majorVersion) => (
                     <div
                         key={majorVersion.majorMinor}
-                        className='bg-neutral-700 rounded shadow-sm hover:shadow-lg transition-all duration-150 cursor-pointer transform hover:-translate-y-1 hover:bg-neutral-600 group'
+                        className='bg-neutral-700 rounded shadow-sm hover:shadow-lg transition-all duration-150 cursor-pointer transform hover:-translate-y-1 hover:bg-neutral-600 group relative'
                         onClick={() => setSelectedVersion(majorVersion.versions[0].version_number)}
                     >
+                        <span className='absolute top-2 right-2 text-xs text-neutral-400 font-medium'>
+                            เวอร์ชัน
+                        </span>
                         <div className='p-4'>
                             <div className='flex items-center'>
                                 <div className='w-12 h-12 mr-4 flex items-center justify-center bg-neutral-800 rounded-full'>
@@ -123,8 +125,8 @@ export default () => {
                                         Version {majorVersion.majorMinor}
                                     </h3>
                                     <p className='text-sm text-neutral-300'>
-                                        {majorVersion.versions.length} version
-                                        {majorVersion.versions.length !== 1 ? 's' : ''} available
+                                        {majorVersion.versions.length} เวอร์ชัน
+                                        {majorVersion.versions.length !== 1 ? '' : ''} พร้อมใช้งาน
                                     </p>
                                 </div>
                                 <div className='ml-4 text-neutral-300 group-hover:text-blue-400'>

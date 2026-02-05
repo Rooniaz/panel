@@ -135,7 +135,7 @@ export default ({ open, onClose, onSuccess }: Props) => {
             } else {
                 setResourcePacks((prev) => prev.filter((pack) => pack.uuid !== addonUuid));
             }
-            onSuccess(`Addon deleted successfully`);
+            onSuccess(`ลบ Addon สำเร็จแล้ว`);
             setHasChanges(true);
         } catch (error) {
         } finally {
@@ -176,7 +176,7 @@ export default ({ open, onClose, onSuccess }: Props) => {
                 behavior_packs: behaviorPackConfigs,
                 resource_packs: resourcePackConfigs,
             });
-            onSuccess('Addon priority updated successfully.');
+            onSuccess('อัปเดตลำดับความสำคัญของ Addon สำเร็จแล้ว');
             setHasChanges(false);
             await loadInstalledAddons();
         } catch (error) {
@@ -194,7 +194,7 @@ export default ({ open, onClose, onSuccess }: Props) => {
                     isDefault: world.name === worldName,
                 }))
             );
-            onSuccess(`Default world set to ${worldName}`);
+            onSuccess(`ตั้งค่า world เริ่มต้นเป็น ${worldName}`);
         } catch (error) {
         } finally {
             setSettingDefault(null);
@@ -204,7 +204,7 @@ export default ({ open, onClose, onSuccess }: Props) => {
         try {
             await deleteWorld(id, worldName);
             setWorlds((prev) => prev.filter((world) => world.name !== worldName));
-            onSuccess(`World ${worldName} deleted`);
+            onSuccess(`ลบ World ${worldName} แล้ว`);
         } catch (error) {}
     };
     useEffect(() => {
@@ -213,7 +213,7 @@ export default ({ open, onClose, onSuccess }: Props) => {
         }
     }, [open]);
     return (
-        <Dialog open={open} onClose={onClose} title='Manage Addons'>
+        <Dialog open={open} onClose={onClose} title='จัดการ Addons'>
             {loading ? (
                 <div className='flex justify-center items-center py-8'>
                     <Spinner size='large' />
@@ -235,7 +235,7 @@ export default ({ open, onClose, onSuccess }: Props) => {
                         {activeTab === 'behavior' && (
                             <>
                                 {behaviorPacks.length === 0 ? (
-                                    <p className='text-center text-neutral-400 py-8'>No behavior packs installed</p>
+                                    <p className='text-center text-neutral-400 py-8'>ยังไม่ได้ติดตั้ง behavior packs</p>
                                 ) : (
                                     behaviorPacks.map((pack, index) => (
                                         <AddonItem key={pack.uuid}>
@@ -316,7 +316,7 @@ export default ({ open, onClose, onSuccess }: Props) => {
                         {activeTab === 'resource' && (
                             <>
                                 {resourcePacks.length === 0 ? (
-                                    <p className='text-center text-neutral-400 py-8'>No resource packs installed</p>
+                                    <p className='text-center text-neutral-400 py-8'>ยังไม่ได้ติดตั้ง resource packs</p>
                                 ) : (
                                     resourcePacks.map((pack, index) => (
                                         <AddonItem key={pack.uuid}>
@@ -397,7 +397,7 @@ export default ({ open, onClose, onSuccess }: Props) => {
                         {activeTab === 'worlds' && (
                             <>
                                 {worlds.length === 0 ? (
-                                    <p className='text-center text-neutral-400 py-8'>No worlds found</p>
+                                    <p className='text-center text-neutral-400 py-8'>ไม่พบ worlds</p>
                                 ) : (
                                     worlds.map((world) => (
                                         <WorldItem key={world.name}>
@@ -406,7 +406,7 @@ export default ({ open, onClose, onSuccess }: Props) => {
                                                     <FontAwesomeIcon icon={faGlobe} />
                                                     {world.name}
                                                     <WorldBadge isDefault={world.isDefault}>
-                                                        {world.isDefault ? 'Default' : 'Available'}
+                                                        {world.isDefault ? 'ค่าเริ่มต้น' : 'พร้อมใช้งาน'}
                                                     </WorldBadge>
                                                 </WorldTitle>
                                                 <AddonActions>
@@ -439,16 +439,16 @@ export default ({ open, onClose, onSuccess }: Props) => {
                 </>
             )}
             <Dialog.Footer>
-                <Button.Text onClick={onClose}>Close</Button.Text>
+                <Button.Text onClick={onClose}>ปิด</Button.Text>
                 {hasChanges && (
                     <Button onClick={savePriority} disabled={saving}>
                         {saving ? (
                             <span className='flex items-center'>
                                 <Spinner size='small' />
-                                <span className='ml-2'>Applied</span>
+                                <span className='ml-2'>กำลังใช้</span>
                             </span>
                         ) : (
-                            'Apply'
+                            'ใช้'
                         )}
                     </Button>
                 )}
