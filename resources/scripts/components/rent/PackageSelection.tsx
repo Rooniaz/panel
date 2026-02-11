@@ -5,6 +5,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faMicrochip, faMemory, faHdd, faClock, faArrowLeft } from '@fortawesome/free-solid-svg-icons';
 import { Package } from './RentServerContainer';
 import { getHardwareDetail } from '@/api/spring/hardware';
+import { getAvailabilityBadge } from '@/api/spring/packageAvailability';
 
 // Animations
 const shimmer = keyframes`
@@ -28,15 +29,14 @@ const gradientShift = keyframes`
     100% { background-position: 0% 50%; }
 `;
 
-const float = keyframes`
-    0%, 100% { transform: translateY(0px); }
-    50% { transform: translateY(-10px); }
-`;
+// const float = keyframes`
+//     0%, 100% { transform: translateY(0px); }
+//     50% { transform: translateY(-10px); }
+// `;
 
 const Container = styled.div`
     ${tw`space-y-4 w-full max-w-6xl mx-auto px-3 sm:px-0`};
     position: relative;
-    
     /* แก้ไขจุดนี้: เปลี่ยนจาก 200% เป็นค่าที่พอดีกับ Container */
     overflow: hidden; /* ตัดส่วนที่ฟุ้งเกินขอบออก */
     margin-bottom: 0 !important;
@@ -166,22 +166,33 @@ const PackageName = styled.h3`
     background-clip: text;
 `;
 
-const StatusBadge = styled.div<{ $isFull: boolean }>`
+const StatusBadge = styled.div<{ $status?: 'available' | 'limited' | 'unavailable' }>`
     ${tw`flex items-center space-x-2 px-3 py-1.5 rounded-lg text-xs font-bold border`};
-    ${(props) =>
-        props.$isFull
-            ? `
-        border: 1px solid rgba(248, 113, 113, 0.6);
-        color: #fecdd3;
-        background: rgba(248, 113, 113, 0.15);
-        box-shadow: 0 4px 12px rgba(248, 113, 113, 0.2);
-    `
-            : `
-        border: 1px solid rgba(74, 222, 128, 0.6);
-        color: #dcfce7;
-        background: rgba(74, 222, 128, 0.15);
-        box-shadow: 0 4px 12px rgba(74, 222, 128, 0.2);
-    `};
+    ${(props) => {
+        const status = props.$status || 'available';
+        if (status === 'unavailable') {
+            return `
+                border: 1px solid rgba(248, 113, 113, 0.6);
+                color: #fecdd3;
+                background: rgba(248, 113, 113, 0.15);
+                box-shadow: 0 4px 12px rgba(248, 113, 113, 0.2);
+            `;
+        } else if (status === 'limited') {
+            return `
+                border: 1px solid rgba(251, 191, 36, 0.6);
+                color: #fef3c7;
+                background: rgba(251, 191, 36, 0.15);
+                box-shadow: 0 4px 12px rgba(251, 191, 36, 0.2);
+            `;
+        } else {
+            return `
+                border: 1px solid rgba(74, 222, 128, 0.6);
+                color: #dcfce7;
+                background: rgba(74, 222, 128, 0.15);
+                box-shadow: 0 4px 12px rgba(74, 222, 128, 0.2);
+            `;
+        }
+    }};
 `;
 
 const RecommendedBadge = styled.div`
@@ -296,19 +307,24 @@ export default ({ hardwareId, onSelect, onBack }: Props) => {
             try {
                 setLoading(true);
                 setError(null);
-                const hardwareDetail = await getHardwareDetail(hardwareId);
+
+                // Fetch hardware detail (includes availability data in containers)
+                const hardware = await getHardwareDetail(hardwareId);
 
                 const allPackages: Package[] = [];
                 let packageIndex = 1;
 
-                Object.values(hardwareDetail.categoryContainers).forEach((categoryPackages) => {
-                    categoryPackages.forEach((pkg) => {
+                Object.values(hardware.categoryContainers).forEach((categoryPackages: any) => {
+                    categoryPackages.forEach((pkg: any) => {
                         const packageId = pkg.packageId || packageIndex++;
                         const pricePerHour = pkg.price ?? pkg.hourlyRate;
-                        const capacity = pkg.capacity;
-                        const rentedCount = pkg.rentedCount ?? 0;
-                        const availableCount = pkg.availableCount ?? (capacity ? capacity - rentedCount : undefined);
-                        const isFull = capacity !== undefined ? rentedCount >= capacity : pkg.containers.length > 0;
+
+                        // Get availability from containers array
+                        // ถ้า containers มี elements = package ว่าง (มี container IDs)
+                        // ถ้า containers ว่าง = package ไม่ว่าง (ไม่มี container IDs)
+                        const hasContainers = pkg.containers && pkg.containers.length > 0;
+                        const status = hasContainers ? 'available' : 'unavailable';
+                        const isFull = !hasContainers;
                         const isRecommended = pkg.name.toLowerCase().includes('diamond');
 
                         allPackages.push({
@@ -321,9 +337,11 @@ export default ({ hardwareId, onSelect, onBack }: Props) => {
                             pricePerHour: pricePerHour,
                             isFull: isFull,
                             isRecommended: isRecommended,
-                            capacity: capacity,
-                            rentedCount: rentedCount,
-                            availableCount: availableCount,
+                            // Store availability status for display
+                            capacity: pkg.capacity,
+                            rentedCount: pkg.rentedCount,
+                            availableCount: hasContainers ? pkg.containers.length : 0, // ใช้จำนวน containers แทน
+                            status: status,
                         });
                     });
                 });
@@ -401,15 +419,9 @@ export default ({ hardwareId, onSelect, onBack }: Props) => {
                             <PackageImage $backgroundImage={packageImage} />
                             <PackageHeader>
                                 <PackageName>{pkg.name}</PackageName>
-                                <StatusBadge $isFull={pkg.isFull}>
+                                <StatusBadge $status={pkg.status || 'available'}>
                                     <span className={'w-2 h-2 rounded-full bg-current'} />
-                                    <span>
-                                        {pkg.isFull
-                                            ? 'เซิร์ฟเวอร์เต็ม'
-                                            : pkg.availableCount !== undefined
-                                            ? `เหลือ ${pkg.availableCount} อัน`
-                                            : 'พร้อมใช้งาน'}
-                                    </span>
+                                    <span>{getAvailabilityBadge(pkg.status || 'available')}</span>
                                 </StatusBadge>
                             </PackageHeader>
                             <SpecsList>

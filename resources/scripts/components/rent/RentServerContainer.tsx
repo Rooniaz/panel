@@ -112,6 +112,7 @@ export interface Package {
     capacity?: number; // Maximum number of servers for this package
     rentedCount?: number; // Current number of rented servers
     availableCount?: number; // Available slots remaining
+    status?: 'available' | 'limited' | 'unavailable'; // Availability status from API
 }
 
 export interface GameType {

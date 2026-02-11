@@ -22,6 +22,10 @@ export interface PackageContainer {
     capacity?: number; // Maximum number of servers that can be rented for this package
     rentedCount?: number; // Current number of servers rented for this package
     availableCount?: number; // Available slots (capacity - rentedCount)
+    // Availability fields from dynamic calculation
+    isAvailable?: boolean; // Whether package is available
+    status?: 'available' | 'limited' | 'unavailable'; // Availability status
+    availableNodesCount?: number; // Number of nodes that can support this package
 }
 
 export interface HardwareDetail {
