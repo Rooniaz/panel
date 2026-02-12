@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import tw from 'twin.macro';
 import styled, { keyframes, css } from 'styled-components/macro';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faMicrochip, faMemory, faHdd, faArrowLeft, faCheck, faClock } from '@fortawesome/free-solid-svg-icons';
+import { faMicrochip, faMemory, faHdd, faArrowLeft, faCheck, faClock, faArrowRight } from '@fortawesome/free-solid-svg-icons';
 import { Package, GameType, Version } from './RentServerContainer';
 import getVersions from '@/api/spring/versions';
 
@@ -61,19 +61,12 @@ const Container = styled.div`
 `;
 
 const HeaderSection = styled.div`
-    display: grid;
-    grid-template-columns: auto 1fr auto;
-    align-items: center;
-    gap: 16px;
-    ${tw`w-full mb-6`};
-    @media (max-width: 768px) {
-        grid-template-columns: 1fr;
-        ${tw`gap-4`};
-    }
+    ${tw`flex items-center justify-between mb-6`};
 `;
 
+
 const BackButton = styled.button`
-    ${tw`inline-flex items-center justify-center space-x-2 px-5 py-3.5 rounded-2xl text-neutral-100 transition-all duration-300 border backdrop-blur-md self-start md:self-start`};
+    ${tw`inline-flex items-center justify-center space-x-2 px-5 py-3.5 rounded-2xl text-neutral-100 transition-all duration-300 border backdrop-blur-md mb-6`};
     background: linear-gradient(135deg, rgba(30, 41, 59, 0.85), rgba(15, 23, 42, 0.85));
     border-color: rgba(56, 189, 248, 0.2);
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(56, 189, 248, 0.1);
@@ -85,6 +78,7 @@ const BackButton = styled.button`
         box-shadow: 0 12px 40px rgba(56, 189, 248, 0.3), 0 0 0 1px rgba(56, 189, 248, 0.3);
     }
 `;
+
 
 const PackageIcon = styled.div`
     ${tw`w-16 h-16 rounded-2xl text-white text-3xl flex items-center justify-center shadow-2xl relative overflow-hidden`};
@@ -165,22 +159,29 @@ const PriceButton = styled.div`
 `;
 
 const ProgressSection = styled.div`
-    ${tw`rounded-3xl backdrop-blur-xl p-6 border`};
+    ${tw`rounded-2xl sm:rounded-3xl backdrop-blur-xl p-3 sm:p-4 md:p-6 border`};
     background: linear-gradient(135deg, rgba(15, 23, 42, 0.8), rgba(30, 41, 59, 0.6));
     border-color: rgba(56, 189, 248, 0.2);
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1);
 `;
 
 const ProgressSteps = styled.div`
-    ${tw`flex items-center justify-between gap-3 mb-6 flex-wrap`};
+    ${tw`flex items-center justify-between gap-1 sm:gap-2 md:gap-3 mb-4 md:mb-6 flex-wrap`};
+    @media (max-width: 640px) {
+        gap: 0.25rem;
+    }
 `;
 
 const Step = styled.div<{ $active: boolean; $completed: boolean }>`
-    ${tw`flex items-center gap-3 flex-1 min-w-[0]`};
+    ${tw`flex items-center gap-1 sm:gap-2 md:gap-3 flex-1 min-w-[0]`};
+    @media (max-width: 640px) {
+        flex-direction: column;
+        gap: 0.25rem;
+    }
 `;
 
 const StepCircle = styled.div<{ $active: boolean; $completed: boolean }>`
-    ${tw`w-14 h-14 rounded-full flex items-center justify-center font-bold text-lg transition-all duration-300 relative`};
+    ${tw`w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 rounded-full flex items-center justify-center font-bold text-sm sm:text-base md:text-lg transition-all duration-300 relative flex-shrink-0`};
     ${(props) =>
         props.$completed
             ? tw`text-white`
@@ -203,8 +204,13 @@ const StepCircle = styled.div<{ $active: boolean; $completed: boolean }>`
 `;
 
 const StepLabel = styled.span<{ $active: boolean }>`
-    ${tw`text-sm font-medium transition-colors duration-300`};
+    ${tw`text-xs sm:text-sm font-medium transition-colors duration-300 hidden sm:block`};
     ${(props) => (props.$active ? tw`text-white` : tw`text-gray-400`)};
+    @media (max-width: 640px) {
+        font-size: 0.625rem;
+        line-height: 1;
+        text-align: center;
+    }
 `;
 
 const progressPulse = keyframes`
@@ -261,7 +267,7 @@ const TitleBar = styled.div`
 `;
 
 const TitleText = styled.h2`
-    ${tw`text-3xl font-bold tracking-tight`};
+    ${tw`text-xl sm:text-2xl md:text-3xl font-bold tracking-tight`};
     background: linear-gradient(135deg, #ffffff, #a0aec0, #cbd5e1);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -270,7 +276,7 @@ const TitleText = styled.h2`
 `;
 
 const GameInfo = styled.div`
-    ${tw`flex items-center gap-4 mb-6 p-5 rounded-3xl backdrop-blur-xl relative overflow-hidden`};
+    ${tw`flex items-center gap-3 sm:gap-4 mb-4 sm:mb-6 p-4 sm:p-5 md:p-6 rounded-2xl sm:rounded-3xl backdrop-blur-xl relative overflow-hidden`};
     background: linear-gradient(135deg, rgba(15, 23, 42, 0.8), rgba(30, 41, 59, 0.6));
 
     &::before {
@@ -308,13 +314,14 @@ const GameVersion = styled.p`
 `;
 
 const VersionGrid = styled.div`
-    ${tw`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-6 p-2`};
+    ${tw`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-5 mb-4 sm:mb-6 p-1 sm:p-2`};
     overflow: visible;
 `;
 
 const VersionButton = styled.button<{ $selected: boolean }>`
-    ${tw`relative flex items-center gap-4 p-5 rounded-3xl transition-all duration-300 backdrop-blur-xl overflow-hidden`};
+    ${tw`relative flex items-center gap-3 sm:gap-4 p-4 sm:p-5 md:p-6 rounded-2xl sm:rounded-3xl transition-all duration-300 backdrop-blur-xl overflow-hidden`};
     background: linear-gradient(135deg, rgba(15, 23, 42, 0.8), rgba(30, 41, 59, 0.6));
+    min-height: 80px;
     ${(props) => {
         if (props.$selected) {
             return css`
@@ -346,7 +353,7 @@ const VersionButton = styled.button<{ $selected: boolean }>`
 `;
 
 const VersionIcon = styled.div`
-    ${tw`w-12 h-12 rounded-xl text-white text-lg flex items-center justify-center relative z-10 transition-transform duration-300`};
+    ${tw`w-10 h-10 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl text-white text-base sm:text-lg flex items-center justify-center relative z-10 transition-transform duration-300 flex-shrink-0`};
     background: linear-gradient(135deg, #3b82f6, #6366f1);
     box-shadow: 0 8px 24px rgba(59, 130, 246, 0.4);
 
@@ -709,13 +716,14 @@ export default ({ selectedGame, onSelect, onBack }: Props) => {
                     <FontAwesomeIcon icon={faArrowLeft} />
                     <span>ย้อนกลับ</span>
                 </NavButton>
-                <NavButton
+                {/* <NavButton
                     $primary
                     onClick={() => selectedVersion && onSelect(selectedVersion)}
                     disabled={!selectedVersion}
                 >
-                    <span>ถัดไป →</span>
-                </NavButton>
+                    <span>ถัดไป</span>
+                    <FontAwesomeIcon icon={faArrowRight} />
+                </NavButton> */}
             </NavigationButtons>
         </Container>
     );

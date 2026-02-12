@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Pterodactyl\Models\Backup;
 use Pterodactyl\Models\Server;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Log;
 use Pterodactyl\Facades\Activity;
 use Pterodactyl\Models\Permission;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -34,6 +35,7 @@ class BackupController extends ClientApiController
     ) {
         parent::__construct();
     }
+
 
     /**
      * Returns all the backups for a given server instance in a paginated

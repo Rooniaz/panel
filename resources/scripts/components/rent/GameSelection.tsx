@@ -164,22 +164,29 @@ const PriceButton = styled.div`
 `;
 
 const ProgressSection = styled.div`
-    ${tw`rounded-3xl backdrop-blur-xl p-6 border`};
+    ${tw`rounded-2xl sm:rounded-3xl backdrop-blur-xl p-3 sm:p-4 md:p-6 border`};
     background: linear-gradient(135deg, rgba(15, 23, 42, 0.8), rgba(30, 41, 59, 0.6));
     border-color: rgba(56, 189, 248, 0.2);
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1);
 `;
 
 const ProgressSteps = styled.div`
-    ${tw`flex items-center justify-between gap-3 mb-6`};
+    ${tw`flex items-center justify-between gap-1 sm:gap-2 md:gap-3 mb-4 md:mb-6`};
+    @media (max-width: 640px) {
+        gap: 0.25rem;
+    }
 `;
 
 const Step = styled.div<{ $active: boolean; $completed: boolean }>`
-    ${tw`flex items-center gap-3 flex-1`};
+    ${tw`flex items-center gap-1 sm:gap-2 md:gap-3 flex-1`};
+    @media (max-width: 640px) {
+        flex-direction: column;
+        gap: 0.25rem;
+    }
 `;
 
 const StepCircle = styled.div<{ $active: boolean; $completed: boolean }>`
-    ${tw`w-14 h-14 rounded-full flex items-center justify-center font-bold text-lg transition-all duration-300 relative`};
+    ${tw`w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 rounded-full flex items-center justify-center font-bold text-sm sm:text-base md:text-lg transition-all duration-300 relative flex-shrink-0`};
     ${(props) =>
         props.$completed
             ? tw`text-white`
@@ -202,8 +209,13 @@ const StepCircle = styled.div<{ $active: boolean; $completed: boolean }>`
 `;
 
 const StepLabel = styled.span<{ $active: boolean }>`
-    ${tw`text-sm font-medium transition-colors duration-300`};
+    ${tw`text-xs sm:text-sm font-medium transition-colors duration-300 hidden sm:block`};
     ${(props) => (props.$active ? tw`text-white` : tw`text-gray-400`)};
+    @media (max-width: 640px) {
+        font-size: 0.625rem;
+        line-height: 1;
+        text-align: center;
+    }
 `;
 
 const progressPulse = keyframes`
@@ -260,7 +272,7 @@ const TitleBar = styled.div`
 `;
 
 const TitleText = styled.h2`
-    ${tw`text-3xl font-bold tracking-tight`};
+    ${tw`text-xl sm:text-2xl md:text-3xl font-bold tracking-tight`};
     background: linear-gradient(135deg, #ffffff, #a0aec0, #cbd5e1);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -269,14 +281,17 @@ const TitleText = styled.h2`
 `;
 
 const GameGrid = styled.div`
-    ${tw`grid grid-cols-1 md:grid-cols-3 gap-6`};
+    ${tw`grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-5 md:gap-6`};
     overflow: visible;
-    padding: 1rem;
+    padding: 0.5rem sm:p-4;
 `;
 
 const GameCard = styled.div<{ $selected: boolean; $backgroundImage?: string }>`
-    ${tw`relative rounded-3xl p-6 cursor-pointer transition-all duration-300 overflow-hidden`};
-    min-height: 200px;
+    ${tw`relative rounded-2xl sm:rounded-3xl p-4 sm:p-5 md:p-6 cursor-pointer transition-all duration-300 overflow-hidden`};
+    min-height: 180px;
+    @media (max-width: 640px) {
+        min-height: 160px;
+    }
     background-image: ${({ $backgroundImage }) => ($backgroundImage ? `url(${$backgroundImage})` : 'none')};
     background-size: cover;
     background-position: center;
@@ -317,7 +332,7 @@ const GameCard = styled.div<{ $selected: boolean; $backgroundImage?: string }>`
 `;
 
 const GameIcon = styled.div`
-    ${tw`w-16 h-16 rounded-2xl text-white text-3xl flex items-center justify-center mb-4 relative z-10 transition-transform duration-300`};
+    ${tw`w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 rounded-xl sm:rounded-2xl text-white text-2xl sm:text-3xl flex items-center justify-center mb-3 sm:mb-4 relative z-10 transition-transform duration-300`};
     background: linear-gradient(135deg, #3b82f6, #6366f1);
     box-shadow: 0 10px 30px rgba(59, 130, 246, 0.4);
 
@@ -328,7 +343,7 @@ const GameIcon = styled.div`
 `;
 
 const GameName = styled.h3`
-    ${tw`text-xl font-bold text-white mb-2 relative z-10`};
+    ${tw`text-lg sm:text-xl font-bold text-white mb-2 relative z-10`};
     background: linear-gradient(135deg, #ffffff, #cbd5e1);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -337,7 +352,7 @@ const GameName = styled.h3`
 `;
 
 const GameDescription = styled.p`
-    ${tw`text-gray-200 text-sm leading-relaxed relative z-10`};
+    ${tw`text-gray-200 text-xs sm:text-sm leading-relaxed relative z-10`};
     text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.9);
     opacity: 0.95;
 `;

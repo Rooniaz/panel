@@ -82,7 +82,7 @@ const BackButton = styled.button`
 `;
 
 const PackageInfo = styled.div`
-    ${tw`flex flex-col md:flex-row items-center md:items-start justify-center md:justify-start gap-3 md:gap-4 flex-1 flex-wrap text-center md:text-left w-full`};
+    ${tw`flex flex-col md:flex-row items-center md:items-center justify-center gap-3 md:gap-4 flex-1 flex-wrap text-center w-full`};
 `;
 
 const PackageIcon = styled.div`
@@ -105,7 +105,7 @@ const PackageIcon = styled.div`
 `;
 
 const PackageDetails = styled.div`
-    ${tw`space-y-1`};
+    ${tw`space-y-1 flex flex-col items-center`};
 `;
 
 const PackageName = styled.h3`
@@ -117,7 +117,7 @@ const PackageName = styled.h3`
 `;
 
 const PackageSpecs = styled.div`
-    ${tw`flex items-center gap-4 text-sm`};
+    ${tw`flex items-center justify-center gap-4 text-sm flex-wrap`};
 `;
 
 const SpecItem = styled.span`
@@ -164,22 +164,29 @@ const PriceButton = styled.div`
 `;
 
 const ProgressSection = styled.div`
-    ${tw`rounded-3xl backdrop-blur-xl p-6 border`};
+    ${tw`rounded-2xl sm:rounded-3xl backdrop-blur-xl p-3 sm:p-4 md:p-6 border`};
     background: linear-gradient(135deg, rgba(15, 23, 42, 0.8), rgba(30, 41, 59, 0.6));
     border-color: rgba(56, 189, 248, 0.2);
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1);
 `;
 
 const ProgressSteps = styled.div`
-    ${tw`flex items-center justify-between gap-3 mb-6 flex-wrap`};
+    ${tw`flex items-center justify-between gap-1 sm:gap-2 md:gap-3 mb-4 md:mb-6 flex-wrap`};
+    @media (max-width: 640px) {
+        gap: 0.25rem;
+    }
 `;
 
 const Step = styled.div<{ $active: boolean; $completed: boolean }>`
-    ${tw`flex items-center gap-3 flex-1 min-w-[0]`};
+    ${tw`flex items-center gap-1 sm:gap-2 md:gap-3 flex-1 min-w-[0]`};
+    @media (max-width: 640px) {
+        flex-direction: column;
+        gap: 0.25rem;
+    }
 `;
 
 const StepCircle = styled.div<{ $active: boolean; $completed: boolean }>`
-    ${tw`w-14 h-14 rounded-full flex items-center justify-center font-bold text-lg transition-all duration-300 relative`};
+    ${tw`w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 rounded-full flex items-center justify-center font-bold text-sm sm:text-base md:text-lg transition-all duration-300 relative flex-shrink-0`};
     ${(props) =>
         props.$completed
             ? tw`text-white`
@@ -202,8 +209,13 @@ const StepCircle = styled.div<{ $active: boolean; $completed: boolean }>`
 `;
 
 const StepLabel = styled.span<{ $active: boolean }>`
-    ${tw`text-sm font-medium transition-colors duration-300`};
+    ${tw`text-xs sm:text-sm font-medium transition-colors duration-300 hidden sm:block`};
     ${(props) => (props.$active ? tw`text-white` : tw`text-gray-400`)};
+    @media (max-width: 640px) {
+        font-size: 0.625rem;
+        line-height: 1;
+        text-align: center;
+    }
 `;
 
 const progressPulse = keyframes`
@@ -248,7 +260,7 @@ const ProgressIcon = styled.div<{ $progress: number }>`
 `;
 
 const SettingsCard = styled.div`
-    ${tw`rounded-3xl p-8 space-y-8 backdrop-blur-xl relative overflow-hidden`};
+    ${tw`rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-8 space-y-6 sm:space-y-8 backdrop-blur-xl relative overflow-hidden`};
     background: linear-gradient(135deg, rgba(15, 23, 42, 0.9), rgba(30, 41, 59, 0.7));
 
     &::before {
@@ -272,7 +284,7 @@ const SectionTitle = styled.h3`
 `;
 
 const GameSelectionInfo = styled.div`
-    ${tw`flex items-center gap-4 p-5 rounded-3xl backdrop-blur-xl relative overflow-hidden`};
+    ${tw`flex items-center gap-3 sm:gap-4 p-4 sm:p-5 md:p-6 rounded-2xl sm:rounded-3xl backdrop-blur-xl relative overflow-hidden`};
     background: linear-gradient(135deg, rgba(15, 23, 42, 0.8), rgba(30, 41, 59, 0.6));
 
     &::before {
@@ -354,7 +366,7 @@ const AddonSection = styled.div`
 `;
 
 const AddonItem = styled.div`
-    ${tw`flex items-center justify-between p-5 rounded-3xl border backdrop-blur-xl relative overflow-hidden transition-all duration-300`};
+    ${tw`flex items-center justify-between p-4 sm:p-5 md:p-6 rounded-2xl sm:rounded-3xl border backdrop-blur-xl relative overflow-hidden transition-all duration-300`};
     background: linear-gradient(135deg, rgba(15, 23, 42, 0.8), rgba(30, 41, 59, 0.6));
     border-color: rgba(56, 189, 248, 0.3);
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1);
@@ -607,10 +619,10 @@ export default ({
             <HeaderSection>
                 <BackButton onClick={onBack}>
                     <FontAwesomeIcon icon={faArrowLeft} />
-                    <span>กลับไปเลือกแพ็กเกจ</span>
+                    <span>กลับไปเลือกเกม</span>
                 </BackButton>
                 <PackageInfo>
-                    <PackageIcon>💎</PackageIcon>
+                    {/* <PackageIcon>💎</PackageIcon> */}
                     <PackageDetails>
                         <PackageName>{selectedPackage.name}</PackageName>
                         <PackageSpecs>

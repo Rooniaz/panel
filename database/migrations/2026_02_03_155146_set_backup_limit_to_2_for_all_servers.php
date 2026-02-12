@@ -10,8 +10,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // ตั้งค่า backup_limit = 2 สำหรับทุก server
-        DB::table('servers')->update(['backup_limit' => 2]);
+        // ตั้งค่า backup_limit = 2 สำหรับทุก server (อัพเดททุกครั้งที่ run)
+        DB::table('servers')->where('backup_limit', '!=', 2)->update(['backup_limit' => 2]);
     }
 
     /**

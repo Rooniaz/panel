@@ -45,22 +45,29 @@ const progressPulse = keyframes`
 `;
 
 const ProgressSection = styled.div`
-    ${tw`rounded-3xl backdrop-blur-xl p-6 border mb-6`};
+    ${tw`rounded-2xl sm:rounded-3xl backdrop-blur-xl p-3 sm:p-4 md:p-6 border mb-4 sm:mb-6`};
     background: linear-gradient(135deg, rgba(15, 23, 42, 0.8), rgba(30, 41, 59, 0.6));
     border-color: rgba(56, 189, 248, 0.2);
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1);
 `;
 
 const ProgressSteps = styled.div`
-    ${tw`flex items-center justify-between gap-3 mb-6`};
+    ${tw`flex items-center justify-between gap-1 sm:gap-2 md:gap-3 mb-4 md:mb-6`};
+    @media (max-width: 640px) {
+        gap: 0.25rem;
+    }
 `;
 
 const Step = styled.div<{ $active: boolean; $completed: boolean }>`
-    ${tw`flex items-center gap-3 flex-1`};
+    ${tw`flex items-center gap-1 sm:gap-2 md:gap-3 flex-1`};
+    @media (max-width: 640px) {
+        flex-direction: column;
+        gap: 0.25rem;
+    }
 `;
 
 const StepCircle = styled.div<{ $active: boolean; $completed: boolean }>`
-    ${tw`w-14 h-14 rounded-full flex items-center justify-center font-bold text-lg transition-all duration-300 relative`};
+    ${tw`w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 rounded-full flex items-center justify-center font-bold text-sm sm:text-base md:text-lg transition-all duration-300 relative flex-shrink-0`};
     ${(props) =>
         props.$completed
             ? tw`text-white`
@@ -83,8 +90,13 @@ const StepCircle = styled.div<{ $active: boolean; $completed: boolean }>`
 `;
 
 const StepLabel = styled.span<{ $active: boolean }>`
-    ${tw`text-sm font-medium transition-colors duration-300`};
+    ${tw`text-xs sm:text-sm font-medium transition-colors duration-300 hidden sm:block`};
     ${(props) => (props.$active ? tw`text-white` : tw`text-gray-400`)};
+    @media (max-width: 640px) {
+        font-size: 0.625rem;
+        line-height: 1;
+        text-align: center;
+    }
 `;
 
 const ProgressBar = styled.div`
@@ -194,7 +206,7 @@ const BackButton = styled.button`
 `;
 
 const HardwareTypeCard = styled.div`
-    ${tw`rounded-2xl p-6 border border-white/10 backdrop-blur-sm mb-6 relative`}
+    ${tw`rounded-2xl sm:rounded-3xl p-4 sm:p-5 md:p-6 border border-white/10 backdrop-blur-sm mb-4 sm:mb-6 relative`}
     background: linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(15, 23, 42, 0.98) 100%);
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.05),
         inset 0 1px 0 rgba(255, 255, 255, 0.1);
@@ -222,9 +234,12 @@ const HardwareTypeGrid = styled.div`
 `;
 
 const HardwareTypeButton = styled.button<{ $selected: boolean }>`
-    ${tw`relative flex flex-col items-center justify-center gap-5 p-8 rounded-2xl border-2 transition-all duration-300 overflow-hidden cursor-pointer`}
+    ${tw`relative flex flex-col items-center justify-center gap-4 sm:gap-5 p-4 sm:p-6 md:p-8 rounded-2xl sm:rounded-3xl border-2 transition-all duration-300 overflow-hidden cursor-pointer`}
     background: linear-gradient(135deg, rgba(30, 41, 59, 0.9) 0%, rgba(15, 23, 42, 0.95) 100%);
-    min-height: 200px;
+    min-height: 180px;
+    @media (max-width: 640px) {
+        min-height: 160px;
+    }
 
     ${({ $selected }) =>
         $selected
@@ -368,9 +383,9 @@ const ProcessorGrid = styled.div`
 `;
 
 const ProcessorCard = styled.button<{ $selected: boolean }>`
-    ${tw`relative flex items-center justify-between p-5 rounded-xl border-2 transition-all duration-300 text-left overflow-hidden`}
+    ${tw`relative flex flex-col p-4 sm:p-5 md:p-6 rounded-2xl sm:rounded-3xl border-2 transition-all duration-300 text-left overflow-hidden`}
     background: linear-gradient(135deg, rgba(30, 41, 59, 0.9) 0%, rgba(15, 23, 42, 0.95) 100%);
-    min-height: 100px;
+    min-height: 140px;
 
     ${({ $selected }) =>
         $selected
@@ -410,8 +425,32 @@ const ProcessorCard = styled.button<{ $selected: boolean }>`
     }
 `;
 
+const ProcessorImage = styled.div<{ $backgroundImage?: string }>`
+    ${tw`w-full h-24 mb-3 rounded-xl relative overflow-hidden`}
+    background: ${({ $backgroundImage }) =>
+        $backgroundImage
+            ? `url(${$backgroundImage})`
+            : 'linear-gradient(135deg, rgba(56, 189, 248, 0.15), rgba(99, 102, 241, 0.15))'};
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    position: relative;
+    z-index: 1;
+
+    &::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(to bottom, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.6));
+        z-index: 1;
+    }
+`;
+
 const ProcessorInfo = styled.div`
-    ${tw`flex-1`}
+    ${tw`flex-1 relative z-10`}
 `;
 
 const ProcessorName = styled.div<{ $selected: boolean }>`
@@ -733,13 +772,19 @@ export default ({ onSelect, onBack }: Props) => {
                     <HardwareTypeCard>
                         <ProcessorSection>
                             <ProcessorGrid>
-                                {currentHardwareList.map((hardware) => (
-                                    <ProcessorCard
-                                        key={hardware.id}
-                                        $selected={selectedHardware?.id === hardware.id}
-                                        onClick={() => handleProcessorSelect(hardware)}
-                                    >
-                                        <ProcessorInfo>
+                                {currentHardwareList.map((hardware, index) => {
+                                    // ใช้ index เพื่อวนรูปภาพ: package 1, 2, 3, 1, 2, 3, ...
+                                    const imageIndex = (index % 3) + 1;
+                                    const processorImage = `/package${imageIndex}.gif?v=1`;
+
+                                    return (
+                                        <ProcessorCard
+                                            key={hardware.id}
+                                            $selected={selectedHardware?.id === hardware.id}
+                                            onClick={() => handleProcessorSelect(hardware)}
+                                        >
+                                            <ProcessorImage $backgroundImage={processorImage} />
+                                            <ProcessorInfo>
                                             <ProcessorName $selected={selectedHardware?.id === hardware.id}>
                                                 {hardware.name}
                                                 {hardware.priority === 0 && <NewBadge>NEW</NewBadge>}
@@ -752,7 +797,8 @@ export default ({ onSelect, onBack }: Props) => {
                                             )}
                                         </SelectionIndicator>
                                     </ProcessorCard>
-                                ))}
+                                    );
+                                })}
                             </ProcessorGrid>
                         </ProcessorSection>
                     </HardwareTypeCard>

@@ -40,22 +40,29 @@ const progressPulse = keyframes`
 `;
 
 const ProgressSection = styled.div`
-    ${tw`rounded-3xl backdrop-blur-xl p-6 border mb-6`};
+    ${tw`rounded-2xl sm:rounded-3xl backdrop-blur-xl p-3 sm:p-4 md:p-6 border mb-4 sm:mb-6`};
     background: linear-gradient(135deg, rgba(15, 23, 42, 0.8), rgba(30, 41, 59, 0.6));
     border-color: rgba(56, 189, 248, 0.2);
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1);
 `;
 
 const ProgressSteps = styled.div`
-    ${tw`flex items-center justify-between gap-3 mb-6`};
+    ${tw`flex items-center justify-between gap-1 sm:gap-2 md:gap-3 mb-4 md:mb-6`};
+    @media (max-width: 640px) {
+        gap: 0.25rem;
+    }
 `;
 
 const Step = styled.div<{ $active: boolean; $completed: boolean }>`
-    ${tw`flex items-center gap-3 flex-1`};
+    ${tw`flex items-center gap-1 sm:gap-2 md:gap-3 flex-1`};
+    @media (max-width: 640px) {
+        flex-direction: column;
+        gap: 0.25rem;
+    }
 `;
 
 const StepCircle = styled.div<{ $active: boolean; $completed: boolean }>`
-    ${tw`w-14 h-14 rounded-full flex items-center justify-center font-bold text-lg transition-all duration-300 relative`};
+    ${tw`w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 rounded-full flex items-center justify-center font-bold text-sm sm:text-base md:text-lg transition-all duration-300 relative flex-shrink-0`};
     ${(props) =>
         props.$completed
             ? tw`text-white`
@@ -78,8 +85,13 @@ const StepCircle = styled.div<{ $active: boolean; $completed: boolean }>`
 `;
 
 const StepLabel = styled.span<{ $active: boolean }>`
-    ${tw`text-sm font-medium transition-colors duration-300`};
+    ${tw`text-xs sm:text-sm font-medium transition-colors duration-300 hidden sm:block`};
     ${(props) => (props.$active ? tw`text-white` : tw`text-gray-400`)};
+    @media (max-width: 640px) {
+        font-size: 0.625rem;
+        line-height: 1;
+        text-align: center;
+    }
 `;
 
 const ProgressBar = styled.div`
@@ -160,12 +172,12 @@ const TitleText = styled.h2`
 `;
 
 const PackageGrid = styled.div`
-    ${tw`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-2`};
+    ${tw`grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-5 md:gap-6 p-1 sm:p-2`};
     overflow: visible;
 `;
 
 const PackageCard = styled.div<{ $isFull: boolean; $isRecommended?: boolean }>`
-    ${tw`relative rounded-3xl p-6 cursor-pointer transition-all duration-300 overflow-hidden`};
+    ${tw`relative rounded-2xl sm:rounded-3xl p-4 sm:p-5 md:p-6 cursor-pointer transition-all duration-300 overflow-hidden`};
     background: linear-gradient(135deg, rgba(15, 23, 42, 0.9), rgba(30, 41, 59, 0.7));
     backdrop-filter: blur(10px);
     ${(props) =>
@@ -522,7 +534,7 @@ export default ({ hardwareId, onSelect, onBack }: Props) => {
                 <ProgressBar>
                     <ProgressFill $progress={progress} />
                     <ProgressIcon $progress={progress}>
-                        <img src="/Grass-Block.png" alt="Progress" />
+                        <img src='/Grass-Block.png' alt='Progress' />
                     </ProgressIcon>
                 </ProgressBar>
             </ProgressSection>
@@ -533,8 +545,10 @@ export default ({ hardwareId, onSelect, onBack }: Props) => {
             </SectionTitle>
 
             <PackageGrid>
-                {packages.map((pkg) => {
-                    const packageImage = `/package${pkg.packageId}.gif?v=1`;
+                {packages.map((pkg, index) => {
+                    // ใช้ index เพื่อวนรูปภาพ: package 1, 2, 3, 1, 2, 3, ...
+                    const imageIndex = (index % 3) + 1;
+                    const packageImage = `/package${imageIndex}.gif?v=1`;
 
                     return (
                         <PackageCard
