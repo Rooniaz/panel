@@ -412,6 +412,24 @@ const AddonDescription = styled.p`
     ${tw`text-sm text-gray-300`};
 `;
 
+const ErrorMessage = styled.div`
+    ${tw`mt-2 p-3 rounded-xl flex items-center gap-2 text-sm`};
+    background: rgba(239, 68, 68, 0.15);
+    border: 1px solid rgba(239, 68, 68, 0.4);
+    color: #fca5a5;
+    animation: ${pulse} 2s ease-in-out infinite;
+`;
+
+const InputError = styled(Input)`
+    border-color: rgba(239, 68, 68, 0.6) !important;
+    box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.15), 0 8px 32px rgba(0, 0, 0, 0.2) !important;
+
+    &:focus {
+        border-color: rgba(239, 68, 68, 0.8) !important;
+        box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.2), 0 12px 40px rgba(239, 68, 68, 0.3) !important;
+    }
+`;
+
 const FreeBadge = styled.span`
     ${tw`px-3 py-1 rounded-lg text-xs font-bold`};
     color: #dcfce7;
@@ -573,11 +591,11 @@ export default ({
     creationProgress = '',
 }: Props) => {
     const [backupEnabled, setBackupEnabled] = React.useState(true);
-    const [progress, setProgress] = React.useState(0);
+    const [progress, setProgress] = React.useState(80);
 
     React.useEffect(() => {
-        // Animate progress from 66.66% to 100%
-        setProgress(66.66);
+        // Animate progress from 80% to 100% (Step 5 of 5)
+        setProgress(80);
         const timer = setTimeout(() => {
             setProgress(100);
         }, 100);
@@ -631,9 +649,21 @@ export default ({
                         </StepCircle>
                         <StepLabel $active={false}>เลือกเวอร์ชัน</StepLabel>
                     </Step>
+                    <Step $active={false} $completed={true}>
+                        <StepCircle $active={false} $completed={true}>
+                            <FontAwesomeIcon icon={faCheck} />
+                        </StepCircle>
+                        <StepLabel $active={false}>เลือกฮาร์ดแวร์</StepLabel>
+                    </Step>
+                    <Step $active={false} $completed={true}>
+                        <StepCircle $active={false} $completed={true}>
+                            <FontAwesomeIcon icon={faCheck} />
+                        </StepCircle>
+                        <StepLabel $active={false}>เลือกแพ็กเกจ</StepLabel>
+                    </Step>
                     <Step $active={true} $completed={false}>
                         <StepCircle $active={true} $completed={false}>
-                            3
+                            5
                         </StepCircle>
                         <StepLabel $active={true}>ตั้งค่าเซิร์ฟเวอร์</StepLabel>
                     </Step>

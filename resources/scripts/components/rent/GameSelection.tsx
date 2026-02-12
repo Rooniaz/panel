@@ -394,20 +394,19 @@ const games: GameType[] = [
 ];
 
 interface Props {
-    selectedPackage: Package;
     onSelect: (game: GameType) => void;
     onBack: () => void;
 }
 
-export default ({ selectedPackage, onSelect, onBack }: Props) => {
+export default ({ onSelect, onBack }: Props) => {
     const [selectedGame, setSelectedGame] = React.useState<GameType | null>(null);
     const [progress, setProgress] = React.useState(0);
 
     React.useEffect(() => {
-        // Animate progress from 0 to 33.33%
+        // Animate progress from 0 to 20% (Step 1 of 5)
         setProgress(0);
         const timer = setTimeout(() => {
-            setProgress(33.33);
+            setProgress(20);
         }, 100);
         return () => clearTimeout(timer);
     }, []);
@@ -431,37 +430,6 @@ export default ({ selectedPackage, onSelect, onBack }: Props) => {
 
     return (
         <Container>
-            <HeaderSection>
-                <BackButton onClick={onBack}>
-                    <FontAwesomeIcon icon={faArrowLeft} />
-                    <span>กลับไปเลือกแพ็กเกจ</span>
-                </BackButton>
-                <PackageInfo>
-                    <PackageIcon>💎</PackageIcon>
-                    <PackageDetails>
-                        <PackageName>{selectedPackage.name}</PackageName>
-                        <PackageSpecs>
-                            <SpecItem>
-                                <FontAwesomeIcon icon={faMicrochip} />
-                                <span>{selectedPackage.cpu} vCPU</span>
-                            </SpecItem>
-                            <SpecItem>
-                                <FontAwesomeIcon icon={faMemory} />
-                                <span>{selectedPackage.ram} GB RAM</span>
-                            </SpecItem>
-                            <SpecItem>
-                                <FontAwesomeIcon icon={faHdd} />
-                                <span>{selectedPackage.storage} GB Disk</span>
-                            </SpecItem>
-                        </PackageSpecs>
-                    </PackageDetails>
-                </PackageInfo>
-                <PriceButton>
-                    <FontAwesomeIcon icon={faClock} />
-                    <span>{selectedPackage.pricePerHour} เครดิต / ชั่วโมง</span>
-                </PriceButton>
-            </HeaderSection>
-
             <ProgressSection>
                 <ProgressSteps>
                     <Step $active={true} $completed={false}>
@@ -479,6 +447,18 @@ export default ({ selectedPackage, onSelect, onBack }: Props) => {
                     <Step $active={false} $completed={false}>
                         <StepCircle $active={false} $completed={false}>
                             3
+                        </StepCircle>
+                        <StepLabel $active={false}>เลือกฮาร์ดแวร์</StepLabel>
+                    </Step>
+                    <Step $active={false} $completed={false}>
+                        <StepCircle $active={false} $completed={false}>
+                            4
+                        </StepCircle>
+                        <StepLabel $active={false}>เลือกแพ็กเกจ</StepLabel>
+                    </Step>
+                    <Step $active={false} $completed={false}>
+                        <StepCircle $active={false} $completed={false}>
+                            5
                         </StepCircle>
                         <StepLabel $active={false}>ตั้งค่าเซิร์ฟเวอร์</StepLabel>
                     </Step>

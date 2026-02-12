@@ -491,13 +491,12 @@ const getGameKey = (gameId: string): string => {
 };
 
 interface Props {
-    selectedPackage: Package;
     selectedGame: GameType;
     onSelect: (version: Version) => void;
     onBack: () => void;
 }
 
-export default ({ selectedPackage, selectedGame, onSelect, onBack }: Props) => {
+export default ({ selectedGame, onSelect, onBack }: Props) => {
     const [selectedVersion, setSelectedVersion] = useState<Version | null>(null);
     const [allVersions, setAllVersions] = useState<Version[]>([]);
     const [loading, setLoading] = useState(true);
@@ -507,10 +506,10 @@ export default ({ selectedPackage, selectedGame, onSelect, onBack }: Props) => {
     const versionsPerPage = 6;
 
     useEffect(() => {
-        // Animate progress from 33.33% to 66.66%
-        setProgress(33.33);
+        // Animate progress from 20% to 40% (Step 2 of 5)
+        setProgress(20);
         const timer = setTimeout(() => {
-            setProgress(66.66);
+            setProgress(40);
         }, 100);
         return () => clearTimeout(timer);
     }, []);
@@ -586,32 +585,8 @@ export default ({ selectedPackage, selectedGame, onSelect, onBack }: Props) => {
             <HeaderSection>
                 <BackButton onClick={onBack}>
                     <FontAwesomeIcon icon={faArrowLeft} />
-                    <span>กลับไปเลือกแพ็กเกจ</span>
+                    <span>ย้อนกลับ</span>
                 </BackButton>
-                <PackageInfo>
-                    <PackageIcon>💎</PackageIcon>
-                    <PackageDetails>
-                        <PackageName>{selectedPackage.name}</PackageName>
-                        <PackageSpecs>
-                            <SpecItem>
-                                <FontAwesomeIcon icon={faMicrochip} />
-                                <span>{selectedPackage.cpu} vCPU</span>
-                            </SpecItem>
-                            <SpecItem>
-                                <FontAwesomeIcon icon={faMemory} />
-                                <span>{selectedPackage.ram} GB RAM</span>
-                            </SpecItem>
-                            <SpecItem>
-                                <FontAwesomeIcon icon={faHdd} />
-                                <span>{selectedPackage.storage} GB Disk</span>
-                            </SpecItem>
-                        </PackageSpecs>
-                    </PackageDetails>
-                </PackageInfo>
-                <PriceButton>
-                    <FontAwesomeIcon icon={faClock} />
-                    <span>{selectedPackage.pricePerHour} เครดิต / ชั่วโมง</span>
-                </PriceButton>
             </HeaderSection>
             <ProgressSection>
                 <ProgressSteps>
@@ -630,6 +605,18 @@ export default ({ selectedPackage, selectedGame, onSelect, onBack }: Props) => {
                     <Step $active={false} $completed={false}>
                         <StepCircle $active={false} $completed={false}>
                             3
+                        </StepCircle>
+                        <StepLabel $active={false}>เลือกฮาร์ดแวร์</StepLabel>
+                    </Step>
+                    <Step $active={false} $completed={false}>
+                        <StepCircle $active={false} $completed={false}>
+                            4
+                        </StepCircle>
+                        <StepLabel $active={false}>เลือกแพ็กเกจ</StepLabel>
+                    </Step>
+                    <Step $active={false} $completed={false}>
+                        <StepCircle $active={false} $completed={false}>
+                            5
                         </StepCircle>
                         <StepLabel $active={false}>ตั้งค่าเซิร์ฟเวอร์</StepLabel>
                     </Step>

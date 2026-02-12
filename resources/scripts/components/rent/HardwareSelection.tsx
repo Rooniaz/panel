@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import tw from 'twin.macro';
 import styled, { keyframes, css } from 'styled-components/macro';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCheck, faMicrochip, faServer } from '@fortawesome/free-solid-svg-icons';
+import { faCheck, faMicrochip, faServer, faArrowLeft } from '@fortawesome/free-solid-svg-icons';
 import { getHardwareList, Hardware } from '@/api/spring/hardware';
 import Spinner from '@/components/elements/Spinner';
 
@@ -25,6 +25,101 @@ const glow = keyframes`
     50% { 
         box-shadow: 0 0 30px rgba(59, 130, 246, 0.8), 0 0 60px rgba(99, 102, 241, 0.5),
             0 0 0 1px rgba(59, 130, 246, 0.5);
+    }
+`;
+
+const gradientShift = keyframes`
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+`;
+
+const bounce = keyframes`
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-8px); }
+`;
+
+const progressPulse = keyframes`
+    0%, 100% { opacity: 1; transform: scaleY(1); }
+    50% { opacity: 0.8; transform: scaleY(1.05); }
+`;
+
+const ProgressSection = styled.div`
+    ${tw`rounded-3xl backdrop-blur-xl p-6 border mb-6`};
+    background: linear-gradient(135deg, rgba(15, 23, 42, 0.8), rgba(30, 41, 59, 0.6));
+    border-color: rgba(56, 189, 248, 0.2);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+`;
+
+const ProgressSteps = styled.div`
+    ${tw`flex items-center justify-between gap-3 mb-6`};
+`;
+
+const Step = styled.div<{ $active: boolean; $completed: boolean }>`
+    ${tw`flex items-center gap-3 flex-1`};
+`;
+
+const StepCircle = styled.div<{ $active: boolean; $completed: boolean }>`
+    ${tw`w-14 h-14 rounded-full flex items-center justify-center font-bold text-lg transition-all duration-300 relative`};
+    ${(props) =>
+        props.$completed
+            ? tw`text-white`
+            : props.$active
+            ? tw`text-white`
+            : tw`bg-white/5 text-gray-400 border border-white/10`};
+    ${(props) =>
+        props.$completed &&
+        css`
+            background: linear-gradient(135deg, #22c55e, #16a34a);
+            box-shadow: 0 0 20px rgba(34, 197, 94, 0.5), 0 4px 12px rgba(0, 0, 0, 0.3);
+        `};
+    ${(props) =>
+        props.$active &&
+        css`
+            background: linear-gradient(135deg, #3b82f6, #6366f1);
+            box-shadow: 0 0 30px rgba(59, 130, 246, 0.6), 0 4px 12px rgba(0, 0, 0, 0.3);
+            animation: ${pulse} 2s ease-in-out infinite;
+        `};
+`;
+
+const StepLabel = styled.span<{ $active: boolean }>`
+    ${tw`text-sm font-medium transition-colors duration-300`};
+    ${(props) => (props.$active ? tw`text-white` : tw`text-gray-400`)};
+`;
+
+const ProgressBar = styled.div`
+    ${tw`w-full h-3 rounded-full overflow-visible relative`};
+    background: rgba(30, 41, 59, 0.6);
+    border: 1px solid rgba(56, 189, 248, 0.2);
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
+    position: relative;
+`;
+
+const ProgressFill = styled.div<{ $progress: number }>`
+    ${tw`h-full relative overflow-visible`};
+    background: linear-gradient(90deg, #3b82f6, #6366f1, #8b5cf6);
+    background-size: 200% 100%;
+    animation: ${gradientShift} 3s ease infinite, ${progressPulse} 2s ease-in-out infinite;
+    width: ${(props) => props.$progress}%;
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.6);
+    transition: width 1.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+    position: relative;
+`;
+
+const ProgressIcon = styled.div<{ $progress: number }>`
+    ${tw`absolute w-6 h-6 overflow-hidden z-20`};
+    top: 50%;
+    transform: translateY(-50%);
+    left: ${(props) => props.$progress}%;
+    margin-left: -12px;
+    transition: left 1.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+    animation: ${bounce} 1.5s ease-in-out infinite;
+
+    img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        image-rendering: pixelated;
     }
 `;
 
@@ -78,6 +173,24 @@ const HeaderTitle = styled.h2`
 
 const HeaderSubtitle = styled.p`
     ${tw`text-neutral-400 text-sm`}
+`;
+
+const BackButton = styled.button`
+    ${tw`inline-flex items-center justify-center space-x-2 px-5 py-3.5 rounded-2xl text-neutral-100 transition-all duration-300 border backdrop-blur-md self-start mb-4`};
+    background: linear-gradient(135deg, rgba(30, 41, 59, 0.85), rgba(15, 23, 42, 0.85));
+    border-color: rgba(56, 189, 248, 0.2);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(56, 189, 248, 0.1);
+
+    &:hover {
+        background: linear-gradient(135deg, rgba(56, 189, 248, 0.2), rgba(99, 102, 241, 0.2));
+        border-color: rgba(56, 189, 248, 0.5);
+        transform: translateY(-2px);
+        box-shadow: 0 12px 40px rgba(56, 189, 248, 0.3), 0 0 0 1px rgba(56, 189, 248, 0.3);
+    }
+
+    &:active {
+        transform: translateY(0);
+    }
 `;
 
 const HardwareTypeCard = styled.div`
@@ -302,7 +415,7 @@ const ProcessorInfo = styled.div`
 `;
 
 const ProcessorName = styled.div<{ $selected: boolean }>`
-    ${tw`text-lg font-bold mb-2 flex items-center`}
+    ${tw`text-lg font-bold mb-2 flex items-center flex-wrap gap-2`}
     ${({ $selected }) =>
         $selected
             ? css`
@@ -324,12 +437,19 @@ const ProcessorDescriptionText = styled.div`
 `;
 
 const NewBadge = styled.span`
-    ${tw`ml-2 px-2 py-1 rounded-lg text-xs font-semibold tracking-wide relative overflow-hidden`}
-    background: linear-gradient(135deg, rgba(251, 191, 36, 0.3) 0%, rgba(217, 119, 6, 0.3) 100%);
-    color: #fbbf24;
-    border: 1px solid rgba(251, 191, 36, 0.4);
-    box-shadow: 0 0 15px rgba(251, 191, 36, 0.3);
+    ${tw`px-2.5 py-1 rounded-full text-[10px] font-extrabold tracking-widest relative overflow-hidden inline-flex items-center justify-center`}
+    background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 50%, #d97706 100%);
+    color: #1e293b;
+    border: 1.5px solid rgba(251, 191, 36, 0.7);
+    box-shadow: 0 0 25px rgba(251, 191, 36, 0.6), 0 4px 12px rgba(251, 191, 36, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.4), inset 0 -1px 0 rgba(217, 119, 6, 0.3);
     animation: ${pulse} 2s ease-in-out infinite;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    line-height: 1;
+    min-width: 36px;
+    height: 20px;
+    z-index: 1;
 
     &::before {
         content: '';
@@ -338,8 +458,17 @@ const NewBadge = styled.span`
         left: -100%;
         width: 100%;
         height: 100%;
-        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-        animation: ${shimmer} 2s infinite;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.5), transparent);
+        animation: ${shimmer} 2.5s infinite;
+    }
+
+    &::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        border-radius: inherit;
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, transparent 50%);
+        pointer-events: none;
     }
 `;
 
@@ -369,14 +498,25 @@ const ErrorMessage = styled.div`
 
 interface Props {
     onSelect: (hardware: Hardware) => void;
+    onBack?: () => void;
 }
 
-export default ({ onSelect }: Props) => {
+export default ({ onSelect, onBack }: Props) => {
     const [hardwareList, setHardwareList] = useState<Hardware[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [selectedType, setSelectedType] = useState<'AMD' | 'Intel' | null>(null);
     const [selectedHardware, setSelectedHardware] = useState<Hardware | null>(null);
+    const [progress, setProgress] = useState(40);
+
+    useEffect(() => {
+        // Animate progress from 40% to 60% (Step 3 of 5)
+        setProgress(40);
+        const timer = setTimeout(() => {
+            setProgress(60);
+        }, 100);
+        return () => clearTimeout(timer);
+    }, []);
 
     useEffect(() => {
         const fetchHardware = async () => {
@@ -487,6 +627,52 @@ export default ({ onSelect }: Props) => {
 
     return (
         <Container>
+            {onBack && (
+                <BackButton onClick={onBack}>
+                    <FontAwesomeIcon icon={faArrowLeft} />
+                    <span>ย้อนกลับ</span>
+                </BackButton>
+            )}
+            <ProgressSection>
+                <ProgressSteps>
+                    <Step $active={false} $completed={true}>
+                        <StepCircle $active={false} $completed={true}>
+                            <FontAwesomeIcon icon={faCheck} />
+                        </StepCircle>
+                        <StepLabel $active={false}>เลือกเกม</StepLabel>
+                    </Step>
+                    <Step $active={false} $completed={true}>
+                        <StepCircle $active={false} $completed={true}>
+                            <FontAwesomeIcon icon={faCheck} />
+                        </StepCircle>
+                        <StepLabel $active={false}>เลือกเวอร์ชัน</StepLabel>
+                    </Step>
+                    <Step $active={true} $completed={false}>
+                        <StepCircle $active={true} $completed={false}>
+                            3
+                        </StepCircle>
+                        <StepLabel $active={true}>เลือกฮาร์ดแวร์</StepLabel>
+                    </Step>
+                    <Step $active={false} $completed={false}>
+                        <StepCircle $active={false} $completed={false}>
+                            4
+                        </StepCircle>
+                        <StepLabel $active={false}>เลือกแพ็กเกจ</StepLabel>
+                    </Step>
+                    <Step $active={false} $completed={false}>
+                        <StepCircle $active={false} $completed={false}>
+                            5
+                        </StepCircle>
+                        <StepLabel $active={false}>ตั้งค่าเซิร์ฟเวอร์</StepLabel>
+                    </Step>
+                </ProgressSteps>
+                <ProgressBar>
+                    <ProgressFill $progress={progress} />
+                    <ProgressIcon $progress={progress}>
+                        <img src="/Grass-Block.png" alt="Progress" />
+                    </ProgressIcon>
+                </ProgressBar>
+            </ProgressSection>
             <HeaderCard>
                 <HeaderTitle>
                     <FontAwesomeIcon icon={faMicrochip} />

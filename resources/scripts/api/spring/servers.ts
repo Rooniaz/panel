@@ -287,6 +287,85 @@ export const deleteServer = async (serverId: number): Promise<void> => {
 };
 
 /**
+ * Check if server name is available
+ * Falls back to checking existing servers if endpoint doesn't exist
+ */
+export const checkServerNameAvailability = async (serverName: string): Promise<{ available: boolean; message?: string }> => {
+    const token = localStorage.getItem('auth_token');
+    if (!token) {
+        throw new Error('Authentication token not found. Please login again.');
+    }
+
+    try {
+        const response = await axios.get<{ available: boolean; message?: string }>(
+            `${SPRING_BOOT_API_URL}/api/servers/check-name?serverName=${encodeURIComponent(serverName)}`,
+            {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            }
+        );
+        return response.data;
+    } catch (error: any) {
+        // If endpoint doesn't exist (404), fallback to checking existing servers
+        if (error.response?.status === 404) {
+            try {
+                // Get all user servers and check if name exists
+                const servers = await getUserServers();
+                const nameExists = servers.some((server) => server.serverName.toLowerCase() === serverName.trim().toLowerCase());
+                
+                if (nameExists) {
+                    return {
+                        available: false,
+                        message: `ชื่อ Server "${serverName}" ถูกใช้ไปแล้ว กรุณาเลือกชื่ออื่น`,
+                    };
+                }
+                return { available: true };
+            } catch (fallbackError: any) {
+                // If fallback also fails, throw error to prevent creation
+                throw new Error('ไม่สามารถตรวจสอบชื่อเซิร์ฟเวอร์ได้ กรุณาลองใหม่อีกครั้ง');
+            }
+        }
+
+        if (error.response?.status === 401 || error.response?.status === 403) {
+            localStorage.removeItem('auth_token');
+            window.location.href = '/auth/login';
+            throw new Error('Authentication failed. Please login again.');
+        }
+
+        // If server name is not available (409 Conflict), return false
+        if (error.response?.status === 409 || error.response?.data?.available === false) {
+            return {
+                available: false,
+                message: error.response?.data?.message || `ชื่อ Server "${serverName}" ถูกใช้ไปแล้ว กรุณาเลือกชื่ออื่น`,
+            };
+        }
+
+        // For 500 or other server errors, throw error to prevent creation
+        if (error.response?.status === 500) {
+            // Try fallback check
+            try {
+                const servers = await getUserServers();
+                const nameExists = servers.some((server) => server.serverName.toLowerCase() === serverName.trim().toLowerCase());
+                
+                if (nameExists) {
+                    return {
+                        available: false,
+                        message: `ชื่อ Server "${serverName}" ถูกใช้ไปแล้ว กรุณาเลือกชื่ออื่น`,
+                    };
+                }
+                return { available: true };
+            } catch (fallbackError: any) {
+                throw new Error('ไม่สามารถตรวจสอบชื่อเซิร์ฟเวอร์ได้ กรุณาลองใหม่อีกครั้ง');
+            }
+        }
+
+        // For other errors, throw to prevent creation
+        throw new Error('ไม่สามารถตรวจสอบชื่อเซิร์ฟเวอร์ได้ กรุณาลองใหม่อีกครั้ง');
+    }
+};
+
+/**
  * Delete a server by Pterodactyl UUID
  * This will delete the server from both Spring Boot and Pterodactyl databases
  */

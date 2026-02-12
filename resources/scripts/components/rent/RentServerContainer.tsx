@@ -130,15 +130,25 @@ export interface Version {
     eggId?: number; // Egg ID from Spring Boot API
 }
 
-type Step = 'hardware' | 'package' | 'game' | 'version' | 'settings';
+type Step = 'game' | 'version' | 'hardware' | 'package' | 'settings';
 
 export default () => {
-    const [step, setStep] = useState<Step>('hardware');
+    const [step, setStep] = useState<Step>('game');
     const [selectedHardware, setSelectedHardware] = useState<Hardware | null>(null);
     const [selectedPackage, setSelectedPackage] = useState<Package | null>(null);
     const [selectedGame, setSelectedGame] = useState<GameType | null>(null);
     const [selectedVersion, setSelectedVersion] = useState<Version | null>(null);
     const [serverName, setServerName] = useState('');
+
+    const handleGameSelect = (game: GameType) => {
+        setSelectedGame(game);
+        setStep('version');
+    };
+
+    const handleVersionSelect = (version: Version) => {
+        setSelectedVersion(version);
+        setStep('hardware');
+    };
 
     const handleHardwareSelect = (hardware: Hardware) => {
         setSelectedHardware(hardware);
@@ -148,16 +158,6 @@ export default () => {
     const handlePackageSelect = (pkg: Package) => {
         if (pkg.isFull) return;
         setSelectedPackage(pkg);
-        setStep('game');
-    };
-
-    const handleGameSelect = (game: GameType) => {
-        setSelectedGame(game);
-        setStep('version');
-    };
-
-    const handleVersionSelect = (version: Version) => {
-        setSelectedVersion(version);
         setStep('settings');
     };
 
@@ -165,27 +165,27 @@ export default () => {
 
     const handleBack = () => {
         clearFlashes('server:create'); // Clear flash messages เมื่อย้อนกลับ
-        if (step === 'package') {
-            setStep('hardware');
-            setSelectedHardware(null);
-            setSelectedPackage(null);
-        } else if (step === 'game') {
-            setStep('package');
-            setSelectedPackage(null);
-        } else if (step === 'version') {
+        if (step === 'version') {
             setStep('game');
             setSelectedVersion(null);
-        } else if (step === 'settings') {
+        } else if (step === 'hardware') {
             setStep('version');
+            setSelectedHardware(null);
+        } else if (step === 'package') {
+            setStep('hardware');
+            setSelectedPackage(null);
+        } else if (step === 'settings') {
+            setStep('package');
         }
     };
 
-    const handleBackToPackage = () => {
+    const handleBackToGame = () => {
         clearFlashes('server:create'); // Clear flash messages เมื่อย้อนกลับ
-        setStep('package');
-        setSelectedPackage(null);
+        setStep('game');
         setSelectedGame(null);
         setSelectedVersion(null);
+        setSelectedHardware(null);
+        setSelectedPackage(null);
     };
     const history = useHistory();
     const [isCreating, setIsCreating] = useState(false);
@@ -214,6 +214,21 @@ export default () => {
         try {
             setIsCreating(true);
             clearFlashes('server:create');
+            setCreationProgress('กำลังตรวจสอบชื่อเซิร์ฟเวอร์...');
+
+            // Check server name availability before creating
+            const { checkServerNameAvailability } = await import('@/api/spring/servers');
+            const nameCheck = await checkServerNameAvailability(serverName.trim());
+            if (!nameCheck.available) {
+                setIsCreating(false);
+                setCreationProgress('');
+                addError({
+                    key: 'server:create',
+                    message: nameCheck.message || `ชื่อ Server "${serverName}" ถูกใช้ไปแล้ว กรุณาเลือกชื่ออื่น`,
+                });
+                return;
+            }
+
             setCreationProgress('กำลังตรวจสอบยอดเงิน...');
 
             // Check user balance before creating server
@@ -357,26 +372,21 @@ export default () => {
                     </WarningContent>
                 </WarningBanner>
 
-                {step === 'hardware' && <HardwareSelection onSelect={handleHardwareSelect} />}
-                {step === 'package' && selectedHardware && (
-                    <PackageSelection
-                        hardwareId={selectedHardware.id}
-                        onSelect={handlePackageSelect}
+                {step === 'game' && <GameSelection onSelect={handleGameSelect} onBack={handleBackToGame} />}
+                {step === 'version' && selectedGame && (
+                    <VersionSelection
+                        selectedGame={selectedGame}
+                        onSelect={handleVersionSelect}
                         onBack={handleBack}
                     />
                 )}
-                {step === 'game' && selectedPackage && (
-                    <GameSelection
-                        selectedPackage={selectedPackage}
-                        onSelect={handleGameSelect}
-                        onBack={handleBackToPackage}
-                    />
+                {step === 'hardware' && selectedGame && selectedVersion && (
+                    <HardwareSelection onSelect={handleHardwareSelect} onBack={handleBack} />
                 )}
-                {step === 'version' && selectedPackage && selectedGame && (
-                    <VersionSelection
-                        selectedPackage={selectedPackage}
-                        selectedGame={selectedGame}
-                        onSelect={handleVersionSelect}
+                {step === 'package' && selectedHardware && selectedGame && selectedVersion && (
+                    <PackageSelection
+                        hardwareId={selectedHardware.id}
+                        onSelect={handlePackageSelect}
                         onBack={handleBack}
                     />
                 )}

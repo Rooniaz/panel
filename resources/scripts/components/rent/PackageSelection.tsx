@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import tw from 'twin.macro';
 import styled, { keyframes, css } from 'styled-components/macro';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faMicrochip, faMemory, faHdd, faClock, faArrowLeft } from '@fortawesome/free-solid-svg-icons';
+import { faMicrochip, faMemory, faHdd, faClock, faArrowLeft, faCheck } from '@fortawesome/free-solid-svg-icons';
 import { Package } from './RentServerContainer';
 import { getHardwareDetail } from '@/api/spring/hardware';
 import { getAvailabilityBadge } from '@/api/spring/packageAvailability';
@@ -29,10 +29,94 @@ const gradientShift = keyframes`
     100% { background-position: 0% 50%; }
 `;
 
-// const float = keyframes`
-//     0%, 100% { transform: translateY(0px); }
-//     50% { transform: translateY(-10px); }
-// `;
+const bounce = keyframes`
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-8px); }
+`;
+
+const progressPulse = keyframes`
+    0%, 100% { opacity: 1; transform: scaleY(1); }
+    50% { opacity: 0.8; transform: scaleY(1.05); }
+`;
+
+const ProgressSection = styled.div`
+    ${tw`rounded-3xl backdrop-blur-xl p-6 border mb-6`};
+    background: linear-gradient(135deg, rgba(15, 23, 42, 0.8), rgba(30, 41, 59, 0.6));
+    border-color: rgba(56, 189, 248, 0.2);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+`;
+
+const ProgressSteps = styled.div`
+    ${tw`flex items-center justify-between gap-3 mb-6`};
+`;
+
+const Step = styled.div<{ $active: boolean; $completed: boolean }>`
+    ${tw`flex items-center gap-3 flex-1`};
+`;
+
+const StepCircle = styled.div<{ $active: boolean; $completed: boolean }>`
+    ${tw`w-14 h-14 rounded-full flex items-center justify-center font-bold text-lg transition-all duration-300 relative`};
+    ${(props) =>
+        props.$completed
+            ? tw`text-white`
+            : props.$active
+            ? tw`text-white`
+            : tw`bg-white/5 text-gray-400 border border-white/10`};
+    ${(props) =>
+        props.$completed &&
+        css`
+            background: linear-gradient(135deg, #22c55e, #16a34a);
+            box-shadow: 0 0 20px rgba(34, 197, 94, 0.5), 0 4px 12px rgba(0, 0, 0, 0.3);
+        `};
+    ${(props) =>
+        props.$active &&
+        css`
+            background: linear-gradient(135deg, #3b82f6, #6366f1);
+            box-shadow: 0 0 30px rgba(59, 130, 246, 0.6), 0 4px 12px rgba(0, 0, 0, 0.3);
+            animation: ${pulse} 2s ease-in-out infinite;
+        `};
+`;
+
+const StepLabel = styled.span<{ $active: boolean }>`
+    ${tw`text-sm font-medium transition-colors duration-300`};
+    ${(props) => (props.$active ? tw`text-white` : tw`text-gray-400`)};
+`;
+
+const ProgressBar = styled.div`
+    ${tw`w-full h-3 rounded-full overflow-visible relative`};
+    background: rgba(30, 41, 59, 0.6);
+    border: 1px solid rgba(56, 189, 248, 0.2);
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
+    position: relative;
+`;
+
+const ProgressFill = styled.div<{ $progress: number }>`
+    ${tw`h-full relative overflow-visible`};
+    background: linear-gradient(90deg, #3b82f6, #6366f1, #8b5cf6);
+    background-size: 200% 100%;
+    animation: ${gradientShift} 3s ease infinite, ${progressPulse} 2s ease-in-out infinite;
+    width: ${(props) => props.$progress}%;
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.6);
+    transition: width 1.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+    position: relative;
+`;
+
+const ProgressIcon = styled.div<{ $progress: number }>`
+    ${tw`absolute w-6 h-6 overflow-hidden z-20`};
+    top: 50%;
+    transform: translateY(-50%);
+    left: ${(props) => props.$progress}%;
+    margin-left: -12px;
+    transition: left 1.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+    animation: ${bounce} 1.5s ease-in-out infinite;
+
+    img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        image-rendering: pixelated;
+    }
+`;
 
 const Container = styled.div`
     ${tw`space-y-4 w-full max-w-6xl mx-auto px-3 sm:px-0`};
@@ -301,6 +385,16 @@ export default ({ hardwareId, onSelect, onBack }: Props) => {
     const [packages, setPackages] = useState<Package[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [progress, setProgress] = useState(60);
+
+    useEffect(() => {
+        // Animate progress from 60% to 80% (Step 4 of 5)
+        setProgress(60);
+        const timer = setTimeout(() => {
+            setProgress(80);
+        }, 100);
+        return () => clearTimeout(timer);
+    }, []);
 
     useEffect(() => {
         const fetchPackages = async () => {
@@ -392,6 +486,47 @@ export default ({ hardwareId, onSelect, onBack }: Props) => {
                 </BackButton>
             </HeaderSection>
 
+            <ProgressSection>
+                <ProgressSteps>
+                    <Step $active={false} $completed={true}>
+                        <StepCircle $active={false} $completed={true}>
+                            <FontAwesomeIcon icon={faCheck} />
+                        </StepCircle>
+                        <StepLabel $active={false}>เลือกเกม</StepLabel>
+                    </Step>
+                    <Step $active={false} $completed={true}>
+                        <StepCircle $active={false} $completed={true}>
+                            <FontAwesomeIcon icon={faCheck} />
+                        </StepCircle>
+                        <StepLabel $active={false}>เลือกเวอร์ชัน</StepLabel>
+                    </Step>
+                    <Step $active={false} $completed={true}>
+                        <StepCircle $active={false} $completed={true}>
+                            <FontAwesomeIcon icon={faCheck} />
+                        </StepCircle>
+                        <StepLabel $active={false}>เลือกฮาร์ดแวร์</StepLabel>
+                    </Step>
+                    <Step $active={true} $completed={false}>
+                        <StepCircle $active={true} $completed={false}>
+                            4
+                        </StepCircle>
+                        <StepLabel $active={true}>เลือกแพ็กเกจ</StepLabel>
+                    </Step>
+                    <Step $active={false} $completed={false}>
+                        <StepCircle $active={false} $completed={false}>
+                            5
+                        </StepCircle>
+                        <StepLabel $active={false}>ตั้งค่าเซิร์ฟเวอร์</StepLabel>
+                    </Step>
+                </ProgressSteps>
+                <ProgressBar>
+                    <ProgressFill $progress={progress} />
+                    <ProgressIcon $progress={progress}>
+                        <img src="/Grass-Block.png" alt="Progress" />
+                    </ProgressIcon>
+                </ProgressBar>
+            </ProgressSection>
+
             <SectionTitle>
                 <TitleBar />
                 <TitleText>เลือกแพ็กเกจ</TitleText>
@@ -399,9 +534,7 @@ export default ({ hardwareId, onSelect, onBack }: Props) => {
 
             <PackageGrid>
                 {packages.map((pkg) => {
-                    const base =
-                        process.env.PUBLIC_URL || (typeof window !== 'undefined' ? window.location.origin : '');
-                    const packageImage = `${base}/package${pkg.packageId}.gif?v=1`;
+                    const packageImage = `/package${pkg.packageId}.gif?v=1`;
 
                     return (
                         <PackageCard
