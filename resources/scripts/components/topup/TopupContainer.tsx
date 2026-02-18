@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import tw, { css } from 'twin.macro';
 import styled from 'styled-components/macro';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -112,8 +113,17 @@ HistoryWrapper.displayName = 'TopupContainer.HistoryWrapper';
 type MethodType = 'bank' | 'truemoney' | 'history' | null;
 
 const TopupContainer = () => {
+    const location = useLocation();
     const [selectedMethod, setSelectedMethod] = useState<MethodType>(null);
     const [showTermsModal, setShowTermsModal] = useState(false);
+
+    useEffect(() => {
+        const params = new URLSearchParams(location.search);
+        const method = params.get('method');
+        if (method === 'history' || method === 'bank' || method === 'truemoney') {
+            setSelectedMethod(method as MethodType);
+        }
+    }, [location.search]);
 
     if (selectedMethod === 'bank') {
         return (
@@ -154,6 +164,9 @@ const TopupContainer = () => {
     }
 
     if (selectedMethod === 'history') {
+        const urlParams = new URLSearchParams(location.search);
+        const subTab = urlParams.get('tab') === 'deductions' ? 'deductions' : 'topup';
+        
         return (
             <Container>
                 <InnerContainer>
@@ -163,6 +176,7 @@ const TopupContainer = () => {
                             onNavigateToTrueMoney={() => setSelectedMethod('truemoney')}
                             onNavigateToHistory={() => setSelectedMethod('history')}
                             activeTab='history'
+                            initialSubTab={subTab}
                         />
                     </HistoryWrapper>
                 </InnerContainer>

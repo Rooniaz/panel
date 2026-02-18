@@ -24,6 +24,7 @@ import {
 import Features from '@feature/Features';
 import { getServersWithBilling, ServerBilling, ServerWithBilling } from '@/api/spring/servers';
 import Toast from '@/components/topup/Toast';
+import SuspendedMessage from '@/components/server/SuspendedMessage';
 
 export type PowerAction = 'start' | 'stop' | 'restart' | 'kill';
 
@@ -120,6 +121,12 @@ const ServerConsoleContainer = () => {
     const [loadingBilling, setLoadingBilling] = useState<boolean>(false);
     const [packageName, setPackageName] = useState<string | undefined>(undefined);
     const [copiedAddress, setCopiedAddress] = useState(false);
+    const [timeUntilNextCharge, setTimeUntilNextCharge] = useState<number | null>(null);
+    const [suspendedInfo, setSuspendedInfo] = useState<{
+        isSuspended: boolean;
+        suspendedAt?: string;
+        suspendedReason?: string;
+    } | null>(null);
 
     const allocation = useMemo(() => {
         const match = allocations.find((a) => a.isDefault);
@@ -175,9 +182,21 @@ const ServerConsoleContainer = () => {
                     paid_amount: Number(match.paid_amount) || 0,
                     rented_hours: Number(match.rented_hours) || 0,
                     package_name: match.package?.name,
+                    next_charge_at: match.next_charge_at,
                 });
                 setPackageName(match.package?.name);
                 setBillingError(null);
+                
+                // Check if server is suspended
+                if (match.isSuspended || match.status === 'SUSPENDED') {
+                    setSuspendedInfo({
+                        isSuspended: true,
+                        suspendedAt: match.suspendedAt,
+                        suspendedReason: match.suspendedReason || 'Insufficient credit - Please top up to resume',
+                    });
+                } else {
+                    setSuspendedInfo(null);
+                }
             } catch (err: any) {
                 setBillingError('โหลดข้อมูล billing ไม่สำเร็จ');
                 setBilling(null);
@@ -185,8 +204,57 @@ const ServerConsoleContainer = () => {
                 setLoadingBilling(false);
             }
         };
+        
         fetchBilling();
+        
+        // ตรวจสอบสถานะอัตโนมัติทุก 15 วินาที เพื่อตรวจสอบว่า server ถูก resume แล้วหรือยัง
+        // (Backend ทำงานทุก 1 นาที และจะ resume ทันทีเมื่อเติมเงิน)
+        const interval = setInterval(fetchBilling, 15000);
+        return () => clearInterval(interval);
     }, [pteroInternalId, pteroIdentifier, pteroUuid]);
+
+    // คำนวณเวลาที่เหลือก่อนจะถูกหักครั้งถัดไป (ดึงจาก next_charge_at จาก API)
+    useEffect(() => {
+        if (!billing || !billing.next_charge_at) {
+            setTimeUntilNextCharge(null);
+            return;
+        }
+
+        const calculateTimeUntilNextCharge = () => {
+            try {
+                const nextChargeTime = new Date(billing.next_charge_at!);
+                const now = new Date();
+                
+                const diffMs = nextChargeTime.getTime() - now.getTime();
+                
+                // ถ้าเวลาผ่านไปแล้ว ให้แสดง 0
+                if (diffMs <= 0) {
+                    setTimeUntilNextCharge(0);
+                    return;
+                }
+                
+                setTimeUntilNextCharge(Math.floor(diffMs / 1000 / 60)); // แปลงเป็นนาที
+            } catch (err) {
+                setTimeUntilNextCharge(null);
+            }
+        };
+
+        calculateTimeUntilNextCharge();
+        // อัพเดททุกนาที
+        const interval = setInterval(calculateTimeUntilNextCharge, 60000);
+        return () => clearInterval(interval);
+    }, [billing]);
+
+    // Show suspended message if server is suspended
+    if (suspendedInfo?.isSuspended) {
+        return (
+            <SuspendedMessage
+                serverName={name}
+                suspendedReason={suspendedInfo.suspendedReason}
+                suspendedAt={suspendedInfo.suspendedAt}
+            />
+        );
+    }
 
     return (
         <ServerContentBlock title={'Console'}>
@@ -274,6 +342,19 @@ const ServerConsoleContainer = () => {
                                     : billingError || (loadingBilling ? 'กำลังโหลด...' : '—')}
                             </span>
                         </div>
+                        {billing && timeUntilNextCharge !== null && timeUntilNextCharge >= 0 && (
+                            <div className={styles.stat_row}>
+                                <span className={'text-white/70 flex items-center gap-2'}>
+                                    <ClockIcon className={'w-4 h-4 text-amber-400'} />
+                                    จะถูกหักครั้งถัดไป
+                                </span>
+                                <span className={'text-white font-semibold'}>
+                                    {timeUntilNextCharge >= 60
+                                        ? `อีก ${Math.floor(timeUntilNextCharge / 60)} ชม ${timeUntilNextCharge % 60} นาที`
+                                        : `อีก ${timeUntilNextCharge} นาที`}
+                                </span>
+                            </div>
+                        )}
                     </div>
                 </div>
 

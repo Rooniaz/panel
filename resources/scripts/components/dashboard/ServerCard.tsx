@@ -1,6 +1,6 @@
 import React, { memo, useEffect, useRef, useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faHdd, faMemory, faMicrochip } from '@fortawesome/free-solid-svg-icons';
+import { faHdd, faMemory, faMicrochip, faExclamationTriangle } from '@fortawesome/free-solid-svg-icons';
 import { Link } from 'react-router-dom';
 import { Server } from '@/api/server/getServer';
 import getServerResourceUsage, { ServerPowerState, ServerStats } from '@/api/server/getServerResourceUsage';
@@ -9,6 +9,7 @@ import tw from 'twin.macro';
 import Spinner from '@/components/elements/Spinner';
 import styled from 'styled-components/macro';
 import isEqual from 'react-fast-compare';
+import { getServersWithBilling } from '@/api/spring/servers';
 
 // Determines if the current value is in an alarm threshold so we can show it in red rather
 // than the more faded default style.
@@ -115,6 +116,7 @@ export default memo(({ server, backgroundImage }: ServerCardProps) => {
     const [isSuspended, setIsSuspended] = useState(server.status === 'suspended');
     const [stats, setStats] = useState<ServerStats | null>(null);
     const [cardBackground, setCardBackground] = useState<string | undefined>(backgroundImage);
+    const [suspendedFromSpringBoot, setSuspendedFromSpringBoot] = useState(false);
 
     const getStats = () =>
         getServerResourceUsage(server.uuid)
@@ -124,6 +126,40 @@ export default memo(({ server, backgroundImage }: ServerCardProps) => {
     useEffect(() => {
         setIsSuspended(stats?.isSuspended || server.status === 'suspended');
     }, [stats?.isSuspended, server.status]);
+
+    // Check if server is suspended from Spring Boot API
+    // Refresh every 30-60 seconds as recommended in API documentation
+    useEffect(() => {
+        const checkSuspendedStatus = async () => {
+            try {
+                const servers = await getServersWithBilling();
+                const match = servers.find((s) => {
+                    if (server.externalId && s.id === server.externalId) return true;
+                    if (s.pterodactylIdentifier === server.id) return true;
+                    if (s.pterodactylUuid === server.uuid) return true;
+                    return false;
+                });
+                // Check isSuspended and status as recommended in API documentation
+                if (match && (match.isSuspended || match.status === 'SUSPENDED')) {
+                    setSuspendedFromSpringBoot(true);
+                } else {
+                    setSuspendedFromSpringBoot(false);
+                }
+            } catch (error) {
+                // Ignore error, use default status
+                console.warn('Failed to check suspended status from Spring Boot:', error);
+            }
+        };
+        
+        // Check immediately
+        checkSuspendedStatus();
+        
+        // Refresh every 30 seconds (as recommended in API documentation)
+        // Backend scheduler works every 1 minute, so 30 seconds is sufficient
+        const interval = setInterval(checkSuspendedStatus, 30000);
+        
+        return () => clearInterval(interval);
+    }, [server.externalId, server.id, server.uuid]);
 
     useEffect(() => {
         // Don't waste a HTTP request if there is nothing important to show to the user because
@@ -272,12 +308,17 @@ export default memo(({ server, backgroundImage }: ServerCardProps) => {
                     <ServerSubtitle>{subtitle}</ServerSubtitle>
                 </CardHeader>
 
-                {!stats || isSuspended ? (
+                {!stats || isSuspended || suspendedFromSpringBoot ? (
                     <div css={tw`mt-auto`}>
-                        {isSuspended ? (
-                        <StatusBadge $status={stats?.status}>
-                            {server.status === 'suspended' ? 'ระงับ' : 'ข้อผิดพลาดการเชื่อมต่อ'}
-                        </StatusBadge>
+                        {isSuspended || suspendedFromSpringBoot ? (
+                            <StatusBadge $status={stats?.status} css={tw`bg-red-500/80 text-red-100`}>
+                                <FontAwesomeIcon icon={faExclamationTriangle} className={'mr-2'} />
+                                {suspendedFromSpringBoot
+                                    ? '⚠️ ถูกระงับ (เครดิตหมด)'
+                                    : server.status === 'suspended'
+                                    ? 'ระงับ'
+                                    : 'ข้อผิดพลาดการเชื่อมต่อ'}
+                            </StatusBadge>
                         ) : server.isTransferring || server.status ? (
                             <StatusBadge $status={stats?.status}>
                                 {server.isTransferring

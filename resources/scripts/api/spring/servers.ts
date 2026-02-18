@@ -29,6 +29,9 @@ export interface ServerStatus {
     status: string;
     pterodactylId: number | null;
     createdAt: string;
+    isSuspended?: boolean;
+    suspendedAt?: string;
+    suspendedReason?: string;
 }
 
 export interface ServerBilling {
@@ -37,6 +40,7 @@ export interface ServerBilling {
     paid_amount: number;
     rented_hours: number;
     package_name?: string;
+    next_charge_at?: string;
 }
 
 export interface ServerWithBilling {
@@ -61,6 +65,13 @@ export interface ServerWithBilling {
     paid_amount: number;
     started_at: string;
     rented_hours: number;
+    next_charge_at?: string;
+    billing_period?: string;
+    auto_renew?: boolean;
+    price_lock?: number;
+    isSuspended?: boolean;
+    suspendedAt?: string;
+    suspendedReason?: string;
 }
 
 /**

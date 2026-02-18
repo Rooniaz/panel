@@ -32,6 +32,7 @@ return [
 
     'spring_boot' => [
         'url' => env('SPRING_BOOT_API_URL', 'http://localhost:9000'),
+        'api_key' => env('SPRING_BOOT_API_KEY', ''),
     ],
 
     'curseforge' => [

@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { useState, useEffect } from 'react';
-import { NavLink, Link } from 'react-router-dom';
+import { NavLink, Link, useHistory, useLocation } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
     faSignOutAlt,
@@ -135,6 +135,8 @@ const LogoutButton = styled.button`
 `;
 
 export default () => {
+    const history = useHistory();
+    const location = useLocation();
     const user = useStoreState((state: ApplicationStore) => state.user.data);
     const rootAdmin = useStoreState((state: ApplicationStore) => state.user.data?.rootAdmin);
     const [isLoggingOut, setIsLoggingOut] = useState(false);
@@ -150,27 +152,27 @@ export default () => {
     };
 
     // Fetch user profile and credit
+    const fetchProfile = async () => {
+        const token = localStorage.getItem('auth_token');
+        if (!token) {
+            return;
+        }
+
+        try {
+            const profile = await getUserProfile();
+            setCreditBalance(profile.credit.toFixed(2));
+            localStorage.setItem('user_credit', profile.credit.toString());
+        } catch (error) {
+            console.warn('Failed to fetch user profile:', error);
+            // Try to get credit from localStorage as fallback
+            const storedCredit = localStorage.getItem('user_credit');
+            if (storedCredit) {
+                setCreditBalance(parseFloat(storedCredit).toFixed(2));
+            }
+        }
+    };
+
     useEffect(() => {
-        const fetchProfile = async () => {
-            const token = localStorage.getItem('auth_token');
-            if (!token) {
-                return;
-            }
-
-            try {
-                const profile = await getUserProfile();
-                setCreditBalance(profile.credit.toFixed(2));
-                localStorage.setItem('user_credit', profile.credit.toString());
-            } catch (error) {
-                console.warn('Failed to fetch user profile:', error);
-                // Try to get credit from localStorage as fallback
-                const storedCredit = localStorage.getItem('user_credit');
-                if (storedCredit) {
-                    setCreditBalance(parseFloat(storedCredit).toFixed(2));
-                }
-            }
-        };
-
         // Fetch immediately if token exists
         fetchProfile();
 
@@ -180,12 +182,31 @@ export default () => {
             setCreditBalance(profile.credit.toFixed(2));
         };
 
+        // Listen for credit balance updates (e.g., after topup)
+        const handleCreditUpdate = () => {
+            fetchProfile();
+        };
+
         window.addEventListener('userProfileUpdated', handleProfileUpdate as EventListener);
+        window.addEventListener('creditBalanceUpdated', handleCreditUpdate);
+
+        // Auto-refresh credit balance every 30 seconds
+        const refreshInterval = setInterval(fetchProfile, 30000);
 
         return () => {
             window.removeEventListener('userProfileUpdated', handleProfileUpdate as EventListener);
+            window.removeEventListener('creditBalanceUpdated', handleCreditUpdate);
+            clearInterval(refreshInterval);
         };
     }, []);
+
+    // Refresh credit when returning from topup page
+    useEffect(() => {
+        // If we're not on the topup page anymore, refresh credit
+        if (!location.pathname.startsWith('/topup')) {
+            fetchProfile();
+        }
+    }, [location.pathname]);
 
     return (
         <>
@@ -214,7 +235,14 @@ export default () => {
                             </MemberBadge>
                         </UserDetails>
                     </UserInfo>
-                    <CreditInfo>เครดิตคงเหลือ: {creditBalance} B</CreditInfo>
+                    <CreditInfo 
+                        css={tw`cursor-pointer hover:text-white transition-colors`}
+                        onClick={() => {
+                            history.push('/topup?method=history&tab=deductions');
+                        }}
+                    >
+                        เครดิตคงเหลือ: {creditBalance} B
+                    </CreditInfo>
                 </UserSection>
 
                 <MenuSection>

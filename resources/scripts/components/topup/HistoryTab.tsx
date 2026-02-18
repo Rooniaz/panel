@@ -12,8 +12,11 @@ import {
     faLandmark,
     faChartLine,
     faCoins,
+    faMinusCircle,
+    faServer,
 } from '@fortawesome/free-solid-svg-icons';
 import Spinner from '@/components/elements/Spinner';
+import { getCreditDeductionHistory, CreditDeductionItem } from '@/api/spring/creditHistory';
 
 const SPRING_BOOT_API_URL = 'http://localhost:9000';
 
@@ -380,13 +383,19 @@ interface Props {
     onNavigateToTrueMoney?: () => void;
     onNavigateToHistory?: () => void;
     activeTab?: 'bank' | 'truemoney' | 'history';
+    initialSubTab?: 'topup' | 'deductions';
 }
 
-export default ({ onNavigateToBank, onNavigateToTrueMoney, onNavigateToHistory, activeTab = 'history' }: Props) => {
+export default ({ onNavigateToBank, onNavigateToTrueMoney, onNavigateToHistory, activeTab = 'history', initialSubTab = 'topup' }: Props) => {
     const [history, setHistory] = useState<TopupHistoryItem[]>([]);
+    const [deductionHistory, setDeductionHistory] = useState<CreditDeductionItem[]>([]);
+    const [subTab, setSubTab] = useState<'topup' | 'deductions'>(initialSubTab);
     const [loading, setLoading] = useState(true);
+    const [loadingDeductions, setLoadingDeductions] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [deductionError, setDeductionError] = useState<string | null>(null);
     const [totalRecords, setTotalRecords] = useState(0);
+    const [totalDeductionRecords, setTotalDeductionRecords] = useState(0);
 
     const stats = useMemo(() => {
         const totalAmount = history.reduce((sum, item) => sum + (Number(item.amount) || 0), 0);
@@ -465,6 +474,27 @@ export default ({ onNavigateToBank, onNavigateToTrueMoney, onNavigateToHistory, 
 
         fetchHistory();
     }, []);
+
+    useEffect(() => {
+        if (subTab === 'deductions') {
+            const fetchDeductions = async () => {
+                try {
+                    setLoadingDeductions(true);
+                    setDeductionError(null);
+
+                    const data = await getCreditDeductionHistory();
+                    setDeductionHistory(data.records);
+                    setTotalDeductionRecords(data.totalRecords);
+                } catch (err: any) {
+                    setDeductionError(err.message || 'ไม่สามารถโหลดประวัติการหักเครดิตได้');
+                } finally {
+                    setLoadingDeductions(false);
+                }
+            };
+
+            fetchDeductions();
+        }
+    }, [subTab]);
 
     const formatDate = (dateString: string | null | undefined) => {
         if (!dateString) {
@@ -687,12 +717,25 @@ export default ({ onNavigateToBank, onNavigateToTrueMoney, onNavigateToHistory, 
             )}
 
             <HistoryCard>
-                <SectionTitle>
-                    <FontAwesomeIcon icon={faClock} />
-                    <span>ประวัติเติมเงิน</span>
-                </SectionTitle>
+                <div css={tw`mb-6 flex gap-3 border-b border-white/10`}>
+                    <NavButton $active={subTab === 'topup'} onClick={() => setSubTab('topup')} css={tw`mb-0 rounded-b-none border-b-2`}>
+                        <NavButtonIcon icon={faCoins} />
+                        <span>ประวัติเติมเงิน</span>
+                    </NavButton>
+                    <NavButton $active={subTab === 'deductions'} onClick={() => setSubTab('deductions')} css={tw`mb-0 rounded-b-none border-b-2`}>
+                        <NavButtonIcon icon={faMinusCircle} />
+                        <span>ประวัติการหักเครดิต</span>
+                    </NavButton>
+                </div>
 
-                {history.length === 0 ? (
+                {subTab === 'topup' ? (
+                    <>
+                        <SectionTitle>
+                            <FontAwesomeIcon icon={faClock} />
+                            <span>ประวัติเติมเงิน</span>
+                        </SectionTitle>
+
+                        {history.length === 0 ? (
                     <EmptyMessage>
                         <EmptyIconWrapper>
                             <EmptyIcon>📋</EmptyIcon>
@@ -778,12 +821,117 @@ export default ({ onNavigateToBank, onNavigateToTrueMoney, onNavigateToHistory, 
                             ))}
                         </MobileCard>
                     </>
-                )}
+                        )}
 
-                {history.length > 0 && (
-                    <TableFooter>
-                        แสดง {history.length} รายการ จากทั้งหมด {totalRecords} รายการ
-                    </TableFooter>
+                        {history.length > 0 && (
+                            <TableFooter>
+                                แสดง {history.length} รายการ จากทั้งหมด {totalRecords} รายการ
+                            </TableFooter>
+                        )}
+                    </>
+                ) : (
+                    <>
+                        <SectionTitle>
+                            <FontAwesomeIcon icon={faMinusCircle} />
+                            <span>ประวัติการหักเครดิต</span>
+                        </SectionTitle>
+
+                        {loadingDeductions ? (
+                            <SpinnerContainer>
+                                <Spinner size={'large'} />
+                            </SpinnerContainer>
+                        ) : deductionError ? (
+                            <ErrorMessage>{deductionError}</ErrorMessage>
+                        ) : deductionHistory.length === 0 ? (
+                            <EmptyMessage>
+                                <EmptyIconWrapper>
+                                    <EmptyIcon>📋</EmptyIcon>
+                                </EmptyIconWrapper>
+                                <EmptyTitle>ไม่มีประวัติการหักเครดิต</EmptyTitle>
+                                <EmptyDescription>เมื่อคุณถูกหักเครดิตจากเซิร์ฟเวอร์ ประวัติจะแสดงที่นี่</EmptyDescription>
+                            </EmptyMessage>
+                        ) : (
+                            <>
+                                {/* Desktop Table View */}
+                                <TableWrapperDesktop>
+                                    <Table>
+                                        <TableHeader>
+                                            <tr>
+                                                <TableHeaderCell>วันที่</TableHeaderCell>
+                                                <TableHeaderCell>เซิร์ฟเวอร์</TableHeaderCell>
+                                                <TableHeaderCell>จำนวนเครดิต</TableHeaderCell>
+                                                <TableHeaderCell>เหตุผล</TableHeaderCell>
+                                                <TableHeaderCell>รายละเอียด</TableHeaderCell>
+                                            </tr>
+                                        </TableHeader>
+                                        <TableBody>
+                                            {deductionHistory.map((item) => (
+                                                <TableRow key={item.id}>
+                                                    <TableCellNeutral>{formatDate(item.date)}</TableCellNeutral>
+                                                    <TableCell>
+                                                        <div css={tw`flex items-center gap-2`}>
+                                                            <FontAwesomeIcon icon={faServer} className={'text-cyan-400'} />
+                                                            <span>{item.serverName || `Server #${item.serverId || 'N/A'}`}</span>
+                                                        </div>
+                                                    </TableCell>
+                                                    <TableCell css={tw`font-bold text-red-400 text-base`}>
+                                                        -{item.amount.toFixed(2)} เครดิต
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <span css={tw`text-neutral-300`}>{item.reason}</span>
+                                                    </TableCell>
+                                                    <TableCell css={tw`text-neutral-400 text-xs`}>
+                                                        {item.description || '-'}
+                                                    </TableCell>
+                                                </TableRow>
+                                            ))}
+                                        </TableBody>
+                                    </Table>
+                                </TableWrapperDesktop>
+
+                                {/* Mobile Card View */}
+                                <MobileCard>
+                                    {deductionHistory.map((item) => (
+                                        <MobileCardItem key={item.id}>
+                                            <MobileCardHeader>
+                                                <MobileCardDate>{formatDate(item.date)}</MobileCardDate>
+                                                <MobileCardAmount css={tw`text-red-400`}>
+                                                    -{item.amount.toFixed(2)} เครดิต
+                                                </MobileCardAmount>
+                                            </MobileCardHeader>
+                                            <MobileCardRow>
+                                                <MobileCardLabel>เซิร์ฟเวอร์</MobileCardLabel>
+                                                <MobileCardValue>
+                                                    <div css={tw`flex items-center gap-2`}>
+                                                        <FontAwesomeIcon icon={faServer} className={'text-cyan-400'} />
+                                                        <span>{item.serverName || `Server #${item.serverId || 'N/A'}`}</span>
+                                                    </div>
+                                                </MobileCardValue>
+                                            </MobileCardRow>
+                                            <MobileCardRow>
+                                                <MobileCardLabel>เหตุผล</MobileCardLabel>
+                                                <MobileCardValue>{item.reason}</MobileCardValue>
+                                            </MobileCardRow>
+                                            {item.description && (
+                                                <MobileCardRow>
+                                                    <MobileCardLabel>รายละเอียด</MobileCardLabel>
+                                                    <MobileCardValue css={tw`text-xs text-neutral-400`}>
+                                                        {item.description}
+                                                    </MobileCardValue>
+                                                </MobileCardRow>
+                                            )}
+                                        </MobileCardItem>
+                                    ))}
+                                </MobileCard>
+                            </>
+                        )}
+
+                        {deductionHistory.length > 0 && (
+                            <TableFooter>
+                                แสดง {deductionHistory.length} รายการ จากทั้งหมด {totalDeductionRecords} รายการ
+                            </TableFooter>
+                        )}
+                    </>
                 )}
             </HistoryCard>
         </MainContainer>

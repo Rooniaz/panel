@@ -439,6 +439,9 @@ export default ({
             setToastOk('ส่งลิงก์ซองสำเร็จ กำลังตรวจสอบ…');
             setTimeout(() => setToastOk(null), 2500);
 
+            // Trigger credit refresh in Sidebar
+            window.dispatchEvent(new CustomEvent('creditBalanceUpdated'));
+
             setGiftLink('');
             setAcceptedTerms(false);
         } catch (e: any) {

@@ -12,11 +12,14 @@ import tw from 'twin.macro';
 import useSWR from 'swr';
 import { PaginatedResult } from '@/api/http';
 import Pagination from '@/components/elements/Pagination';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useHistory } from 'react-router-dom';
 import styled from 'styled-components/macro';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faPlus, faServer } from '@fortawesome/free-solid-svg-icons';
 
 export default () => {
     const { search } = useLocation();
+    const history = useHistory();
     const defaultPage = Number(new URLSearchParams(search).get('page') || '1');
 
     const [page, setPage] = useState(!isNaN(defaultPage) && defaultPage > 0 ? defaultPage : 1);
@@ -27,7 +30,16 @@ export default () => {
 
     const { data: servers, error } = useSWR<PaginatedResult<Server>>(
         ['/api/client/servers', showOnlyAdmin && rootAdmin, page],
-        () => getServers({ page, type: showOnlyAdmin && rootAdmin ? 'admin' : undefined })
+        () => getServers({ page, type: showOnlyAdmin && rootAdmin ? 'admin' : undefined }),
+        {
+            // Refresh every 30 seconds to check server status (isSuspended, etc.)
+            // Backend scheduler works every 1 minute, so 30 seconds is sufficient
+            refreshInterval: 30000,
+            // Revalidate on focus to ensure fresh data when user returns to tab
+            revalidateOnFocus: true,
+            // Revalidate on reconnect to ensure fresh data when network reconnects
+            revalidateOnReconnect: true,
+        }
     );
 
     const Container = styled.div`
@@ -48,6 +60,38 @@ export default () => {
             pointer-events: none;
             z-index: 0;
         }
+    `;
+
+    const CreateServerButton = styled.button`
+        ${tw`relative px-6 py-3.5 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-semibold rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl flex items-center gap-3 mx-auto`}
+        
+        &::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, transparent 100%);
+            border-radius: inherit;
+            pointer-events: none;
+        }
+        
+        &:active {
+            transform: scale(0.98);
+        }
+    `;
+
+    const EmptyStateContainer = styled.div`
+        ${tw`flex flex-col items-center justify-center py-16 px-4`}
+    `;
+
+    const EmptyStateIcon = styled.div`
+        ${tw`mb-6 text-6xl text-neutral-500 opacity-50`}
+    `;
+
+    const EmptyStateText = styled.p`
+        ${tw`text-center text-lg text-neutral-400 mb-8`}
     `;
 
     useEffect(() => {
@@ -96,11 +140,22 @@ export default () => {
                                     ))}
                                 </div>
                             ) : (
-                                <p css={tw`text-center text-sm text-neutral-400 py-12`}>
-                                    {showOnlyAdmin
-                                        ? 'There are no other servers to display.'
-                                        : 'There are no servers associated with your account.'}
-                                </p>
+                                <EmptyStateContainer>
+                                    <EmptyStateIcon>
+                                        <FontAwesomeIcon icon={faServer} />
+                                    </EmptyStateIcon>
+                                    <EmptyStateText>
+                                        {showOnlyAdmin
+                                            ? 'There are no other servers to display.'
+                                            : 'ยังไม่มีเซิร์ฟเวอร์ในบัญชีของคุณ'}
+                                    </EmptyStateText>
+                                    {!showOnlyAdmin && (
+                                        <CreateServerButton onClick={() => history.push('/')}>
+                                            <FontAwesomeIcon icon={faPlus} />
+                                            <span>สร้างเซิร์ฟเวอร์</span>
+                                        </CreateServerButton>
+                                    )}
+                                </EmptyStateContainer>
                             )
                         }
                     </Pagination>

@@ -140,11 +140,11 @@ const BackupContainer = () => {
                     )}
                     {backupLimit > 0 && backups.backupCount < backupLimit ? (
                         <CreateBackupButton css={tw`w-full sm:w-auto`} />
-                    ) : backupLimit === 0 ? null : (
-                        // <p css={tw`text-sm text-neutral-300`}>
-                        //     ถึงขีดจำกัดแบ็คอัพแล้ว ({backups.backupCount}/{backupLimit})
-                        // </p>
-                    )}
+                    ) : backupLimit > 0 && backups.backupCount >= backupLimit ? (
+                        <p css={tw`text-sm text-neutral-300`}>
+                            ถึงขีดจำกัดแบ็คอัพแล้ว ({backups.backupCount}/{backupLimit})
+                        </p>
+                    ) : null}
                 </div>
             </Can>
         </ServerContentBlock>

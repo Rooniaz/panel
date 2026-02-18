@@ -508,6 +508,9 @@ export default ({
             setToastOk('อัปโหลดสลิปสำเร็จ! ระบบกำลังบันทึกยอดเข้าวอลเล็ท');
             setTimeout(() => setToastOk(null), 3000);
 
+            // Trigger credit refresh in Sidebar
+            window.dispatchEvent(new CustomEvent('creditBalanceUpdated'));
+
             setFileName(null);
             if (fileRef.current) fileRef.current.value = '';
         } catch (e: any) {
