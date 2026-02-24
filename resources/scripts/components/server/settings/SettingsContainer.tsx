@@ -47,6 +47,9 @@ import { Dialog } from '@/components/elements/dialog';
 import setServerAllocationAlias from '@/api/server/network/setServerAllocationAlias';
 import { Form, Formik } from 'formik';
 import Field from '@/components/elements/Field';
+import ChangePackageModal from '@/components/server/settings/ChangePackageModal';
+import { getServersWithBilling } from '@/api/spring/servers';
+import { getHardwareList, isHardwareIdValid } from '@/api/spring/hardware';
 
 // Hostname Section Component
 const HostnameSection = ({
@@ -151,6 +154,23 @@ export default () => {
     const uuid = ServerContext.useStoreState((state) => state.server.data!.uuid);
     const node = ServerContext.useStoreState((state) => state.server.data!.node);
     const sftp = ServerContext.useStoreState((state) => state.server.data!.sftpDetails, isEqual);
+    const pteroIdentifier = ServerContext.useStoreState((state) => state.server.data?.id);
+    const pteroInternalId = ServerContext.useStoreState((state) => state.server.data?.internalId);
+    const pteroUuid = ServerContext.useStoreState((state) => state.server.data?.uuid);
+    
+    // Change Package state
+    const [changePackageModalVisible, setChangePackageModalVisible] = useState(false);
+    const [serverPackage, setServerPackage] = useState<{
+        id: number;
+        name: string;
+        cpu: number;
+        ram: number;
+        storage: number;
+        price: number;
+    } | null>(null);
+    const [hardwareId, setHardwareId] = useState<string | null>(null);
+    const [springServerId, setSpringServerId] = useState<number | null>(null);
+    const [serverName, setServerName] = useState<string>('');
     
     // Network/Allocation state
     const [loading, setLoading] = useState(false);
@@ -185,6 +205,64 @@ export default () => {
             .catch((error) => clearAndAddNetworkError(error))
             .then(() => setLoading(false));
     };
+
+    // Fetch server package and hardware info
+    useEffect(() => {
+        const fetchServerPackage = async () => {
+            try {
+                const list = await getServersWithBilling();
+                const match = list.find((s) => {
+                    if (pteroIdentifier && s.pterodactylIdentifier === pteroIdentifier) return true;
+                    if (pteroInternalId && s.pterodactylServerId === Number(pteroInternalId)) return true;
+                    if (pteroUuid && s.pterodactylUuid === pteroUuid) return true;
+                    return false;
+                });
+
+                if (match && match.package) {
+                    setSpringServerId(match.id);
+                    setServerName(match.serverName);
+                    setServerPackage({
+                        id: match.package.id,
+                        name: match.package.name,
+                        cpu: match.package.cpu,
+                        ram: match.package.ram,
+                        storage: match.package.storage,
+                        price: Number(match.price_per_hour) || 0,
+                    });
+
+                    // Use hardwareId from GET /api/servers (package.hardwareId). Required for GET /category/hw/{hwId}.
+                    let hwId: string | null = null;
+                    if (isHardwareIdValid(match.package.hardwareId)) {
+                        hwId = (match.package.hardwareId as string).trim();
+                    }
+                    if (!hwId) {
+                        try {
+                            const hardwareList = await getHardwareList();
+                            const validList = hardwareList.filter((hw) => isHardwareIdValid(hw.id));
+                            const gameKey = (match.gameKey || '').toLowerCase();
+                            const edition = (match.edition || '').toLowerCase();
+                            const byJava = validList.find((hw) => hw.name.toLowerCase().includes('java'));
+                            const byBedrock = validList.find((hw) => hw.name.toLowerCase().includes('bedrock'));
+                            if (gameKey.includes('java') || edition === 'java') {
+                                hwId = byJava?.id ?? validList[0]?.id ?? null;
+                            } else if (gameKey.includes('bedrock') || edition === 'bedrock') {
+                                hwId = byBedrock?.id ?? validList[0]?.id ?? null;
+                            } else {
+                                hwId = validList[0]?.id ?? null;
+                            }
+                        } catch (err) {
+                            console.warn('[SettingsContainer] Failed to get hardware list for fallback:', err);
+                        }
+                    }
+                    setHardwareId(hwId);
+                }
+            } catch (err) {
+                console.error('Failed to fetch server package:', err);
+            }
+        };
+
+        fetchServerPackage();
+    }, [pteroIdentifier, pteroInternalId, pteroUuid]);
 
     // Startup state
     const [startupLoading, setStartupLoading] = useState(false);
@@ -524,6 +602,31 @@ export default () => {
             {/* Hostname Section */}
             <HostnameSection allocationData={allocationData} uuid={uuid} mutateAllocations={mutateAllocations} />
 
+            {/* Change Package Section */}
+            <TitledGreyBox title={'เปลี่ยน Package'} css={tw`mb-6 md:mb-10`}>
+                {serverPackage ? (
+                    <div>
+                        <div css={tw`mb-4`}>
+                            <p css={tw`text-sm text-neutral-300 mb-2`}>Package ปัจจุบัน:</p>
+                            <p css={tw`text-lg font-semibold text-white`}>{serverPackage.name}</p>
+                            <p css={tw`text-sm text-neutral-400 mt-1`}>
+                                vCPU: {serverPackage.cpu}% | RAM: {serverPackage.ram} GB | Disk: {serverPackage.storage} GB | ราคา: {serverPackage.price.toFixed(2)} THB/ชั่วโมง
+                            </p>
+                        </div>
+                        <div css={tw`flex justify-end`}>
+                            <Button onClick={() => setChangePackageModalVisible(true)} css={tw`bg-blue-600 hover:bg-blue-700`}>
+                                เปลี่ยน Package
+                            </Button>
+                        </div>
+                    </div>
+                ) : (
+                    <div css={tw`text-center py-4`}>
+                        <Spinner size={'small'} />
+                        <p css={tw`text-sm text-neutral-400 mt-2`}>กำลังโหลดข้อมูล package...</p>
+                    </div>
+                )}
+            </TitledGreyBox>
+
             {/* Network/Allocations Section */}
             <TitledGreyBox title={'Network Allocations'} css={tw`mb-6 md:mb-10`}>
                 {!allocationData ? (
@@ -551,6 +654,46 @@ export default () => {
                     </>
                 )}
             </TitledGreyBox>
+
+            {/* Change Package Modal – only when we have server + package; hardwareId can be null (modal shows error) */}
+            {serverPackage && springServerId && (
+                <ChangePackageModal
+                    visible={changePackageModalVisible}
+                    onClose={() => setChangePackageModalVisible(false)}
+                    serverId={springServerId}
+                    serverName={serverName}
+                    currentPackage={serverPackage}
+                    hardwareId={hardwareId}
+                    onSuccess={async () => {
+                        // Refresh server data
+                        try {
+                            const list = await getServersWithBilling();
+                            const match = list.find((s) => {
+                                if (pteroIdentifier && s.pterodactylIdentifier === pteroIdentifier) return true;
+                                if (pteroInternalId && s.pterodactylServerId === Number(pteroInternalId)) return true;
+                                if (pteroUuid && s.pterodactylUuid === pteroUuid) return true;
+                                return false;
+                            });
+                            
+                            if (match && match.package) {
+                                setServerPackage({
+                                    id: match.package.id,
+                                    name: match.package.name,
+                                    cpu: match.package.cpu,
+                                    ram: match.package.ram,
+                                    storage: match.package.storage,
+                                    price: Number(match.price_per_hour) || 0,
+                                });
+                            }
+                        } catch (err) {
+                            console.error('Failed to refresh server package:', err);
+                        }
+                        
+                        // Refresh page to update server limits
+                        window.location.reload();
+                    }}
+                />
+            )}
 
             {/* Schedules Section */}
             <TitledGreyBox title={'ตารางเวลาอัตโนมัติ'} css={tw`mb-6 md:mb-10`}>

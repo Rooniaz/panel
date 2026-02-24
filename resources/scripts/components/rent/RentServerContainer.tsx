@@ -3,8 +3,7 @@ import tw from 'twin.macro';
 import styled, { keyframes } from 'styled-components/macro';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faExclamationTriangle } from '@fortawesome/free-solid-svg-icons';
-import HardwareSelection from './HardwareSelection';
-import PackageSelection from './PackageSelection';
+import HardwareAndPackageSelection from './HardwareAndPackageSelection';
 import GameSelection from './GameSelection';
 import VersionSelection from './VersionSelection';
 import ServerSettings from './ServerSettings';
@@ -130,7 +129,7 @@ export interface Version {
     eggId?: number; // Egg ID from Spring Boot API
 }
 
-type Step = 'game' | 'version' | 'hardware' | 'package' | 'settings';
+type Step = 'game' | 'version' | 'hardwarePackage' | 'settings';
 
 export default () => {
     const [step, setStep] = useState<Step>('game');
@@ -147,16 +146,12 @@ export default () => {
 
     const handleVersionSelect = (version: Version) => {
         setSelectedVersion(version);
-        setStep('hardware');
+        setStep('hardwarePackage');
     };
 
-    const handleHardwareSelect = (hardware: Hardware) => {
-        setSelectedHardware(hardware);
-        setStep('package');
-    };
-
-    const handlePackageSelect = (pkg: Package) => {
+    const handleHardwareAndPackageSelect = (hardware: Hardware, pkg: Package) => {
         if (pkg.isFull) return;
+        setSelectedHardware(hardware);
         setSelectedPackage(pkg);
         setStep('settings');
     };
@@ -164,18 +159,16 @@ export default () => {
     const { addError, addFlash, clearFlashes } = useFlash();
 
     const handleBack = () => {
-        clearFlashes('server:create'); // Clear flash messages เมื่อย้อนกลับ
+        clearFlashes('server:create');
         if (step === 'version') {
             setStep('game');
             setSelectedVersion(null);
-        } else if (step === 'hardware') {
+        } else if (step === 'hardwarePackage') {
             setStep('version');
             setSelectedHardware(null);
-        } else if (step === 'package') {
-            setStep('hardware');
             setSelectedPackage(null);
         } else if (step === 'settings') {
-            setStep('package');
+            setStep('hardwarePackage');
         }
     };
 
@@ -380,15 +373,8 @@ export default () => {
                         onBack={handleBack}
                     />
                 )}
-                {step === 'hardware' && selectedGame && selectedVersion && (
-                    <HardwareSelection onSelect={handleHardwareSelect} onBack={handleBack} />
-                )}
-                {step === 'package' && selectedHardware && selectedGame && selectedVersion && (
-                    <PackageSelection
-                        hardwareId={selectedHardware.id}
-                        onSelect={handlePackageSelect}
-                        onBack={handleBack}
-                    />
+                {step === 'hardwarePackage' && selectedGame && selectedVersion && (
+                    <HardwareAndPackageSelection onSelect={handleHardwareAndPackageSelect} onBack={handleBack} />
                 )}
                 {step === 'settings' && selectedPackage && selectedGame && selectedVersion && (
                     <ServerSettings

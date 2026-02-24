@@ -50,12 +50,15 @@ export interface ServerWithBilling {
     edition: string;
     version: string;
     impl: string;
+    gameKey?: string;
     package?: {
         id: number;
         name: string;
         cpu: number;
         ram: number;
         storage: number;
+        /** UUID of the hardware (use for GET /category/hw/{hardwareId}) */
+        hardwareId?: string;
     };
     pterodactylIdentifier?: string; // short id (e.g. c447d8c5)
     pterodactylUuid?: string; // uuid
@@ -412,5 +415,66 @@ export const deleteServerByUuid = async (uuid: string): Promise<void> => {
         }
 
         throw new Error(error.response?.data?.message || error.message || 'Failed to delete server from Spring Boot.');
+    }
+};
+
+/**
+ * Change package for a server
+ */
+export interface ChangePackageResponse {
+    success: boolean;
+    message: string;
+    serverId: number;
+    serverName: string;
+    newPackageId: number;
+    newPackageName: string;
+    newPrice: number;
+    billingPeriod: string;
+}
+
+export interface ChangePackageError {
+    success: false;
+    error: string;
+    message: string;
+}
+
+export const changePackage = async (serverId: number, packageId: number): Promise<ChangePackageResponse> => {
+    const token = localStorage.getItem('auth_token');
+    if (!token) {
+        throw new Error('Authentication token not found. Please login again.');
+    }
+
+    try {
+        const response = await axios.put<ChangePackageResponse>(
+            `${SPRING_BOOT_API_URL}/api/servers/${serverId}/change-package?packageId=${packageId}`,
+            {},
+            {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                },
+            }
+        );
+
+        return response.data;
+    } catch (error: any) {
+        if (error.response?.status === 401 || error.response?.status === 403) {
+            localStorage.removeItem('auth_token');
+            window.location.href = '/auth/login';
+            throw new Error('Authentication failed. Please login again.');
+        }
+
+        if (error.response?.status === 402) {
+            const errorData = error.response.data as ChangePackageError;
+            throw new Error(errorData.message || 'เครดิตไม่พอสำหรับการเปลี่ยน package');
+        }
+
+        if (error.response?.status === 400 || error.response?.status === 404) {
+            const errorData = error.response.data as ChangePackageError;
+            throw new Error(errorData.message || 'ไม่สามารถเปลี่ยน package ได้');
+        }
+
+        const errorData = error.response?.data as ChangePackageError;
+        throw new Error(errorData?.message || error.message || 'เกิดข้อผิดพลาดในการเปลี่ยน package');
     }
 };

@@ -8,6 +8,27 @@ use Illuminate\Support\Collection;
 class UpdateServerBuildConfigurationRequest extends ServerWriteRequest
 {
     /**
+     * Normalize request data so that 'allocation' is always a scalar for validation.
+     * - If the client sends an array (e.g. [id]), use the first element to avoid "Array to string conversion".
+     * - If the client omits allocation (e.g. when only updating limits/resources), use the server's
+     *   current primary allocation so "The allocation field is required" is satisfied.
+     */
+    protected function prepareForValidation(): void
+    {
+        $allocation = $this->input('allocation');
+        if (is_array($allocation)) {
+            $allocation = $allocation[0] ?? null;
+            $this->merge(['allocation' => $allocation]);
+        }
+        if ($allocation === null || $allocation === '') {
+            $server = $this->route('server');
+            if ($server instanceof Server && $server->exists) {
+                $this->merge(['allocation' => $server->allocation_id]);
+            }
+        }
+    }
+
+    /**
      * Return the rules to validate this request against.
      */
     public function rules(): array

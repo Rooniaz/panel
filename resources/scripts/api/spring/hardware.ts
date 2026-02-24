@@ -40,6 +40,13 @@ export interface HardwareDetail {
 
 const SPRING_BOOT_API_URL = 'http://localhost:9000';
 
+/** UUID v4 pattern – must use real UUID for GET /category/hw/{hwId}, never empty or /category/hw/ */
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+export const isHardwareIdValid = (hwId: string | null | undefined): boolean => {
+    return typeof hwId === 'string' && hwId.length > 0 && UUID_REGEX.test(hwId.trim());
+};
+
 /**
  * Get all hardware categories
  */
@@ -56,10 +63,7 @@ export const getHardwareList = async (): Promise<Hardware[]> => {
                 Authorization: `Bearer ${token}`,
             },
         })
-        .then((response) => {
-            console.log('Hardware API response:', response.data);
-            return response.data;
-        })
+        .then((response) => response.data)
         .catch((error) => {
             console.error('Hardware API error:', {
                 status: error.response?.status,
@@ -86,7 +90,9 @@ export const getHardwareList = async (): Promise<Hardware[]> => {
 };
 
 /**
- * Get hardware details including packages
+ * Get hardware details including packages.
+ * Must be called with a valid UUID (e.g. from server.package.hardwareId).
+ * Do not call with empty string or without UUID – that would hit /category/hw/ and return 400.
  */
 export const getHardwareDetail = async (hwId: string): Promise<HardwareDetail> => {
     const token = localStorage.getItem('auth_token');
@@ -95,22 +101,54 @@ export const getHardwareDetail = async (hwId: string): Promise<HardwareDetail> =
         throw new Error('Authentication token not found. Please login again.');
     }
 
+    const trimmed = (hwId || '').trim();
+    if (!isHardwareIdValid(trimmed)) {
+        throw new Error(
+            'Hardware ID must be a valid UUID. Use server.package.hardwareId from GET /api/servers/{id}.'
+        );
+    }
+
     return axios
-        .get(`${SPRING_BOOT_API_URL}/category/hw/${hwId}`, {
+        .get(`${SPRING_BOOT_API_URL}/category/hw/${trimmed}`, {
             headers: {
                 Authorization: `Bearer ${token}`,
             },
         })
-        .then((response) => response.data)
+        .then((response) => {
+            // Check if response is valid JSON object
+            if (typeof response.data === 'string' || typeof response.data === 'number') {
+                console.error('[getHardwareDetail] Invalid response format:', response.data);
+                throw new Error(`Invalid hardware data format. Expected object, got: ${typeof response.data}`);
+            }
+            
+            if (!response.data || !response.data.categoryContainers) {
+                console.error('[getHardwareDetail] Missing categoryContainers:', response.data);
+                throw new Error('Hardware data is missing categoryContainers');
+            }
+            
+            return response.data;
+        })
         .catch((error) => {
+            console.error('[getHardwareDetail] Error fetching hardware detail:', {
+                hwId: trimmed,
+                error: error.message,
+                response: error.response?.data,
+                status: error.response?.status,
+            });
+            
             if (error.response) {
                 if (error.response.status === 403 || error.response.status === 401) {
                     // Token expired or invalid, remove it
                     localStorage.removeItem('auth_token');
                     throw new Error('Authentication failed. Please login again.');
                 }
+                
+                if (error.response.status === 404) {
+                    throw new Error(`Hardware with ID "${hwId}" not found`);
+                }
+                
                 throw new Error(
-                    error.response.data?.message || error.response.data?.error || 'Failed to fetch hardware details'
+                    error.response.data?.message || error.response.data?.error || `Failed to fetch hardware details (${error.response.status})`
                 );
             }
             throw new Error(error.message || 'Network error occurred');
