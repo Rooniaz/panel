@@ -513,10 +513,10 @@ export default ({ selectedGame, onSelect, onBack }: Props) => {
     const versionsPerPage = 6;
 
     useEffect(() => {
-        // Animate progress from 20% to 40% (Step 2 of 5)
-        setProgress(20);
+        // 4 ขั้น: step 2 = เลือกเวอร์ชัน
+        setProgress(25);
         const timer = setTimeout(() => {
-            setProgress(40);
+            setProgress(50);
         }, 100);
         return () => clearTimeout(timer);
     }, []);
@@ -613,17 +613,11 @@ export default ({ selectedGame, onSelect, onBack }: Props) => {
                         <StepCircle $active={false} $completed={false}>
                             3
                         </StepCircle>
-                        <StepLabel $active={false}>เลือกฮาร์ดแวร์</StepLabel>
+                        <StepLabel $active={false}>เลือกฮาร์ดแวร์ & แพ็กเกจ</StepLabel>
                     </Step>
                     <Step $active={false} $completed={false}>
                         <StepCircle $active={false} $completed={false}>
                             4
-                        </StepCircle>
-                        <StepLabel $active={false}>เลือกแพ็กเกจ</StepLabel>
-                    </Step>
-                    <Step $active={false} $completed={false}>
-                        <StepCircle $active={false} $completed={false}>
-                            5
                         </StepCircle>
                         <StepLabel $active={false}>ตั้งค่าเซิร์ฟเวอร์</StepLabel>
                     </Step>

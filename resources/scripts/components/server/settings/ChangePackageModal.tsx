@@ -7,6 +7,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCheckCircle, faTimesCircle, faExclamationTriangle, faSpinner, faChevronRight, faChevronDown, faServer } from '@fortawesome/free-solid-svg-icons';
 import { changePackage } from '@/api/spring/servers';
 import { getHardwareList, getHardwareDetail, PackageContainer, isHardwareIdValid, Hardware } from '@/api/spring/hardware';
+import { getPackagesAvailability } from '@/api/spring/packageAvailability';
 import getUserProfile from '@/api/spring/userProfile';
 
 const ModalContent = styled.div`
@@ -239,7 +240,8 @@ function parsePackagesFromDetail(categoryContainers: { [k: string]: PackageConta
             const ram = parseNum(pkg.ram);
             const storage = parseNum(pkg.storage);
             const hasContainers = pkg.containers && pkg.containers.length > 0;
-            const isFull = !hasContainers;
+            const apiUnavailable = pkg.isAvailable === false || pkg.status === 'unavailable';
+            const isFull = apiUnavailable || !hasContainers;
             list.push({
                 id: packageId,
                 name: pkg.name || '',
@@ -286,9 +288,20 @@ export default ({ visible, onClose, serverId, serverName, currentPackage, hardwa
         if (!isHardwareIdValid(hwId) || packagesByHwId[hwId]) return;
         setLoadingHwId(hwId);
         setErrorHwId((prev) => ({ ...prev, [hwId]: '' }));
-        getHardwareDetail(hwId)
-            .then((detail) => {
-                const list = parsePackagesFromDetail(detail.categoryContainers || {});
+        Promise.all([getHardwareDetail(hwId), getPackagesAvailability().catch(() => null)])
+            .then(([detail, availability]) => {
+                let list = parsePackagesFromDetail(detail.categoryContainers || {});
+                if (availability?.packages?.length) {
+                    const byId = new Map(availability.packages.map((p) => [p.packageId, p]));
+                    const byName = new Map(availability.packages.map((p) => [p.packageName, p]));
+                    list = list.map((p) => {
+                        const avail = byId.get(p.id) ?? byName.get(p.name);
+                        if (avail && (avail.isAvailable === false || avail.status === 'unavailable')) {
+                            return { ...p, isFull: true };
+                        }
+                        return p;
+                    });
+                }
                 setPackagesByHwId((prev) => ({ ...prev, [hwId]: list }));
             })
             .catch((err: any) => {

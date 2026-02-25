@@ -15,7 +15,7 @@ import {
     faSpinner,
 } from '@fortawesome/free-solid-svg-icons';
 import { getHardwareList, getHardwareDetail, Hardware, PackageContainer, isHardwareIdValid } from '@/api/spring/hardware';
-import { getAvailabilityBadge } from '@/api/spring/packageAvailability';
+import { getAvailabilityBadge, getPackagesAvailability } from '@/api/spring/packageAvailability';
 import Spinner from '@/components/elements/Spinner';
 import { Package } from './RentServerContainer';
 
@@ -28,6 +28,16 @@ const gradientShift = keyframes`
 const pulse = keyframes`
     0%, 100% { opacity: 1; transform: scale(1); }
     50% { opacity: 0.8; transform: scale(1.02); }
+`;
+
+const bounce = keyframes`
+    0%, 100% { transform: translateY(-50%); }
+    50% { transform: translateY(calc(-50% - 8px)); }
+`;
+
+const progressPulse = keyframes`
+    0%, 100% { opacity: 1; transform: scaleY(1); }
+    50% { opacity: 0.8; transform: scaleY(1.05); }
 `;
 
 const ProgressSection = styled.div`
@@ -68,13 +78,36 @@ const StepLabel = styled.span<{ $active: boolean }>`
 const ProgressBar = styled.div`
     ${tw`w-full h-3 rounded-full overflow-visible relative`};
     background: rgba(30, 41, 59, 0.6);
+    border: 1px solid rgba(56, 189, 248, 0.2);
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
+    position: relative;
 `;
 
 const ProgressFill = styled.div<{ $progress: number }>`
-    ${tw`h-full`};
-    background: linear-gradient(90deg, #3b82f6, #6366f1);
+    ${tw`h-full relative overflow-visible`};
+    background: linear-gradient(90deg, #3b82f6, #6366f1, #8b5cf6);
+    background-size: 200% 100%;
+    animation: ${gradientShift} 3s ease infinite, ${progressPulse} 2s ease-in-out infinite;
     width: ${(p) => p.$progress}%;
-    transition: width 0.5s ease;
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.6);
+    transition: width 1.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+    position: relative;
+`;
+
+const ProgressIcon = styled.div<{ $progress: number }>`
+    ${tw`absolute w-6 h-6 overflow-hidden z-20`};
+    top: 50%;
+    transform: translateY(-50%);
+    left: ${(p) => p.$progress}%;
+    margin-left: -12px;
+    transition: left 1.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+    animation: ${bounce} 1.5s ease-in-out infinite;
+    img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        image-rendering: pixelated;
+    }
 `;
 
 const Container = styled.div`
@@ -192,6 +225,12 @@ const ErrorPackages = styled.div`
 
 const SectionTitle = styled.h2`
     ${tw`text-xl font-bold text-white mb-4 flex items-center gap-2`};
+    svg {
+        color: rgb(56, 189, 248);
+        width: 1.25rem;
+        height: 1.25rem;
+        flex-shrink: 0;
+    }
 `;
 
 const SpinnerWrap = styled.div`
@@ -221,8 +260,12 @@ function parsePackagesFromDetail(hardwareId: string, categoryContainers: { [k: s
             const ram = parseNum(pkg.ram);
             const storage = parseNum(pkg.storage);
             const hasContainers = pkg.containers && pkg.containers.length > 0;
-            const status = hasContainers ? 'available' : 'unavailable';
-            const isFull = !hasContainers;
+            // ใช้ isAvailable/status จาก API ถ้ามี (backend คำนวณจากความจุ node จริง)
+            const apiUnavailable = pkg.isAvailable === false || pkg.status === 'unavailable';
+            const status: 'available' | 'limited' | 'unavailable' = apiUnavailable
+                ? 'unavailable'
+                : pkg.status || (hasContainers ? 'available' : 'unavailable');
+            const isFull = apiUnavailable || !hasContainers;
             const isRecommended = (pkg.name || '').toLowerCase().includes('diamond');
 
             list.push({
@@ -237,7 +280,7 @@ function parsePackagesFromDetail(hardwareId: string, categoryContainers: { [k: s
                 isRecommended,
                 capacity: pkg.capacity,
                 rentedCount: pkg.rentedCount,
-                availableCount: hasContainers ? (pkg.containers?.length ?? 0) : 0,
+                availableCount: hasContainers && !apiUnavailable ? (pkg.containers?.length ?? 0) : 0,
                 status,
             });
         });
@@ -261,8 +304,9 @@ export default ({ onSelect, onBack }: Props) => {
     const [progress, setProgress] = useState(50);
 
     useEffect(() => {
+        // 4 ขั้น: step 3 = เลือกฮาร์ดแวร์ & แพ็กเกจ (75%)
         setProgress(50);
-        const t = setTimeout(() => setProgress(80), 100);
+        const t = setTimeout(() => setProgress(75), 100);
         return () => clearTimeout(t);
     }, []);
 
@@ -292,9 +336,24 @@ export default ({ onSelect, onBack }: Props) => {
         setLoadingHwId(hwId);
         setErrorHwId((prev) => ({ ...prev, [hwId]: '' }));
 
-        getHardwareDetail(hwId)
-            .then((detail) => {
-                const list = parsePackagesFromDetail(hwId, detail.categoryContainers || {});
+        Promise.all([getHardwareDetail(hwId), getPackagesAvailability().catch(() => null)])
+            .then(([detail, availability]) => {
+                let list = parsePackagesFromDetail(hwId, detail.categoryContainers || {});
+                // ถ้ามี API ความพร้อม ใช้ override สถานะเต็มตามความจุ node จริง
+                if (availability?.packages?.length) {
+                    const byId = new Map(availability.packages.map((p) => [p.packageId, p]));
+                    const byName = new Map(availability.packages.map((p) => [p.packageName, p]));
+                    list = list.map((p) => {
+                        const avail = byId.get(p.packageId) ?? byName.get(p.name);
+                        if (avail && (avail.isAvailable === false || avail.status === 'unavailable')) {
+                            return { ...p, isFull: true, status: 'unavailable' as const };
+                        }
+                        if (avail && avail.status === 'limited') {
+                            return { ...p, status: 'limited' as const, isFull: false };
+                        }
+                        return p;
+                    });
+                }
                 setPackagesByHwId((prev) => ({ ...prev, [hwId]: list }));
             })
             .catch((err: any) => {
@@ -389,6 +448,9 @@ export default ({ onSelect, onBack }: Props) => {
                 </ProgressSteps>
                 <ProgressBar>
                     <ProgressFill $progress={progress} />
+                    <ProgressIcon $progress={progress}>
+                        <img src="/Grass-Block.png" alt="Progress" />
+                    </ProgressIcon>
                 </ProgressBar>
             </ProgressSection>
 

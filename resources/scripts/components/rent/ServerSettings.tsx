@@ -606,8 +606,8 @@ export default ({
     const [progress, setProgress] = React.useState(80);
 
     React.useEffect(() => {
-        // Animate progress from 80% to 100% (Step 5 of 5)
-        setProgress(80);
+        // 4 ขั้น: step 4 = ตั้งค่าเซิร์ฟเวอร์
+        setProgress(75);
         const timer = setTimeout(() => {
             setProgress(100);
         }, 100);
@@ -665,17 +665,11 @@ export default ({
                         <StepCircle $active={false} $completed={true}>
                             <FontAwesomeIcon icon={faCheck} />
                         </StepCircle>
-                        <StepLabel $active={false}>เลือกฮาร์ดแวร์</StepLabel>
-                    </Step>
-                    <Step $active={false} $completed={true}>
-                        <StepCircle $active={false} $completed={true}>
-                            <FontAwesomeIcon icon={faCheck} />
-                        </StepCircle>
-                        <StepLabel $active={false}>เลือกแพ็กเกจ</StepLabel>
+                        <StepLabel $active={false}>เลือกฮาร์ดแวร์ & แพ็กเกจ</StepLabel>
                     </Step>
                     <Step $active={true} $completed={false}>
                         <StepCircle $active={true} $completed={false}>
-                            5
+                            4
                         </StepCircle>
                         <StepLabel $active={true}>ตั้งค่าเซิร์ฟเวอร์</StepLabel>
                     </Step>

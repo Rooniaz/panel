@@ -418,10 +418,10 @@ export default ({ onSelect, onBack }: Props) => {
     const [progress, setProgress] = React.useState(0);
 
     React.useEffect(() => {
-        // Animate progress from 0 to 20% (Step 1 of 5)
+        // 4 ขั้น: เลือกเกม → เลือกเวอร์ชัน → เลือกฮาร์ดแวร์ & แพ็กเกจ → ตั้งค่าเซิร์ฟเวอร์
         setProgress(0);
         const timer = setTimeout(() => {
-            setProgress(20);
+            setProgress(25);
         }, 100);
         return () => clearTimeout(timer);
     }, []);
@@ -463,17 +463,11 @@ export default ({ onSelect, onBack }: Props) => {
                         <StepCircle $active={false} $completed={false}>
                             3
                         </StepCircle>
-                        <StepLabel $active={false}>เลือกฮาร์ดแวร์</StepLabel>
+                        <StepLabel $active={false}>เลือกฮาร์ดแวร์ & แพ็กเกจ</StepLabel>
                     </Step>
                     <Step $active={false} $completed={false}>
                         <StepCircle $active={false} $completed={false}>
                             4
-                        </StepCircle>
-                        <StepLabel $active={false}>เลือกแพ็กเกจ</StepLabel>
-                    </Step>
-                    <Step $active={false} $completed={false}>
-                        <StepCircle $active={false} $completed={false}>
-                            5
                         </StepCircle>
                         <StepLabel $active={false}>ตั้งค่าเซิร์ฟเวอร์</StepLabel>
                     </Step>
