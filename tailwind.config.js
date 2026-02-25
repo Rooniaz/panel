@@ -20,7 +20,9 @@ module.exports = {
     theme: {
         extend: {
             fontFamily: {
-                header: ['"IBM Plex Sans"', '"Roboto"', 'system-ui', 'sans-serif'],
+                sans: ['"Inter"', '"Inter Variable"', '"Noto Sans Thai"', 'system-ui', 'sans-serif'],
+                header: ['"Inter"', '"Inter Variable"', '"Noto Sans Thai"', 'system-ui', 'sans-serif'],
+                mono: ['"JetBrains Mono"', '"Fira Code"', 'monospace'],
             },
             colors: {
                 black: '#131a20',
