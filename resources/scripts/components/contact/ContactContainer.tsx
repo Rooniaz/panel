@@ -5,7 +5,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faHeadset } from '@fortawesome/free-solid-svg-icons';
 
 const Container = styled.div`
-    ${tw`flex items-center justify-center relative lg:ml-64 lg:pt-32 min-h-screen`}
+    ${tw`flex items-center justify-center relative lg:ml-64 lg:pt-10 min-h-screen`}
     background: radial-gradient(circle at 20% 30%, rgba(59, 130, 246, 0.15) 0%, transparent 50%),
         radial-gradient(circle at 80% 70%, rgba(139, 92, 246, 0.15) 0%, transparent 50%);
 `;

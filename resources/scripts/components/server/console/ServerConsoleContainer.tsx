@@ -22,7 +22,7 @@ import {
     CashIcon,
 } from '@heroicons/react/solid';
 import Features from '@feature/Features';
-import { getServersWithBilling, ServerBilling, ServerWithBilling } from '@/api/spring/servers';
+import { getServerBillingByPterodactylId, getServersWithBilling, ServerBilling, ServerWithBilling } from '@/api/spring/servers';
 import Toast from '@/components/topup/Toast';
 import SuspendedMessage from '@/components/server/SuspendedMessage';
 
@@ -165,13 +165,28 @@ const ServerConsoleContainer = () => {
             setLoadingBilling(true);
             try {
                 const list: ServerWithBilling[] = await getServersWithBilling();
+                const normalizedIdentifier = String(pteroIdentifier || '').trim().toLowerCase();
+                const normalizedUuid = String(pteroUuid || '').trim().toLowerCase();
+                const normalizedInternalId = Number(pteroInternalId);
+
                 const match = list.find((s) => {
-                    if (pteroIdentifier && s.pterodactylIdentifier === pteroIdentifier) return true;
-                    if (pteroInternalId && s.pterodactylServerId === Number(pteroInternalId)) return true;
-                    if (pteroUuid && s.pterodactylUuid === pteroUuid) return true;
+                    const springIdentifier = String(s.pterodactylIdentifier || '').trim().toLowerCase();
+                    const springUuid = String(s.pterodactylUuid || '').trim().toLowerCase();
+                    if (normalizedIdentifier && springIdentifier === normalizedIdentifier) return true;
+                    if (Number.isFinite(normalizedInternalId) && s.pterodactylServerId === normalizedInternalId) return true;
+                    if (normalizedUuid && springUuid === normalizedUuid) return true;
                     return false;
                 });
                 if (!match) {
+                    // Fallback: บางครั้ง API list ไม่ map ฟิลด์ identifier/uuid ตรงกัน ให้ดึง billing ตาม pterodactylId โดยตรง
+                    if (Number.isFinite(normalizedInternalId)) {
+                        const fallbackBilling = await getServerBillingByPterodactylId(normalizedInternalId);
+                        if (fallbackBilling) {
+                            setBilling(fallbackBilling);
+                            setBillingError(null);
+                            return;
+                        }
+                    }
                     setBillingError('ไม่พบข้อมูล billing');
                     setBilling(null);
                     return;

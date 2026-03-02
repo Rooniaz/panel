@@ -480,20 +480,15 @@ export default () => {
         );
     };
 
-    // Delete Server Button Component
+    // ปุ่มเดียว: ยิง 2 อย่าง — (1) ลบที่ Spring Boot (2) ลบที่ Panel
     const DeleteServerButton = () => {
         const [modalVisible, setModalVisible] = useState(false);
         const [isDeleting, setIsDeleting] = useState(false);
         const { addFlash, clearFlashes } = useFlash();
 
-        const handleDelete = (password: string) => {
-            setIsDeleting(true);
-            clearFlashes('settings');
-
+        const handleDelete = () => {
             const token = localStorage.getItem('auth_token');
-
             if (!token) {
-                setIsDeleting(false);
                 addFlash({
                     key: 'settings',
                     type: 'error',
@@ -501,20 +496,24 @@ export default () => {
                 });
                 return;
             }
+            setIsDeleting(true);
+            clearFlashes('settings');
 
-            http.delete(`/api/servers/${uuid}`, {
-                baseURL: 'http://localhost:9000',
-                withCredentials: true,
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
-                data: { password },
-            })
+            const deleteSpringBoot = () =>
+                http.delete(`/api/servers/${uuid}`, {
+                    baseURL: 'http://localhost:9000',
+                    withCredentials: true,
+                    headers: { Authorization: `Bearer ${token}` },
+                });
+            const deletePanel = () =>
+                http.delete(`/api/client/servers/${uuid}`, { withCredentials: true });
+
+            Promise.all([deleteSpringBoot(), deletePanel()])
                 .then(() => {
                     addFlash({
                         key: 'settings',
                         type: 'success',
-                        message: 'Server has been deleted successfully from both Panel and Spring Boot.',
+                        message: 'ลบเซิร์ฟเวอร์เรียบร้อย จากทั้ง Spring Boot และ Panel',
                     });
                     setTimeout(() => {
                         window.location.href = '/';
@@ -538,40 +537,20 @@ export default () => {
         return (
             <>
                 <Dialog open={modalVisible} onClose={() => setModalVisible(false)} title='ยืนยันการลบเซิร์ฟเวอร์'>
-                    <Formik
-                        initialValues={{ password: '' }}
-                        onSubmit={(values) => {
-                            handleDelete(values.password);
-                        }}
-                    >
-                        {({ submitForm }) => (
-                            <Form>
-                                <p css={tw`mb-4 text-sm text-neutral-300`}>
-                                    เซิร์ฟเวอร์ของคุณจะถูกลบถาวรจากทั้ง Panel และ Spring Boot system การกระทำนี้ไม่สามารถย้อนกลับได้
-                                </p>
-                                <p css={tw`mb-4 text-sm text-red-400 font-medium`}>
-                                    <strong>คำเตือน:</strong> ข้อมูลเซิร์ฟเวอร์ ไฟล์ ฐานข้อมูล และแบ็คอัพทั้งหมดจะถูกลบถาวร
-                                </p>
-                                <div css={tw`mb-4`}>
-                                    <Label>รหัสผ่าน</Label>
-                                    <Field
-                                        id='delete_password'
-                                        name='password'
-                                        type='password'
-                                        placeholder='กรอกรหัสผ่านของคุณเพื่อยืนยัน'
-                                    />
-                                </div>
-                                <Dialog.Footer>
-                                    <Button.Text onClick={() => setModalVisible(false)} disabled={isDeleting}>
-                                        ยกเลิก
-                                    </Button.Text>
-                                    <Button.Danger onClick={submitForm} disabled={isDeleting}>
-                                        {isDeleting ? 'กำลังลบ...' : 'ยืนยันการลบ'}
-                                    </Button.Danger>
-                                </Dialog.Footer>
-                            </Form>
-                        )}
-                    </Formik>
+                    <p css={tw`mb-4 text-sm text-neutral-300`}>
+                        เซิร์ฟเวอร์จะถูกลบถาวรจากทั้ง Spring Boot และ Panel การกระทำนี้ไม่สามารถย้อนกลับได้
+                    </p>
+                    <p css={tw`mb-4 text-sm text-red-400 font-medium`}>
+                        <strong>คำเตือน:</strong> ข้อมูลเซิร์ฟเวอร์ ไฟล์ ฐานข้อมูล และแบ็คอัพทั้งหมดจะถูกลบถาวร
+                    </p>
+                    <Dialog.Footer>
+                        <Button.Text onClick={() => setModalVisible(false)} disabled={isDeleting}>
+                            ยกเลิก
+                        </Button.Text>
+                        <Button.Danger onClick={handleDelete} disabled={isDeleting}>
+                            {isDeleting ? 'กำลังลบ...' : 'ยืนยันการลบ'}
+                        </Button.Danger>
+                    </Dialog.Footer>
                 </Dialog>
                 <Button.Danger
                     variant={Button.Variants.Secondary}

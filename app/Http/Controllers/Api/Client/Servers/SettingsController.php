@@ -98,7 +98,7 @@ class SettingsController extends ClientApiController
     }
 
     /**
-     * Delete a server from the panel and notify Spring Boot.
+     * Delete a server from the panel (no password when called from frontend alongside Spring Boot delete).
      *
      * @throws \Throwable
      * @throws \Pterodactyl\Exceptions\DisplayException

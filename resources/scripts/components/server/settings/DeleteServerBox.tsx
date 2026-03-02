@@ -8,14 +8,12 @@ import { httpErrorToHuman } from '@/api/http';
 import tw from 'twin.macro';
 import { Button } from '@/components/elements/button/index';
 import { Dialog } from '@/components/elements/dialog';
-import { useHistory } from 'react-router-dom';
 
 export default () => {
     const uuid = ServerContext.useStoreState((state) => state.server.data!.uuid);
     const [modalVisible, setModalVisible] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
     const { addFlash, clearFlashes } = useStoreActions((actions: Actions<ApplicationStore>) => actions.flashes);
-    const history = useHistory();
 
     const handleDelete = () => {
         console.log('[DeleteServer] Starting deletion...');

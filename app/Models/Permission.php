@@ -62,6 +62,7 @@ class Permission extends Model
 
     public const ACTION_SETTINGS_RENAME = 'settings.rename';
     public const ACTION_SETTINGS_REINSTALL = 'settings.reinstall';
+    public const ACTION_SETTINGS_DELETE = 'settings.delete';
 
     public const ACTION_ACTIVITY_READ = 'activity.read';
 
@@ -197,6 +198,7 @@ class Permission extends Model
             'keys' => [
                 'rename' => 'Allows a user to rename this server and change the description of it.',
                 'reinstall' => 'Allows a user to trigger a reinstall of this server.',
+                'delete' => 'Allows a user to permanently delete this server.',
             ],
         ],
 
