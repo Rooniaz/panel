@@ -6,6 +6,8 @@ import { useStoreState } from 'easy-peasy';
 import { Formik, FormikHelpers, Field as FormikField, FieldProps } from 'formik';
 import { object, string } from 'yup';
 import Input from '@/components/elements/Input';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
 import tw from 'twin.macro';
 import styled from 'styled-components/macro';
 import Button from '@/components/elements/Button';
@@ -167,6 +169,8 @@ const LoginContainer = ({ history }: RouteComponentProps) => {
             });
     };
 
+    const [showPassword, setShowPassword] = useState(false);
+
     return (
         <Formik
             onSubmit={onSubmit}
@@ -199,13 +203,24 @@ const LoginContainer = ({ history }: RouteComponentProps) => {
                         <FormikField name='password'>
                             {({ field, form: { errors, touched } }: FieldProps) => (
                                 <div>
-                                    <StyledInput
-                                        {...field}
-                                        type='password'
-                                        placeholder={'Password'}
-                                        disabled={isSubmitting}
-                                        hasError={!!(touched.password && errors.password)}
-                                    />
+                                    <div css={tw`relative`}>
+                                        <StyledInput
+                                            {...field}
+                                            type={showPassword ? 'text' : 'password'}
+                                            placeholder={'Password'}
+                                            disabled={isSubmitting}
+                                            hasError={!!(touched.password && errors.password)}
+                                            style={{ paddingRight: '2.75rem' }}
+                                        />
+                                        <button
+                                            type='button'
+                                            aria-label={showPassword ? 'ซ่อนรหัสผ่าน' : 'แสดงรหัสผ่าน'}
+                                            onClick={() => setShowPassword(!showPassword)}
+                                            css={tw`absolute inset-y-0 right-0 pr-3 flex items-center justify-center text-neutral-400 hover:text-neutral-200 transition-colors focus:outline-none`}
+                                        >
+                                            <FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye} css={tw`w-5 h-5`} />
+                                        </button>
+                                    </div>
                                     {touched.password && errors.password && (
                                         <p css={tw`text-xs text-red-400 mt-2 ml-1`}>{errors.password}</p>
                                     )}
