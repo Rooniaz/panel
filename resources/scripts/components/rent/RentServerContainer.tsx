@@ -183,6 +183,7 @@ export default () => {
     const history = useHistory();
     const [isCreating, setIsCreating] = useState(false);
     const [creationProgress, setCreationProgress] = useState<string>('');
+    const [creationComplete, setCreationComplete] = useState(false);
     const pollingRef = useRef<{ stop: () => void } | null>(null);
     const isMountedRef = useRef(true);
 
@@ -320,25 +321,24 @@ export default () => {
 
             setCreationProgress('Server ถูกสร้างแล้ว กำลังติดตั้ง...');
 
-            // Skip polling if Spring Boot API doesn't have the endpoint
-            // Just show success and redirect immediately
             if (!isMountedRef.current) {
                 return;
             }
 
             setIsCreating(false);
+            setCreationComplete(true);
             addFlash({
                 key: 'server:create',
                 type: 'success',
                 title: 'สำเร็จ',
                 message: 'Server ถูกสร้างแล้ว กรุณาตรวจสอบสถานะในหน้า "เซิร์ฟเวอร์ของฉัน"',
             });
-            // Redirect to server list page immediately
+            // แสดงหน้า "สร้างเซิฟเสร็จ" สักครู่แล้วค่อย redirect
             setTimeout(() => {
                 if (isMountedRef.current) {
                     history.push('/servers');
                 }
-            }, 1500);
+            }, 2800);
         } catch (error: any) {
             setIsCreating(false);
             setCreationProgress('');
@@ -387,6 +387,7 @@ export default () => {
                         onBack={handleBack}
                         isCreating={isCreating}
                         creationProgress={creationProgress}
+                        creationComplete={creationComplete}
                     />
                 )}
             </ContentWrapper>

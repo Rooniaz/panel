@@ -60,7 +60,7 @@ const ErrorText = styled.div`
 `;
 
 const ButtonGroup = styled.div`
-    ${tw`flex items-center gap-3`}
+    ${tw`flex items-center gap-3 mt-6`}
 `;
 
 const StyledButton = styled(Button)`

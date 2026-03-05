@@ -149,7 +149,7 @@ const RegisterContainer = ({ history: _history }: RouteComponentProps) => {
             })}
         >
             {({ isSubmitting, setSubmitting, submitForm }) => (
-                <LoginFormContainer title={'MineLan Portal'}>
+                <LoginFormContainer title={'MC Hosting'}>
                     <div css={tw`mb-6 text-center`}>
                         <p css={tw`text-neutral-300 text-lg`}>สมัครสมาชิก</p>
                     </div>

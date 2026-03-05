@@ -1,4 +1,5 @@
 import React from 'react';
+import { createPortal } from 'react-dom';
 import tw from 'twin.macro';
 import styled, { keyframes, css } from 'styled-components/macro';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -40,6 +41,24 @@ const gradientShift = keyframes`
     0% { background-position: 0% 50%; }
     50% { background-position: 100% 50%; }
     100% { background-position: 0% 50%; }
+`;
+
+const successScaleIn = keyframes`
+    0% { opacity: 0; transform: scale(0.5); }
+    50% { transform: scale(1.08); }
+    100% { opacity: 1; transform: scale(1); }
+`;
+
+const successIconPop = keyframes`
+    0% { opacity: 0; transform: scale(0) rotate(-45deg); }
+    50% { transform: scale(1.2) rotate(5deg); }
+    100% { opacity: 1; transform: scale(1) rotate(0deg); }
+`;
+
+const successShine = keyframes`
+    0% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.6); }
+    70% { box-shadow: 0 0 0 20px rgba(34, 197, 94, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
 `;
 
 const Container = styled.div`
@@ -491,16 +510,19 @@ const NavButton = styled.button<{ $primary?: boolean; $disabled?: boolean }>`
     }
 `;
 
+// เลเยอร์เต็มจอคลุมทั้งหน้าเว็บ + navbar พร้อมเบลอพื้นหลัง (เรนเดอร์ผ่าน Portal ที่ body)
 const LoadingOverlay = styled.div`
-    ${tw`fixed inset-0 z-[9999] flex items-center justify-center`}
-    background: linear-gradient(135deg, rgba(12, 18, 38, 0.98), rgba(15, 23, 42, 0.98));
-    backdrop-filter: blur(20px);
+    ${tw`fixed inset-0 flex items-center justify-center`}
+    z-index: 2147483647;
+    background: rgba(15, 23, 42, 0.75);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
 
     &::before {
         content: '';
         position: absolute;
         inset: 0;
-        background: radial-gradient(circle at 50% 50%, rgba(59, 130, 246, 0.15) 0%, transparent 70%);
+        background: radial-gradient(circle at 50% 50%, rgba(59, 130, 246, 0.12) 0%, transparent 70%);
         animation: ${pulse} 3s ease-in-out infinite;
     }
 `;
@@ -579,6 +601,49 @@ const ProgressSubtext = styled.p`
     ${tw`text-center text-gray-400 text-sm mt-2 relative z-10`}
 `;
 
+// หน้า "สร้างเซิฟเสร็จ" กลางจอ พร้อม effect animation
+const SuccessOverlay = styled.div`
+    ${tw`fixed inset-0 flex items-center justify-center`}
+    z-index: 2147483647;
+    background: rgba(15, 23, 42, 0.82);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    &::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(circle at 50% 50%, rgba(34, 197, 94, 0.15) 0%, transparent 60%);
+        pointer-events: none;
+    }
+`;
+
+const SuccessCard = styled.div`
+    ${tw`relative rounded-3xl p-12 max-w-md w-full mx-4 border text-center`}
+    background: linear-gradient(165deg, rgba(15, 23, 42, 0.98), rgba(30, 41, 59, 0.95));
+    border-color: rgba(34, 197, 94, 0.5);
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(34, 197, 94, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    animation: ${successScaleIn} 0.5s ease-out forwards;
+`;
+
+const SuccessIconWrap = styled.div`
+    ${tw`w-20 h-20 rounded-full mx-auto mb-6 flex items-center justify-center relative`}
+    background: linear-gradient(135deg, rgba(34, 197, 94, 0.25), rgba(22, 163, 74, 0.35));
+    border: 3px solid rgba(34, 197, 94, 0.6);
+    animation: ${successIconPop} 0.6s ease-out 0.2s both, ${successShine} 1.2s ease-out 0.8s 2;
+    color: #22c55e;
+    font-size: 2.5rem;
+`;
+
+const SuccessTitle = styled.p`
+    ${tw`text-xl sm:text-2xl font-bold text-white mb-2 relative z-10`}
+    text-shadow: 0 0 20px rgba(34, 197, 94, 0.4);
+`;
+
+const SuccessSubtext = styled.p`
+    ${tw`text-sm text-gray-400 mt-1 relative z-10`}
+`;
+
 interface Props {
     selectedPackage: Package;
     selectedGame: GameType;
@@ -589,6 +654,7 @@ interface Props {
     onBack: () => void;
     isCreating?: boolean;
     creationProgress?: string;
+    creationComplete?: boolean;
 }
 
 export default ({
@@ -601,6 +667,7 @@ export default ({
     onBack,
     isCreating = false,
     creationProgress = '',
+    creationComplete = false,
 }: Props) => {
     const [backupEnabled, setBackupEnabled] = React.useState(true);
     const [progress, setProgress] = React.useState(80);
@@ -750,15 +817,30 @@ export default ({
                 </NavButton>
             </NavigationButtons>
 
-            {isCreating && (
-                <LoadingOverlay>
-                    <LoadingCard>
-                        <LoadingSpinner />
-                        <ProgressText>{creationProgress || 'กำลังสร้าง Server...'}</ProgressText>
-                        <ProgressSubtext>กรุณารอสักครู่ ระบบกำลังดำเนินการ</ProgressSubtext>
-                    </LoadingCard>
-                </LoadingOverlay>
-            )}
+            {isCreating &&
+                createPortal(
+                    <LoadingOverlay>
+                        <LoadingCard>
+                            <LoadingSpinner />
+                            <ProgressText>{creationProgress || 'กำลังสร้าง Server...'}</ProgressText>
+                            <ProgressSubtext>กรุณารอสักครู่ ระบบกำลังดำเนินการ</ProgressSubtext>
+                        </LoadingCard>
+                    </LoadingOverlay>,
+                    document.body
+                )}
+            {creationComplete &&
+                createPortal(
+                    <SuccessOverlay>
+                        <SuccessCard>
+                            <SuccessIconWrap>
+                                <FontAwesomeIcon icon={faCheck} />
+                            </SuccessIconWrap>
+                            <SuccessTitle>สร้างเซิร์ฟเวอร์เสร็จแล้ว</SuccessTitle>
+                            <SuccessSubtext>กำลังพาคุณไปหน้ารายการเซิร์ฟเวอร์...</SuccessSubtext>
+                        </SuccessCard>
+                    </SuccessOverlay>,
+                    document.body
+                )}
         </Container>
     );
 };
